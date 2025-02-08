@@ -11,6 +11,12 @@ interface Trade {
   time: string;
 }
 
+interface Balance {
+  walletBalance: number;
+  availableMargin: number;
+  lockedBalance: number;
+}
+
 const mockTrades: Trade[] = Array(5).fill(null).map((_, i) => ({
   id: i,
   type: Math.random() > 0.5 ? "buy" : "sell",
@@ -20,9 +26,35 @@ const mockTrades: Trade[] = Array(5).fill(null).map((_, i) => ({
   time: new Date(Date.now() - i * 60000).toLocaleTimeString()
 }));
 
+const mockBalances = {
+  base: {
+    walletBalance: 1.2345,
+    availableMargin: 0.9876,
+    lockedBalance: 0.2469
+  },
+  quote: {
+    walletBalance: 50000,
+    availableMargin: 42000,
+    lockedBalance: 8000
+  }
+};
+
 const ActivityPanel = () => {
-  const [activeTab, setActiveTab] = useState<"trades" | "orders">("trades");
+  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances">("trades");
   const [trades] = useState<Trade[]>(mockTrades);
+
+  const BalanceRow = ({ label, base, quote }: { label: string; base: number; quote: number }) => (
+    <div className="grid grid-cols-2 gap-4 py-2 border-b last:border-0">
+      <div className="space-y-1">
+        <span className="text-sm text-neutral">{label} (BTC)</span>
+        <p className="font-medium">{base.toFixed(8)}</p>
+      </div>
+      <div className="space-y-1">
+        <span className="text-sm text-neutral">{label} (USD)</span>
+        <p className="font-medium">{quote.toLocaleString()}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-white rounded-lg shadow-sm border animate-fade-in">
@@ -61,6 +93,20 @@ const ActivityPanel = () => {
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("balances")}
+            className={cn(
+              "pb-2 text-sm font-medium transition-colors relative",
+              activeTab === "balances"
+                ? "text-neutral-dark"
+                : "text-neutral hover:text-neutral-dark"
+            )}
+          >
+            Balances
+            {activeTab === "balances" && (
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
+            )}
+          </button>
         </div>
 
         {/* Content */}
@@ -83,9 +129,27 @@ const ActivityPanel = () => {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : activeTab === "orders" ? (
             <div className="text-center py-8 text-neutral">
               No open orders
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <BalanceRow 
+                label="Wallet Balance"
+                base={mockBalances.base.walletBalance}
+                quote={mockBalances.quote.walletBalance}
+              />
+              <BalanceRow 
+                label="Available Margin"
+                base={mockBalances.base.availableMargin}
+                quote={mockBalances.quote.availableMargin}
+              />
+              <BalanceRow 
+                label="Locked Balance"
+                base={mockBalances.base.lockedBalance}
+                quote={mockBalances.quote.lockedBalance}
+              />
             </div>
           )}
         </div>
