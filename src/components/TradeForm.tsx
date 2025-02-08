@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
 const tokens = ["BTC", "ETH", "SOL", "AVAX"];
 
@@ -9,6 +10,14 @@ const TradeForm = () => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
   const [isLimit, setIsLimit] = useState(true);
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
+  const [amount, setAmount] = useState("");
+  const [sliderValue, setSliderValue] = useState([0]);
+
+  const handleSliderChange = (value: number[]) => {
+    setSliderValue(value);
+    // Assuming max amount is 100 for this example
+    setAmount((value[0]).toString());
+  };
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
@@ -60,13 +69,37 @@ const TradeForm = () => {
             </select>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <label className="block text-sm font-medium mb-1">Amount</label>
             <input
               type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral"
               placeholder="0.00"
             />
+            <div className="pt-4">
+              <Slider
+                defaultValue={[0]}
+                value={sliderValue}
+                onValueChange={handleSliderChange}
+                max={100}
+                step={1}
+                className="w-full"
+                marks={[
+                  { value: 25, label: '25%' },
+                  { value: 50, label: '50%' },
+                  { value: 75, label: '75%' },
+                  { value: 100, label: '100%' }
+                ]}
+              />
+              <div className="flex justify-between mt-1 text-xs text-neutral">
+                <span>25%</span>
+                <span>50%</span>
+                <span>75%</span>
+                <span>100%</span>
+              </div>
+            </div>
           </div>
 
           <div>
