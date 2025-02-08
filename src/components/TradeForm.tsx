@@ -8,9 +8,10 @@ const tokens = ["BTC", "ETH", "SOL", "AVAX"];
 
 const TradeForm = () => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
-  const [isLimit, setIsLimit] = useState(true);
+  const [isMarket, setIsMarket] = useState(false);
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [amount, setAmount] = useState("");
+  const [price, setPrice] = useState("");
   const [sliderValue, setSliderValue] = useState([0]);
 
   const handleSliderChange = (value: number[]) => {
@@ -86,12 +87,6 @@ const TradeForm = () => {
                 max={100}
                 step={1}
                 className="w-full"
-                marks={[
-                  { value: 25, label: '25%' },
-                  { value: 50, label: '50%' },
-                  { value: 75, label: '75%' },
-                  { value: 100, label: '100%' }
-                ]}
               />
               <div className="flex justify-between mt-1 text-xs text-neutral">
                 <span>25%</span>
@@ -106,22 +101,28 @@ const TradeForm = () => {
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm font-medium">Price</label>
               <button
-                onClick={() => setIsLimit(!isLimit)}
+                onClick={() => setIsMarket(!isMarket)}
                 className="flex items-center space-x-1 text-sm text-neutral hover:text-neutral-dark"
               >
                 <div className={cn(
                   "w-4 h-4 border rounded flex items-center justify-center transition-colors",
-                  isLimit && "bg-neutral border-neutral"
+                  isMarket && "bg-neutral border-neutral"
                 )}>
-                  {isLimit && <Check className="w-3 h-3 text-white" />}
+                  {isMarket && <Check className="w-3 h-3 text-white" />}
                 </div>
-                <span>Limit</span>
+                <span>Market</span>
               </button>
             </div>
             <input
               type="number"
-              className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className={cn(
+                "w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral",
+                isMarket && "bg-neutral-soft cursor-not-allowed"
+              )}
               placeholder="0.00"
+              disabled={isMarket}
             />
           </div>
 
