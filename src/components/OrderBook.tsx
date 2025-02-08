@@ -7,12 +7,15 @@ interface Order {
   price: number;
   amount: number;
   total: number;
+  address: string;
 }
 
+// Updated mock data to include addresses
 const mockOrders: Order[] = Array(8).fill(null).map((_, i) => ({
   price: 50000 - i * 100,
   amount: Math.random() * 2,
-  total: Math.random() * 100000
+  total: Math.random() * 100000,
+  address: `0x${Math.random().toString(16).slice(2, 6)}...${Math.random().toString(16).slice(2, 6)}`
 }));
 
 const OrderBook = () => {
@@ -21,13 +24,14 @@ const OrderBook = () => {
 
   const OrderRow = ({ order, type }: { order: Order, type: 'bid' | 'ask' }) => (
     <div className={cn(
-      "grid grid-cols-3 py-1 px-2 text-sm transition-colors",
+      "grid grid-cols-4 py-1 px-2 text-sm transition-colors",
       "hover:bg-neutral-soft cursor-pointer",
       type === 'bid' ? "text-bid-dark" : "text-ask-dark"
     )}>
       <span className="text-right">{order.price.toLocaleString()}</span>
       <span className="text-right">{order.amount.toFixed(4)}</span>
       <span className="text-right">{order.total.toLocaleString()}</span>
+      <span className="text-right font-mono text-neutral-dark">{order.address}</span>
     </div>
   );
 
@@ -39,10 +43,11 @@ const OrderBook = () => {
       
       <div className="grid grid-cols-2 gap-4 p-4">
         <div className="space-y-1">
-          <div className="grid grid-cols-3 text-xs text-neutral-dark mb-2">
+          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2">
             <span className="text-right">Price</span>
             <span className="text-right">Amount</span>
             <span className="text-right">Total</span>
+            <span className="text-right">Address</span>
           </div>
           {bids.map((bid, i) => (
             <OrderRow key={i} order={bid} type="bid" />
@@ -50,10 +55,11 @@ const OrderBook = () => {
         </div>
 
         <div className="space-y-1">
-          <div className="grid grid-cols-3 text-xs text-neutral-dark mb-2">
+          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2">
             <span className="text-right">Price</span>
             <span className="text-right">Amount</span>
             <span className="text-right">Total</span>
+            <span className="text-right">Address</span>
           </div>
           {asks.map((ask, i) => (
             <OrderRow key={i} order={ask} type="ask" />
