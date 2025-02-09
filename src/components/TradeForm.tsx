@@ -4,14 +4,13 @@ import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
-const tokens = ["BTC", "ETH", "SOL", "AVAX"];
-const tradingPairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT"];
+interface TradeFormProps {
+  selectedPair: string;
+}
 
-const TradeForm = () => {
+const TradeForm = ({ selectedPair }: TradeFormProps) => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
   const [isMarket, setIsMarket] = useState(false);
-  const [selectedToken, setSelectedToken] = useState(tokens[0]);
-  const [selectedPair, setSelectedPair] = useState(tradingPairs[0]);
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
   const [sliderValue, setSliderValue] = useState([0]);
@@ -25,20 +24,7 @@ const TradeForm = () => {
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
       <div className="p-4 border-b">
-        <div className="flex justify-between items-center">
-          <select
-            value={selectedPair}
-            onChange={(e) => setSelectedPair(e.target.value)}
-            className="px-3 py-1 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm"
-          >
-            {tradingPairs.map((pair) => (
-              <option key={pair} value={pair}>
-                {pair}
-              </option>
-            ))}
-          </select>
-          <h2 className="text-lg font-semibold">Trade</h2>
-        </div>
+        <h2 className="text-lg font-semibold">Trade</h2>
       </div>
 
       <div className="p-4 space-y-4">
@@ -70,21 +56,6 @@ const TradeForm = () => {
 
         {/* Form */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Token</label>
-            <select
-              value={selectedToken}
-              onChange={(e) => setSelectedToken(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral"
-            >
-              {tokens.map((token) => (
-                <option key={token} value={token}>
-                  {token}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
               <span className="text-neutral-dark">Available to trade</span>
