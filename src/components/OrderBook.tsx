@@ -1,7 +1,8 @@
 
 import { useState } from "react";
-import { Check, Square } from "lucide-react";
+import { Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Order {
   price: number;
@@ -22,16 +23,36 @@ const OrderBook = () => {
   const [bids] = useState<Order[]>(mockOrders);
   const [asks] = useState<Order[]>(mockOrders.map(order => ({ ...order, price: order.price + 1000 })));
 
+  const handleCopyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast("Address copied to clipboard");
+  };
+
   const OrderRow = ({ order, type }: { order: Order, type: 'bid' | 'ask' }) => (
     <div className={cn(
-      "grid grid-cols-4 py-1 px-2 text-sm transition-colors gap-x-4",
+      "grid grid-cols-4 py-1 px-2 text-sm transition-colors gap-x-6",
       "hover:bg-neutral-soft cursor-pointer",
       type === 'bid' ? "text-bid-dark" : "text-ask-dark"
     )}>
       <span className="text-right">{order.price.toLocaleString()}</span>
       <span className="text-right">{order.amount.toFixed(4)}</span>
       <span className="text-right">{order.total.toLocaleString()}</span>
-      <span className="text-right font-mono text-neutral-dark">{order.address}</span>
+      <div className="text-right font-mono text-neutral-dark flex items-center justify-end gap-2">
+        <span>{order.address}</span>
+        <Copy 
+          className="h-4 w-4 cursor-pointer hover:text-neutral" 
+          onClick={() => handleCopyAddress(order.address)}
+        />
+      </div>
+    </div>
+  );
+
+  const TableHeader = () => (
+    <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2 gap-x-6">
+      <span className="text-right">Price</span>
+      <span className="text-right">Amount</span>
+      <span className="text-right">Total</span>
+      <span className="text-right">Address</span>
     </div>
   );
 
@@ -41,26 +62,30 @@ const OrderBook = () => {
         <h2 className="text-lg font-semibold">Order Book</h2>
       </div>
       
-      <div className="grid grid-cols-2 gap-4 p-4">
-        <div className="space-y-1">
-          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2 gap-x-4">
-            <span className="text-right">Price</span>
-            <span className="text-right">Amount</span>
-            <span className="text-right">Total</span>
-            <span className="text-right">Address</span>
+      <div className="flex gap-4 p-4">
+        <div className="flex-1 space-y-1">
+          {/* Bids Logo */}
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-[#9b87f5] flex items-center justify-center text-white font-bold">
+              B
+            </div>
           </div>
+          
+          <TableHeader />
           {bids.map((bid, i) => (
             <OrderRow key={i} order={bid} type="bid" />
           ))}
         </div>
 
-        <div className="space-y-1">
-          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2 gap-x-4">
-            <span className="text-right">Price</span>
-            <span className="text-right">Amount</span>
-            <span className="text-right">Total</span>
-            <span className="text-right">Address</span>
+        <div className="flex-1 space-y-1">
+          {/* Asks Logo */}
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-[#7E69AB] flex items-center justify-center text-white font-bold">
+              A
+            </div>
           </div>
+          
+          <TableHeader />
           {asks.map((ask, i) => (
             <OrderRow key={i} order={ask} type="ask" />
           ))}
