@@ -40,7 +40,7 @@ const mockBalances = {
 };
 
 const ActivityPanel = () => {
-  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances">("trades");
+  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
   const [trades] = useState<Trade[]>(mockTrades);
 
   const BalanceRow = ({ label, base, quote }: { label: string; base: number; quote: number }) => (
@@ -107,6 +107,20 @@ const ActivityPanel = () => {
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("deposits")}
+            className={cn(
+              "pb-2 text-sm font-medium transition-colors relative",
+              activeTab === "deposits"
+                ? "text-neutral-dark"
+                : "text-neutral hover:text-neutral-dark"
+            )}
+          >
+            Deposits & Withdrawals
+            {activeTab === "deposits" && (
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
+            )}
+          </button>
         </div>
 
         {/* Content */}
@@ -132,6 +146,20 @@ const ActivityPanel = () => {
           ) : activeTab === "orders" ? (
             <div className="text-center py-8 text-neutral">
               No open orders
+            </div>
+          ) : activeTab === "deposits" ? (
+            <div className="space-y-4">
+              <div className="flex space-x-4">
+                <button className="flex-1 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors">
+                  Deposit
+                </button>
+                <button className="flex-1 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors">
+                  Withdraw
+                </button>
+              </div>
+              <div className="text-center py-8 text-neutral">
+                No recent transactions
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
