@@ -24,7 +24,7 @@ const OrderBook = () => {
 
   const OrderRow = ({ order, type }: { order: Order, type: 'bid' | 'ask' }) => (
     <div className={cn(
-      "grid grid-cols-4 py-1 px-2 text-sm transition-colors",
+      "grid grid-cols-4 py-1 px-2 text-sm transition-colors gap-x-4",
       "hover:bg-neutral-soft cursor-pointer",
       type === 'bid' ? "text-bid-dark" : "text-ask-dark"
     )}>
@@ -43,7 +43,7 @@ const OrderBook = () => {
       
       <div className="grid grid-cols-2 gap-4 p-4">
         <div className="space-y-1">
-          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2">
+          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2 gap-x-4">
             <span className="text-right">Price</span>
             <span className="text-right">Amount</span>
             <span className="text-right">Total</span>
@@ -55,7 +55,7 @@ const OrderBook = () => {
         </div>
 
         <div className="space-y-1">
-          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2">
+          <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2 gap-x-4">
             <span className="text-right">Price</span>
             <span className="text-right">Amount</span>
             <span className="text-right">Total</span>
