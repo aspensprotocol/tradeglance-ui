@@ -57,10 +57,6 @@ const ActivityPanel = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border animate-fade-in">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Activity</h2>
-      </div>
-
       <div className="p-4">
         <div className="flex space-x-4 border-b mb-4">
           <button
