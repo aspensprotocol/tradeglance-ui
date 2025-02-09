@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
@@ -23,10 +22,6 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Trade</h2>
-      </div>
-
       <div className="p-4 space-y-4">
         {/* Tabs */}
         <div className="flex rounded-lg border overflow-hidden">

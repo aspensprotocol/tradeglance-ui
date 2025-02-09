@@ -57,11 +57,7 @@ const OrderBook = () => {
   );
 
   return (
-    <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Order Book</h2>
-      </div>
-      
+    <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">      
       <div className="flex gap-4 p-4">
         <div className="flex-1 space-y-1">
           {/* Bids Logo */}

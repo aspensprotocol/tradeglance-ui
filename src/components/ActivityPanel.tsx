@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -63,7 +62,6 @@ const ActivityPanel = () => {
       </div>
 
       <div className="p-4">
-        {/* Tabs */}
         <div className="flex space-x-4 border-b mb-4">
           <button
             onClick={() => setActiveTab("trades")}
@@ -123,7 +121,6 @@ const ActivityPanel = () => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="animate-fade-in">
           {activeTab === "trades" ? (
             <div className="space-y-2">
