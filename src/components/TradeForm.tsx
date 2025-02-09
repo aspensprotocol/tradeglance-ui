@@ -53,7 +53,7 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
         <div className="space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-neutral-dark">Available to trade</span>
+              <span className="text-neutral-dark">Available to swap</span>
               <span className="font-medium">1,000.00 USDT</span>
             </div>
             <label className="block text-sm font-medium mb-1">Amount</label>
