@@ -3,6 +3,7 @@ import OrderBook from "@/components/OrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const tradingPairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT"];
 
@@ -12,7 +13,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-neutral-soft/30">
       <div className="container py-8">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <select
             value={selectedPair}
             onChange={(e) => setSelectedPair(e.target.value)}
@@ -24,6 +25,21 @@ const Index = () => {
               </option>
             ))}
           </select>
+          
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="rounded-full border-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white"
+            >
+              Wallet 1
+            </Button>
+            <Button
+              variant="outline"
+              className="rounded-full border-2 border-[#7E69AB] text-[#7E69AB] hover:bg-[#7E69AB] hover:text-white"
+            >
+              Wallet 2
+            </Button>
+          </div>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {/* Left side - OrderBook (75%) */}

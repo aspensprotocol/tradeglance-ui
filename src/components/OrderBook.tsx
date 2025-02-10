@@ -61,10 +61,11 @@ const OrderBook = () => {
       <div className="flex gap-4 p-4">
         <div className="flex-1 space-y-1">
           {/* Bids Logo */}
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-[#9b87f5] flex items-center justify-center text-white font-bold">
+          <div className="flex flex-col items-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-[#9b87f5] flex items-center justify-center text-white font-bold mb-2">
               B
             </div>
+            <span className="text-sm text-[#8E9196]">on Base</span>
           </div>
           
           <TableHeader />
@@ -75,10 +76,11 @@ const OrderBook = () => {
 
         <div className="flex-1 space-y-1">
           {/* Asks Logo */}
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-[#7E69AB] flex items-center justify-center text-white font-bold">
+          <div className="flex flex-col items-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-[#7E69AB] flex items-center justify-center text-white font-bold mb-2">
               A
             </div>
+            <span className="text-sm text-[#8E9196]">on Optimism</span>
           </div>
           
           <TableHeader />
