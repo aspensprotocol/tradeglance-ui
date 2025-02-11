@@ -59,7 +59,7 @@ const OrderBook = () => {
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">      
       <div className="flex gap-4 p-4">
-        <div className="flex-1 space-y-1 p-4 rounded-lg bg-[#F2FCE2]">
+        <div className="flex-1 space-y-1 p-4 rounded-lg bg-[#f8fcf4]">
           {/* Bids Logo */}
           <div className="flex flex-col items-center mb-4">
             <div className="w-12 h-12 rounded-full bg-[#9b87f5] flex items-center justify-center text-white font-bold mb-2">
@@ -74,7 +74,7 @@ const OrderBook = () => {
           ))}
         </div>
 
-        <div className="flex-1 space-y-1 p-4 rounded-lg bg-[#FFDEE2]">
+        <div className="flex-1 space-y-1 p-4 rounded-lg bg-[#fff5f6]">
           {/* Asks Logo */}
           <div className="flex flex-col items-center mb-4">
             <div className="w-12 h-12 rounded-full bg-[#7E69AB] flex items-center justify-center text-white font-bold mb-2">

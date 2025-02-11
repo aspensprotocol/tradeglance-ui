@@ -1,3 +1,4 @@
+
 import OrderBook from "@/components/OrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
@@ -28,13 +29,13 @@ const Index = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="rounded-full border-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white bg-[#F2FCE2]"
+              className="rounded-full border-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white bg-[#f8fcf4]"
             >
               Wallet 1
             </Button>
             <Button
               variant="outline"
-              className="rounded-full border-2 border-[#7E69AB] text-[#7E69AB] hover:bg-[#7E69AB] hover:text-white bg-[#FFDEE2]"
+              className="rounded-full border-2 border-[#7E69AB] text-[#7E69AB] hover:bg-[#7E69AB] hover:text-white bg-[#fff5f6]"
             >
               Wallet 2
             </Button>
