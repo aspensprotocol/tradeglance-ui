@@ -62,7 +62,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="ml-2">
+          <div className="ml-2 flex items-center gap-3">
             <Button 
               variant="outline" 
               size="sm" 
@@ -70,6 +70,7 @@ const Index = () => {
             >
               online
             </Button>
+            <span className="text-gray-400 text-xs">version 1.0.0</span>
           </div>
           <div className="flex gap-6 text-[#8E9196]">
             <a href="#" className="hover:text-[#1EAEDB]">Terms</a>
