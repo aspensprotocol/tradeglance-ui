@@ -60,15 +60,17 @@ const Index = () => {
       </div>
       
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 px-4 text-xs">
+      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
         <div className="container mx-auto flex justify-between items-center">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="rounded-full bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
-          >
-            online
-          </Button>
+          <div className="pl-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-full bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
+            >
+              online
+            </Button>
+          </div>
           <div className="flex gap-6 text-[#8E9196]">
             <a href="#" className="hover:text-[#1EAEDB]">Terms</a>
             <a href="#" className="hover:text-[#1EAEDB]">Privacy</a>
