@@ -62,11 +62,11 @@ const Index = () => {
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="pl-2">
+          <div className="ml-2">
             <Button 
               variant="outline" 
               size="sm" 
-              className="rounded-full bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
+              className="bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
             >
               online
             </Button>
