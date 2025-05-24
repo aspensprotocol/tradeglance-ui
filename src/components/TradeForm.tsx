@@ -14,14 +14,10 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
   const [amount, setAmount] = useState("0,0");
   const [price, setPrice] = useState("");
   const [percentageValue, setPercentageValue] = useState(0);
-  const [leverageValue, setLeverageValue] = useState([1]);
-  const [selectedLeverage, setSelectedLeverage] = useState("x");
 
   const handlePercentageClick = (percentage: number) => {
     setPercentageValue(percentage);
   };
-
-  const leverageOptions = ["x", "2 x", "3 x", "4 x"];
 
   return (
     <div className="h-full bg-[#1a1d29] rounded-lg shadow-sm border border-gray-700 animate-fade-in text-white">
@@ -144,39 +140,6 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
           ))}
         </div>
 
-        {/* Leverage Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-white">Leverage</label>
-              <span className="text-xs text-gray-400">(Up to 4x)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">Slider</span>
-              <div className="w-8 h-4 bg-[#2a2d3a] rounded-full relative">
-                <div className="w-3 h-3 bg-white rounded-full absolute top-0.5 right-0.5"></div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            {leverageOptions.map((leverage) => (
-              <button
-                key={leverage}
-                onClick={() => setSelectedLeverage(leverage)}
-                className={cn(
-                  "flex-1 py-2 text-sm rounded-lg transition-colors",
-                  selectedLeverage === leverage
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#2a2d3a] text-gray-400 hover:text-white hover:bg-[#3a3d4a]"
-                )}
-              >
-                {leverage}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Order Summary */}
         <div className="space-y-2 py-3 border-t border-gray-700">
           <div className="flex justify-between text-sm">
@@ -194,10 +157,6 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Total</span>
             <span className="text-white">NaN UST2</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Leverage</span>
-            <span className="text-white">1.00 X</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Purchase price</span>
