@@ -1,4 +1,3 @@
-
 import OrderBook from "@/components/OrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
@@ -14,17 +13,14 @@ const Index = () => {
     <div className="min-h-screen bg-neutral-soft/30 relative pb-12">
       <div className="container py-8">
         <div className="mb-6 flex justify-between items-center">
-          <select
-            value={selectedPair}
-            onChange={(e) => setSelectedPair(e.target.value)}
-            className="px-3 py-1 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm"
-          >
-            {tradingPairs.map((pair) => (
-              <option key={pair} value={pair}>
-                {pair}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-6">
+            <button className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Portfolio
+            </button>
+            <button className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Trade
+            </button>
+          </div>
           
           <div className="flex gap-3">
             <Button
@@ -43,7 +39,7 @@ const Index = () => {
         </div>
         <div className="grid grid-cols-4 gap-4">
           <div className="col-span-3 space-y-6">
-            <OrderBook />
+            <OrderBook selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
           </div>
           <div className="space-y-6">
             <TradeForm selectedPair={selectedPair} />
