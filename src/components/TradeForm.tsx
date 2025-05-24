@@ -70,7 +70,9 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-white">Price</label>
-            <span className="text-xs text-gray-400">(Price determined by market)</span>
+            {activeOrderType === "market" && (
+              <span className="text-xs text-gray-400">(Price determined by market)</span>
+            )}
           </div>
           <div className="relative">
             <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400" />
@@ -78,7 +80,13 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
               type="text"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full pl-10 pr-20 py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              disabled={activeOrderType === "market"}
+              className={cn(
+                "w-full pl-10 pr-20 py-3 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500",
+                activeOrderType === "market" 
+                  ? "bg-gray-700 cursor-not-allowed opacity-50" 
+                  : "bg-[#2a2d3a]"
+              )}
               placeholder=""
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
