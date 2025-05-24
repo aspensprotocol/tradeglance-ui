@@ -150,23 +150,23 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
 
         {/* Order Summary */}
         <div className="space-y-2 py-3 border-t border-gray-700">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs">
             <span className="text-gray-400">Amount</span>
             <span className="text-white">NaN ATOM</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs">
             <span className="text-gray-400">Order Price</span>
             <span className="text-white">NaN UST2</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs">
             <span className="text-gray-400">Estimated Fee</span>
             <span className="text-white">0.00 UST2</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs">
             <span className="text-gray-400">Total</span>
             <span className="text-white">NaN UST2</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs">
             <span className="text-gray-400">Purchase price</span>
             <span className="text-white">NaN UST2</span>
           </div>
