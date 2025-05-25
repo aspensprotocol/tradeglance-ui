@@ -3,6 +3,7 @@ import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const tradingPairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT"];
 
@@ -14,9 +15,9 @@ const Index = () => {
       <div className="container py-8">
         <div className="mb-6 flex justify-between items-center">
           <div className="flex gap-6">
-            <button className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+            <Link to="/portfolio" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Portfolio
-            </button>
+            </Link>
             <button className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Trade
             </button>
