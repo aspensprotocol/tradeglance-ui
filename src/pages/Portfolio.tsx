@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -50,6 +49,9 @@ const Portfolio = () => {
             </Link>
             <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Trade
+            </Link>
+            <Link to="/bridge" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Bridge
             </Link>
           </div>
           
