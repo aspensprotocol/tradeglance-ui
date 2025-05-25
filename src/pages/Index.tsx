@@ -18,9 +18,9 @@ const Index = () => {
             <Link to="/portfolio" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Portfolio
             </Link>
-            <button className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+            <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Trade
-            </button>
+            </Link>
           </div>
           
           <div className="flex gap-3">
