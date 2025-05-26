@@ -48,8 +48,8 @@ const portfolioData = [
     changeType: "negative"
   },
   {
-    asset: "AVAX",
-    name: "Avalanche",
+    asset: "FLR",
+    name: "Flare",
     amount: "8.75",
     value: "$875.00",
     change: "+3.12%",

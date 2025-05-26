@@ -84,7 +84,7 @@ const OrderBook = ({ selectedPair, onPairChange, tradingPairs }: OrderBookProps)
             <div className="w-12 h-12 rounded-full bg-[#9b87f5] flex items-center justify-center text-white font-bold mb-2">
               B
             </div>
-            <span className="text-sm text-[#8E9196]">on Base</span>
+            <span className="text-sm text-[#8E9196]">on XRPL</span>
           </div>
           
           <TableHeader />
@@ -99,7 +99,7 @@ const OrderBook = ({ selectedPair, onPairChange, tradingPairs }: OrderBookProps)
             <div className="w-12 h-12 rounded-full bg-[#7E69AB] flex items-center justify-center text-white font-bold mb-2">
               A
             </div>
-            <span className="text-sm text-[#8E9196]">on Optimism</span>
+            <span className="text-sm text-[#8E9196]">on Flare</span>
           </div>
           
           <TableHeader />

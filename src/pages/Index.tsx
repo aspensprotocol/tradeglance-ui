@@ -25,7 +25,7 @@ const attestationData = {
   "report_data": "afab9790acb13c4c651c1933a22b5f0663ef22927120dd08cc8291d7e0912d8b1c36eb75cf661a64735042f8e81bbe42cb9ab310ca95bf8d36c44cb8835c901f"
 };
 
-const tradingPairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT"];
+const tradingPairs = ["BTC/USDT0", "XRP/USDT0", "BTC/wFLR", "XRP/wFLR"];
 
 const Index = () => {
   const [selectedPair, setSelectedPair] = useState(tradingPairs[0]);
