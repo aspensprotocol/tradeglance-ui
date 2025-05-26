@@ -28,7 +28,7 @@ const attestationData = {
 const Bridge = () => {
   const [amount, setAmount] = useState("0");
   const [fromNetwork, setFromNetwork] = useState("ethereum");
-  const [toNetwork, setToNetwork] = useState("arbitrum");
+  const [toNetwork, setToNetwork] = useState("flare");
   const [fromToken, setFromToken] = useState("ETH");
   const [toToken, setToToken] = useState("ETH");
 
@@ -136,6 +136,12 @@ const Bridge = () => {
                         Ethereum Mainnet
                       </div>
                     </SelectItem>
+                    <SelectItem value="flare" className="text-white hover:bg-gray-600">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+                        Flare Network
+                      </div>
+                    </SelectItem>
                     <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-blue-400 rounded-full"></div>
@@ -173,16 +179,22 @@ const Bridge = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">
+                      <SelectItem value="flare" className="text-white hover:bg-gray-600">
                         <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-blue-400 rounded-full"></div>
-                          Arbitrum One
+                          <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+                          Flare Network
                         </div>
                       </SelectItem>
                       <SelectItem value="ethereum" className="text-white hover:bg-gray-600">
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
                           Ethereum Mainnet
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-blue-400 rounded-full"></div>
+                          Arbitrum One
                         </div>
                       </SelectItem>
                       <SelectItem value="polygon" className="text-white hover:bg-gray-600">

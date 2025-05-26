@@ -1,10 +1,7 @@
 
-import OrderBook from "@/components/OrderBook";
-import TradeForm from "@/components/TradeForm";
-import ActivityPanel from "@/components/ActivityPanel";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const attestationData = {
@@ -25,54 +22,36 @@ const attestationData = {
   "report_data": "afab9790acb13c4c651c1933a22b5f0663ef22927120dd08cc8291d7e0912d8b1c36eb75cf661a64735042f8e81bbe42cb9ab310ca95bf8d36c44cb8835c901f"
 };
 
-const tradingPairs = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT"];
-
-const Index = () => {
-  const [selectedPair, setSelectedPair] = useState(tradingPairs[0]);
-
+const Home = () => {
   return (
     <div className="min-h-screen bg-neutral-soft/30 relative pb-12">
       <div className="container py-8">
-        <div className="mb-6 flex justify-between items-center">
-          <div className="flex gap-6">
-            <Link to="/portfolio" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Portfolio
-            </Link>
-            <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Trade
-            </Link>
-            <Link to="/bridge" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Bridge
-            </Link>
-          </div>
-          
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="rounded-full border-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white bg-[#f8fcf4]"
-            >
-              Wallet 1
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-full border-2 border-[#7E69AB] text-[#7E69AB] hover:bg-[#7E69AB] hover:text-white bg-[#fff5f6]"
-            >
-              Wallet 2
-            </Button>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-3 space-y-6">
-            <OrderBook selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
-          </div>
-          <div className="space-y-6">
-            <TradeForm selectedPair={selectedPair} />
-          </div>
-          <div className="col-span-4">
-            <ActivityPanel />
-          </div>
+        <div className="max-w-md mx-auto space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">Trade Glance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Link to="/portfolio" className="block">
+                <Button className="w-full" variant="outline">
+                  Portfolio
+                </Button>
+              </Link>
+              <Link to="/trade" className="block">
+                <Button className="w-full" variant="outline">
+                  Trade
+                </Button>
+              </Link>
+              <Link to="/bridge" className="block">
+                <Button className="w-full" variant="outline">
+                  Bridge
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
+      
       <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
         <div className="container mx-auto flex justify-between items-center">
           <div className="ml-2 flex items-center gap-3">
@@ -112,4 +91,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Home;
