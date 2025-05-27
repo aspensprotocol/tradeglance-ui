@@ -9,7 +9,7 @@ interface TradeFormProps {
 }
 
 const TradeForm = ({ selectedPair }: TradeFormProps) => {
-  const [activeOrderType, setActiveOrderType] = useState<"market" | "limit" | "stop">("market");
+  const [activeOrderType, setActiveOrderType] = useState<"market" | "limit">("market");
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("0,0");
   const [price, setPrice] = useState("");
@@ -24,7 +24,7 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
       <div className="p-4 space-y-4">
         {/* Order Type Tabs */}
         <div className="flex rounded-lg bg-[#2a2d3a] p-1">
-          {["market", "limit", "stop"].map((type) => (
+          {["market", "limit"].map((type) => (
             <button
               key={type}
               onClick={() => setActiveOrderType(type as any)}
@@ -58,7 +58,7 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
             className={cn(
               "flex-1 py-3 text-sm font-medium transition-colors",
               activeTab === "sell"
-                ? "bg-gray-600 text-white"
+                ? "bg-red-400 text-white border-2 border-red-400"
                 : "text-gray-400 hover:text-white"
             )}
           >
@@ -66,37 +66,30 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
           </button>
         </div>
 
-        {/* Price Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-white">Price</label>
-            {activeOrderType === "market" && (
-              <span className="text-xs text-gray-400">(Price determined by market)</span>
-            )}
-          </div>
-          <div className="relative">
-            <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400" />
-            <input
-              type="text"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              disabled={activeOrderType === "market"}
-              className={cn(
-                "w-full pl-10 pr-20 py-3 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500",
-                activeOrderType === "market" 
-                  ? "bg-gray-700 cursor-not-allowed opacity-50" 
-                  : "bg-[#2a2d3a]"
-              )}
-              placeholder=""
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-              <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
-                <span className="text-xs text-white font-bold">₿</span>
+        {/* Price Section - Only show for limit orders */}
+        {activeOrderType === "limit" && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-white">Price</label>
+            </div>
+            <div className="relative">
+              <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400" />
+              <input
+                type="text"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="w-full pl-10 pr-20 py-3 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 bg-[#2a2d3a]"
+                placeholder=""
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+                  <span className="text-xs text-white font-bold">₿</span>
+                </div>
+                <span className="text-sm text-gray-300">UST2</span>
               </div>
-              <span className="text-sm text-gray-300">UST2</span>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Order Amount */}
         <div className="space-y-2">
@@ -109,7 +102,7 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
               type="text"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full pr-32 py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              className="w-full pl-2 pr-32 py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
               placeholder="0,0"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
