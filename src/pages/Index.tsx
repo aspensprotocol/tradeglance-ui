@@ -61,7 +61,7 @@ const Index = () => {
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <div className="col-span-2 space-y-6">
             <OrderBook selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
           </div>
@@ -71,10 +71,7 @@ const Index = () => {
           <div className="col-span-1 space-y-6">
             <TradeForm selectedPair={selectedPair} />
           </div>
-          <div className="col-span-1">
-            {/* Empty column for spacing */}
-          </div>
-          <div className="col-span-5">
+          <div className="col-span-4">
             <ActivityPanel />
           </div>
         </div>
