@@ -1,8 +1,6 @@
 
 import { useState } from "react";
-import { Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 interface Order {
   price: number;
@@ -29,36 +27,41 @@ const OrderBook = ({ selectedPair, onPairChange, tradingPairs }: OrderBookProps)
   const [bids] = useState<Order[]>(mockOrders);
   const [asks] = useState<Order[]>(mockOrders.map(order => ({ ...order, price: order.price + 1000 })));
 
-  const handleCopyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    toast("Address copied to clipboard");
-  };
-
-  const OrderRow = ({ order, type }: { order: Order, type: 'bid' | 'ask' }) => (
+  const BidRow = ({ order }: { order: Order }) => (
     <div className={cn(
-      "grid grid-cols-4 py-1 px-2 text-sm transition-colors gap-x-6",
-      "hover:bg-neutral-soft cursor-pointer",
-      type === 'bid' ? "text-bid-dark" : "text-ask-dark"
+      "grid grid-cols-3 py-1 px-2 text-sm transition-colors gap-x-6",
+      "hover:bg-neutral-soft cursor-pointer text-bid-dark"
+    )}>
+      <span className="text-right">{order.amount.toFixed(4)}</span>
+      <span className="text-right">{order.total.toLocaleString()}</span>
+      <span className="text-right">{order.price.toLocaleString()}</span>
+    </div>
+  );
+
+  const AskRow = ({ order }: { order: Order }) => (
+    <div className={cn(
+      "grid grid-cols-3 py-1 px-2 text-sm transition-colors gap-x-6",
+      "hover:bg-neutral-soft cursor-pointer text-ask-dark"
     )}>
       <span className="text-right">{order.price.toLocaleString()}</span>
       <span className="text-right">{order.amount.toFixed(4)}</span>
       <span className="text-right">{order.total.toLocaleString()}</span>
-      <div className="text-right font-mono text-neutral-dark flex items-center justify-end gap-2">
-        <span>{order.address}</span>
-        <Copy 
-          className="h-4 w-4 cursor-pointer hover:text-neutral" 
-          onClick={() => handleCopyAddress(order.address)}
-        />
-      </div>
     </div>
   );
 
-  const TableHeader = () => (
-    <div className="grid grid-cols-4 text-xs text-neutral-dark mb-2 gap-x-6">
+  const BidsTableHeader = () => (
+    <div className="grid grid-cols-3 text-xs text-neutral-dark mb-2 gap-x-6">
+      <span className="text-right">Amount</span>
+      <span className="text-right">Total</span>
+      <span className="text-right">Price</span>
+    </div>
+  );
+
+  const AsksTableHeader = () => (
+    <div className="grid grid-cols-3 text-xs text-neutral-dark mb-2 gap-x-6">
       <span className="text-right">Price</span>
       <span className="text-right">Amount</span>
       <span className="text-right">Total</span>
-      <span className="text-right">Address</span>
     </div>
   );
 
@@ -87,9 +90,9 @@ const OrderBook = ({ selectedPair, onPairChange, tradingPairs }: OrderBookProps)
             <span className="text-sm text-[#8E9196]">on XRPL</span>
           </div>
           
-          <TableHeader />
+          <BidsTableHeader />
           {bids.map((bid, i) => (
-            <OrderRow key={i} order={bid} type="bid" />
+            <BidRow key={i} order={bid} />
           ))}
         </div>
 
@@ -102,9 +105,9 @@ const OrderBook = ({ selectedPair, onPairChange, tradingPairs }: OrderBookProps)
             <span className="text-sm text-[#8E9196]">on Flare</span>
           </div>
           
-          <TableHeader />
+          <AsksTableHeader />
           {asks.map((ask, i) => (
-            <OrderRow key={i} order={ask} type="ask" />
+            <AskRow key={i} order={ask} />
           ))}
         </div>
       </div>
