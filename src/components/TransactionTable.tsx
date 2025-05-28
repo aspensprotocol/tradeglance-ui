@@ -18,16 +18,16 @@ interface TransactionTableProps {
 
 const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: TransactionTableProps) => {
   const [transactions] = useState<Transaction[]>([
-    { timestamp: "10:23:45", amount: 0.5421, price: 50234.12, note: "Trade #001" },
-    { timestamp: "10:22:18", amount: 1.2345, price: 50156.78, note: "Trade #002" },
-    { timestamp: "10:21:03", amount: 0.8765, price: 50089.45, note: "Trade #003" },
-    { timestamp: "10:19:42", amount: 2.1543, price: 49987.23, note: "Trade #004" },
-    { timestamp: "10:18:17", amount: 0.3298, price: 49945.67, note: "Trade #005" },
-    { timestamp: "10:16:55", amount: 1.7832, price: 49823.45, note: "Trade #006" },
-    { timestamp: "10:15:29", amount: 0.9876, price: 49756.89, note: "Trade #007" },
-    { timestamp: "10:14:08", amount: 1.4567, price: 49698.12, note: "Trade #008" },
-    { timestamp: "10:12:41", amount: 0.6743, price: 49634.56, note: "Trade #009" },
-    { timestamp: "10:11:15", amount: 2.8901, price: 49567.23, note: "Trade #010" },
+    { timestamp: "10:23:45", amount: 0.5421, price: 50234.12, note: "a4f7c9" },
+    { timestamp: "10:22:18", amount: 1.2345, price: 50156.78, note: "b8e3d1" },
+    { timestamp: "10:21:03", amount: 0.8765, price: 50089.45, note: "c2a9f5" },
+    { timestamp: "10:19:42", amount: 2.1543, price: 49987.23, note: "d7b4e8" },
+    { timestamp: "10:18:17", amount: 0.3298, price: 49945.67, note: "e1c6a2" },
+    { timestamp: "10:16:55", amount: 1.7832, price: 49823.45, note: "f9d3b7" },
+    { timestamp: "10:15:29", amount: 0.9876, price: 49756.89, note: "g5e8c4" },
+    { timestamp: "10:14:08", amount: 1.4567, price: 49698.12, note: "h2f7d9" },
+    { timestamp: "10:12:41", amount: 0.6743, price: 49634.56, note: "i8a3e6" },
+    { timestamp: "10:11:15", amount: 2.8901, price: 49567.23, note: "j4b9f1" },
   ]);
 
   return (
@@ -50,7 +50,7 @@ const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: Transact
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-left">Timestamp</TableHead>
+              <TableHead className="text-left">Created</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead className="text-right">Price</TableHead>
               <TableHead className="text-center">Note</TableHead>
