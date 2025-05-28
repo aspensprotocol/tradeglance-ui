@@ -1,7 +1,7 @@
-import OrderBook from "@/components/OrderBook";
 import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
+import TransactionTable from "@/components/TransactionTable";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -63,7 +63,7 @@ const Index = () => {
         </div>
         <div className="grid grid-cols-4 gap-4">
           <div className="col-span-2 space-y-6">
-            <OrderBook selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
+            <TransactionTable selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
           </div>
           <div className="col-span-1 space-y-6">
             <VerticalOrderBook />
