@@ -36,8 +36,11 @@ const VerticalOrderBook = () => {
     { price: 109.151, amount: 12, total: 263383 },
   ]);
 
-  const spreadValue = 1;
-  const spreadPercentage = 0.009;
+  // Calculate actual spread
+  const lowestAsk = Math.min(...asks.map(ask => ask.price));
+  const highestBid = Math.max(...bids.map(bid => bid.price));
+  const spreadValue = lowestAsk - highestBid;
+  const spreadPercentage = (spreadValue / lowestAsk) * 100;
 
   const formatNumber = (num: number) => {
     return num.toLocaleString();
@@ -76,10 +79,8 @@ const VerticalOrderBook = () => {
         {/* Spread */}
         <div className="flex items-center justify-center py-2 my-2 bg-gray-50 rounded text-xs">
           <span className="text-gray-600 mr-2">Spread:</span>
-          <select className="bg-transparent border-none text-gray-700 text-xs outline-none">
-            <option>{spreadValue}</option>
-          </select>
-          <span className="text-gray-600 ml-2">{spreadPercentage.toFixed(3)}%</span>
+          <span className="text-gray-700 font-mono">{spreadValue.toFixed(3)}</span>
+          <span className="text-gray-600 ml-2">({spreadPercentage.toFixed(3)}%)</span>
         </div>
 
         {/* Bids (Buy orders) - Green */}
