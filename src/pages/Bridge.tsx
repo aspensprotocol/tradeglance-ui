@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,32 +100,40 @@ const Bridge = () => {
                 </div>
                 
                 <div className="flex gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">E</span>
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <span className="text-xs text-gray-400">Token</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">E</span>
+                      </div>
+                      <Select value={senderToken} onValueChange={setSenderToken}>
+                        <SelectTrigger className="w-20 bg-transparent border-none text-white p-0 h-auto">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-700 border-gray-600">
+                          <SelectItem value="ETH" className="text-white hover:bg-gray-600">ETH</SelectItem>
+                          <SelectItem value="USDT" className="text-white hover:bg-gray-600">USDT</SelectItem>
+                          <SelectItem value="BTC" className="text-white hover:bg-gray-600">BTC</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select value={senderToken} onValueChange={setSenderToken}>
-                      <SelectTrigger className="w-20 bg-transparent border-none text-white p-0 h-auto">
+                  </div>
+                  
+                  <div className="w-px bg-gray-700 mx-1"></div>
+                  
+                  <div className="flex flex-col gap-2 flex-1">
+                    <span className="text-xs text-gray-400">Network</span>
+                    <Select value={senderNetwork} onValueChange={setSenderNetwork}>
+                      <SelectTrigger className="bg-transparent border-none text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-700 border-gray-600">
-                        <SelectItem value="ETH" className="text-white hover:bg-gray-600">ETH</SelectItem>
-                        <SelectItem value="USDT" className="text-white hover:bg-gray-600">USDT</SelectItem>
-                        <SelectItem value="BTC" className="text-white hover:bg-gray-600">BTC</SelectItem>
+                        <SelectItem value="ethereum" className="text-white hover:bg-gray-600">Ethereum</SelectItem>
+                        <SelectItem value="polygon" className="text-white hover:bg-gray-600">Polygon</SelectItem>
+                        <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">Arbitrum</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  <Select value={senderNetwork} onValueChange={setSenderNetwork}>
-                    <SelectTrigger className="flex-1 bg-transparent border-none text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="ethereum" className="text-white hover:bg-gray-600">Ethereum</SelectItem>
-                      <SelectItem value="polygon" className="text-white hover:bg-gray-600">Polygon</SelectItem>
-                      <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">Arbitrum</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -173,32 +180,40 @@ const Bridge = () => {
                 </div>
                 
                 <div className="flex gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">1F</span>
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <span className="text-xs text-gray-400">Token</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">1F</span>
+                      </div>
+                      <Select value={receiverToken} onValueChange={setReceiverToken}>
+                        <SelectTrigger className="w-20 bg-transparent border-none text-white p-0 h-auto">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-700 border-gray-600">
+                          <SelectItem value="1FLR" className="text-white hover:bg-gray-600">1FLR</SelectItem>
+                          <SelectItem value="USDT" className="text-white hover:bg-gray-600">USDT</SelectItem>
+                          <SelectItem value="BTC" className="text-white hover:bg-gray-600">BTC</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select value={receiverToken} onValueChange={setReceiverToken}>
-                      <SelectTrigger className="w-20 bg-transparent border-none text-white p-0 h-auto">
+                  </div>
+                  
+                  <div className="w-px bg-gray-700 mx-1"></div>
+                  
+                  <div className="flex flex-col gap-2 flex-1">
+                    <span className="text-xs text-gray-400">Network</span>
+                    <Select value={receiverNetwork} onValueChange={setReceiverNetwork}>
+                      <SelectTrigger className="bg-transparent border-none text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-700 border-gray-600">
-                        <SelectItem value="1FLR" className="text-white hover:bg-gray-600">1FLR</SelectItem>
-                        <SelectItem value="USDT" className="text-white hover:bg-gray-600">USDT</SelectItem>
-                        <SelectItem value="BTC" className="text-white hover:bg-gray-600">BTC</SelectItem>
+                        <SelectItem value="polygon" className="text-white hover:bg-gray-600">Polygon</SelectItem>
+                        <SelectItem value="ethereum" className="text-white hover:bg-gray-600">Ethereum</SelectItem>
+                        <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">Arbitrum</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  <Select value={receiverNetwork} onValueChange={setReceiverNetwork}>
-                    <SelectTrigger className="flex-1 bg-transparent border-none text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="polygon" className="text-white hover:bg-gray-600">Polygon</SelectItem>
-                      <SelectItem value="ethereum" className="text-white hover:bg-gray-600">Ethereum</SelectItem>
-                      <SelectItem value="arbitrum" className="text-white hover:bg-gray-600">Arbitrum</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="flex items-center gap-2">
