@@ -13,8 +13,8 @@ declare global {
     ethereum?: {
       isMetaMask?: boolean;
       request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (event: string, callback: (accounts: string[]) => void) => void;
-      removeListener: (event: string, callback: (accounts: string[]) => void) => void;
+      on: (event: string, callback: (data: any) => void) => void;
+      removeListener: (event: string, callback: (data: any) => void) => void;
     };
   }
 }

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { File } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface Transaction {
   timestamp: string;
@@ -13,7 +14,7 @@ interface Transaction {
 interface TransactionTableProps {
   selectedPair: string;
   onPairChange: (pair: string) => void;
-  tradingPairs: string[];
+  tradingPairs: TradingPair[];
 }
 
 const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: TransactionTableProps) => {
@@ -39,8 +40,8 @@ const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: Transact
           className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
         >
           {tradingPairs.map((pair) => (
-            <option key={pair} value={pair}>
-              {pair}
+            <option key={pair.id} value={pair.id}>
+              {pair.displayName}
             </option>
           ))}
         </select>

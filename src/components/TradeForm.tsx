@@ -4,12 +4,14 @@ import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import WalletButton from "@/components/WalletButton";
+import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface TradeFormProps {
   selectedPair: string;
+  tradingPair?: TradingPair;
 }
 
-const TradeForm = ({ selectedPair }: TradeFormProps) => {
+const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   const [activeOrderType, setActiveOrderType] = useState<"market" | "limit">("market");
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("0,0");
@@ -86,7 +88,7 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
                 <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
                   <span className="text-xs text-white font-bold">₿</span>
                 </div>
-                <span className="text-sm text-gray-300">UST2</span>
+                <span className="text-sm text-gray-300">{tradingPair?.quoteSymbol || "UST2"}</span>
               </div>
             </div>
           </div>
@@ -111,14 +113,14 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
                 <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
                   <span className="text-xs text-white">⚛</span>
                 </div>
-                <span className="text-sm text-gray-300">ATOM</span>
+                <span className="text-sm text-gray-300">{tradingPair?.baseSymbol || "ATOM"}</span>
               </div>
               <div className="w-px h-4 bg-gray-600"></div>
               <div className="flex items-center gap-1">
                 <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
                   <span className="text-xs text-white font-bold">₿</span>
                 </div>
-                <span className="text-sm text-gray-300">UST2</span>
+                <span className="text-sm text-gray-300">{tradingPair?.quoteSymbol || "UST2"}</span>
               </div>
             </div>
           </div>
@@ -146,23 +148,23 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
         <div className="space-y-2 py-3 border-t border-gray-700">
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Amount</span>
-            <span className="text-white">NaN ATOM</span>
+            <span className="text-white">NaN {tradingPair?.baseSymbol || "ATOM"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Order Price</span>
-            <span className="text-white">NaN UST2</span>
+            <span className="text-white">NaN {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Estimated Fee</span>
-            <span className="text-white">0.00 UST2</span>
+            <span className="text-white">0.00 {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Total</span>
-            <span className="text-white">NaN UST2</span>
+            <span className="text-white">NaN {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Purchase price</span>
-            <span className="text-white">NaN UST2</span>
+            <span className="text-white">NaN {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
         </div>
 

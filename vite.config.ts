@@ -19,4 +19,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ['google-protobuf', 'grpc-web'],
+  },
+  build: {
+    rollupOptions: {
+      external: ['google-protobuf/google-protobuf.js'],
+    },
+  },
 }));

@@ -156,12 +156,16 @@ const ActivityPanel = () => {
           ) : activeTab === "deposits" ? (
             <div className="space-y-4">
               <div className="flex justify-center gap-4 px-12">
-                <button className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors">
+                <button 
                   onClick={handleDepositClick}
+                  className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors"
+                >
                   Deposit
                 </button>
-                <button className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors">
+                <button 
                   onClick={handleWithdrawClick}
+                  className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors"
+                >
                   Withdraw
                 </button>
               </div>

@@ -2,11 +2,13 @@ import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
 import TransactionTable from "@/components/TransactionTable";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import WalletButton from "@/components/WalletButton";
+import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useTradingPairs } from "@/hooks/useTradingPairs";
 
 const attestationData = {
   "tee_tcb_svn": "06010300000000000000000000000000",
@@ -26,10 +28,25 @@ const attestationData = {
   "report_data": "afab9790acb13c4c651c1933a22b5f0663ef22927120dd08cc8291d7e0912d8b1c36eb75cf661a64735042f8e81bbe42cb9ab310ca95bf8d36c44cb8835c901f"
 };
 
-const tradingPairs = ["BTC/USDT0", "XRP/USDT0", "BTC/wFLR", "XRP/wFLR"];
-
 const Index = () => {
-  const [selectedPair, setSelectedPair] = useState(tradingPairs[0]);
+  // Get dynamic trading pairs from config
+  const { tradingPairs, loading: pairsLoading, getTradingPairById } = useTradingPairs();
+  
+  // Monitor chain changes and log trade contract info
+  const { currentChainId, isSupported } = useChainMonitor();
+  
+  // Set default selected pair to first available pair, or empty string if none available
+  const [selectedPair, setSelectedPair] = useState<string>("");
+  
+  // Update selected pair when trading pairs load
+  useEffect(() => {
+    if (tradingPairs.length > 0 && !selectedPair) {
+      setSelectedPair(tradingPairs[0].id);
+    }
+  }, [tradingPairs, selectedPair]);
+  
+  // Get the current trading pair object
+  const currentTradingPair = getTradingPairById(selectedPair);
 
   return (
     <div className="min-h-screen bg-neutral-soft/30 relative pb-12">
@@ -47,24 +64,44 @@ const Index = () => {
             </Link>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            {currentChainId && (
+              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                isSupported 
+                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                  : 'bg-red-100 text-red-800 border border-red-200'
+              }`}>
+                {isSupported ? '✅' : '❌'} Chain {currentChainId}
+              </div>
+            )}
             <WalletButton walletNumber={1} />
             <WalletButton walletNumber={2} />
           </div>
         </div>
         <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-2 space-y-6">
-            <TransactionTable selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
-          </div>
-          <div className="col-span-1 space-y-6">
-            <VerticalOrderBook />
-          </div>
-          <div className="col-span-1 space-y-6">
-            <TradeForm selectedPair={selectedPair} />
-          </div>
-          <div className="col-span-4">
-            <ActivityPanel />
-          </div>
+          {pairsLoading ? (
+            <div className="col-span-4 flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading trading pairs...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="col-span-2 space-y-6">
+                <TransactionTable selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
+              </div>
+              <div className="col-span-1 space-y-6">
+                <VerticalOrderBook />
+              </div>
+              <div className="col-span-1 space-y-6">
+                <TradeForm selectedPair={selectedPair} tradingPair={currentTradingPair} />
+              </div>
+              <div className="col-span-4">
+                <ActivityPanel />
+              </div>
+            </>
+          )}
         </div>
       </div>
       <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
