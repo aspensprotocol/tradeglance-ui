@@ -103,6 +103,16 @@ export const useMetaMask = () => {
         }));
       }
     } catch (error: any) {
+      // Handle user rejection gracefully (error code 4001)
+      if (error.code === 4001) {
+        setState(prev => ({
+          ...prev,
+          isConnecting: false,
+          error: null, // Don't show error for user rejection
+        }));
+        return;
+      }
+
       setState(prev => ({
         ...prev,
         isConnecting: false,
