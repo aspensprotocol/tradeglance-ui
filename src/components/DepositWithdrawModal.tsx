@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useContract } from "@/hooks/useContract";
 import { Loader2 } from "lucide-react";
+import { networks } from "@/lib/config";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface DepositWithdrawModalProps {
 const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("");
+  const [selectedNetwork, setSelectedNetwork] = useState("ethereum");
   const { deposit, withdraw, isLoading, error, isConnected } = useContract();
 
   const tokens = [
@@ -23,25 +25,29 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     { value: "ETH", label: "Ethereum (ETH)" },
     { value: "USDT", label: "Tether (USDT)" },
     { value: "XRP", label: "Ripple (XRP)" },
+    { value: "FLR", label: "Flare (FLR)" },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!amount || !selectedToken) {
+    if (!amount || !selectedToken || !selectedNetwork) {
       return;
     }
 
     try {
+      const targetChainId = networks[selectedNetwork as keyof typeof networks]?.chainId;
+      
       if (type === "deposit") {
-        await deposit(amount, selectedToken);
+        await deposit(amount, selectedToken, targetChainId);
       } else {
-        await withdraw(amount, selectedToken);
+        await withdraw(amount, selectedToken, targetChainId);
       }
       
       // Reset form and close modal on success
       setAmount("");
       setSelectedToken("");
+      setSelectedNetwork("ethereum");
       onClose();
     } catch (err) {
       // Error is handled by the hook
@@ -52,6 +58,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
   const handleClose = () => {
     setAmount("");
     setSelectedToken("");
+    setSelectedNetwork("ethereum");
     onClose();
   };
 
@@ -78,6 +85,22 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
                   {tokens.map((token) => (
                     <SelectItem key={token.value} value={token.value}>
                       {token.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="network">Select Network</Label>
+              <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a network" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(networks).map(([key, network]) => (
+                    <SelectItem key={key} value={key}>
+                      {network.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -116,7 +139,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isLoading || !amount || !selectedToken}
+                disabled={isLoading || !amount || !selectedToken || !selectedNetwork}
               >
                 {isLoading ? (
                   <>
