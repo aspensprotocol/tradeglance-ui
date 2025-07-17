@@ -3,6 +3,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import WalletButton from "@/components/WalletButton";
 
 interface TradeFormProps {
   selectedPair: string;
@@ -166,9 +167,9 @@ const TradeForm = ({ selectedPair }: TradeFormProps) => {
         </div>
 
         {/* Wallet Button */}
-        <button className="w-full py-3 px-4 rounded-lg bg-[#00b8a9] text-white font-medium transition-colors hover:bg-[#00a695]">
-          Wallet Not Connected
-        </button>
+        <div className="w-full">
+          <WalletButton walletNumber={1} className="w-full" />
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import WalletButton from "@/components/WalletButton";
 
 const attestationData = {
   "tee_tcb_svn": "06010300000000000000000000000000",
@@ -75,18 +76,8 @@ const Portfolio = () => {
           </div>
           
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="rounded-full border-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white bg-[#f8fcf4]"
-            >
-              Wallet 1
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-full border-2 border-[#7E69AB] text-[#7E69AB] hover:bg-[#7E69AB] hover:text-white bg-[#fff5f6]"
-            >
-              Wallet 2
-            </Button>
+            <WalletButton walletNumber={1} />
+            <WalletButton walletNumber={2} />
           </div>
         </div>
         
