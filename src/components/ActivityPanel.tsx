@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import DepositWithdrawModal from "./DepositWithdrawModal";
 
 interface Trade {
   id: number;
@@ -41,6 +42,18 @@ const mockBalances = {
 const ActivityPanel = () => {
   const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
   const [trades] = useState<Trade[]>(mockTrades);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
+
+  const handleDepositClick = () => {
+    setModalType("deposit");
+    setModalOpen(true);
+  };
+
+  const handleWithdrawClick = () => {
+    setModalType("withdraw");
+    setModalOpen(true);
+  };
 
   const BalanceRow = ({ label, base, quote }: { label: string; base: number; quote: number }) => (
     <div className="grid grid-cols-2 gap-4 py-2 border-b last:border-0">
@@ -144,9 +157,11 @@ const ActivityPanel = () => {
             <div className="space-y-4">
               <div className="flex justify-center gap-4 px-12">
                 <button className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors">
+                  onClick={handleDepositClick}
                   Deposit
                 </button>
                 <button className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors">
+                  onClick={handleWithdrawClick}
                   Withdraw
                 </button>
               </div>
@@ -175,6 +190,12 @@ const ActivityPanel = () => {
           )}
         </div>
       </div>
+      
+      <DepositWithdrawModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        type={modalType}
+      />
     </div>
   );
 };
