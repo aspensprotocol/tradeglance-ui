@@ -1,0 +1,20 @@
+{
+  "name": "grpc-web-proxy",
+  "version": "1.0.0",
+  "description": "gRPC-Web proxy for arborter service",
+  "main": "grpc-web-proxy.js",
+  "scripts": {
+    "start": "node grpc-web-proxy.js",
+    "dev": "nodemon grpc-web-proxy.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.0",
+    "google-protobuf": "^3.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+} 
