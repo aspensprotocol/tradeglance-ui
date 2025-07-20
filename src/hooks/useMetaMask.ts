@@ -31,12 +31,17 @@ export const useMetaMask = () => {
   useEffect(() => {
     const checkMetaMask = () => {
       const isInstalled = typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+      console.log('MetaMask check:', { 
+        ethereumExists: typeof window.ethereum !== 'undefined',
+        isMetaMask: window.ethereum?.isMetaMask 
+      });
       setState(prev => ({ ...prev, isInstalled }));
     };
 
     checkMetaMask();
 
     const handleAccountsChanged = (accounts: string[]) => {
+      console.log('MetaMask accounts changed:', accounts);
       if (accounts.length === 0) {
         setState(prev => ({
           ...prev,
@@ -60,6 +65,7 @@ export const useMetaMask = () => {
       // Check if already connected
       window.ethereum.request({ method: 'eth_accounts' })
         .then((accounts: string[]) => {
+          console.log('Initial MetaMask accounts:', accounts);
           if (accounts.length > 0) {
             setState(prev => ({
               ...prev,
@@ -70,6 +76,10 @@ export const useMetaMask = () => {
         })
         .catch((error) => {
           console.error('Error checking accounts:', error);
+          setState(prev => ({
+            ...prev,
+            error: 'Failed to check MetaMask accounts'
+          }));
         });
     }
 
@@ -81,18 +91,24 @@ export const useMetaMask = () => {
   }, []);
 
   const connect = async () => {
+    console.log('Attempting to connect to MetaMask...');
+    
     if (!state.isInstalled) {
-      setState(prev => ({ ...prev, error: 'MetaMask is not installed' }));
+      const error = 'MetaMask is not installed';
+      console.error(error);
+      setState(prev => ({ ...prev, error }));
       return;
     }
 
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     try {
+      console.log('Requesting MetaMask accounts...');
       const accounts = await window.ethereum!.request({
         method: 'eth_requestAccounts',
       });
 
+      console.log('MetaMask connection successful:', accounts);
       if (accounts.length > 0) {
         setState(prev => ({
           ...prev,
@@ -103,8 +119,11 @@ export const useMetaMask = () => {
         }));
       }
     } catch (error: any) {
+      console.error('MetaMask connection failed:', error);
+      
       // Handle user rejection gracefully (error code 4001)
       if (error.code === 4001) {
+        console.log('User rejected MetaMask connection');
         setState(prev => ({
           ...prev,
           isConnecting: false,
@@ -113,15 +132,26 @@ export const useMetaMask = () => {
         return;
       }
 
+      // Handle other common MetaMask errors
+      let errorMessage = 'Failed to connect to MetaMask';
+      if (error.code === 4001) {
+        errorMessage = 'User rejected connection';
+      } else if (error.code === -32002) {
+        errorMessage = 'MetaMask connection request already pending. Please check your MetaMask extension.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       setState(prev => ({
         ...prev,
         isConnecting: false,
-        error: error.message || 'Failed to connect to MetaMask',
+        error: errorMessage,
       }));
     }
   };
 
   const disconnect = () => {
+    console.log('Disconnecting from MetaMask');
     setState(prev => ({
       ...prev,
       isConnected: false,

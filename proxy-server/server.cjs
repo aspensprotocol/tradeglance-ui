@@ -5,12 +5,12 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
-const GRPC_TARGET = process.env.GRPC_TARGET || 'host.docker.internal:50051';
+const PORT = process.env.PORT || 8083;
+const GRPC_TARGET = process.env.GRPC_TARGET || 'localhost:50051';
 
 // Enable CORS for all routes
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080', 'http://localhost:8081', 'http://localhost:8082'],
   credentials: true
 }));
 
@@ -21,8 +21,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Load proto files
-const CONFIG_PROTO_PATH = path.join(__dirname, 'src/proto/arborter_config.proto');
-const ARBORTER_PROTO_PATH = path.join(__dirname, 'src/proto/arborter.proto');
+const CONFIG_PROTO_PATH = path.join(__dirname, 'proto/arborter_config.proto');
+const ARBORTER_PROTO_PATH = path.join(__dirname, 'proto/arborter.proto');
 
 const configPackageDefinition = protoLoader.loadSync(CONFIG_PROTO_PATH, {
   keepCase: true,
@@ -68,6 +68,16 @@ app.get('/health', (req, res) => {
 
 // gRPC-Web proxy
 app.use('/grpc', async (req, res) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Grpc-Web');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.status(200).end();
+    return;
+  }
+
   try {
     console.log(`Proxying gRPC-Web request: ${req.method} ${req.url}`);
     

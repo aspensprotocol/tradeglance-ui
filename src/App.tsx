@@ -10,7 +10,6 @@ import Portfolio from "./pages/Portfolio";
 import Bridge from "./pages/Bridge";
 import NotFound from "./pages/NotFound";
 import { ConfigTest } from "./components/ConfigTest";
-import GrpcWebTest from "./components/GrpcWebTest";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +25,6 @@ const App = () => (
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/bridge" element={<Bridge />} />
           <Route path="/config" element={<ConfigTest />} />
-          <Route path="/grpc-test" element={<GrpcWebTest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

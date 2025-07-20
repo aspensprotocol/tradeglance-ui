@@ -31,6 +31,10 @@ const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: Transact
     { timestamp: "10:11:15", amount: 2.8901, price: 49567.23, note: "j4b9f1" },
   ]);
 
+  // Debug: Log the trading pairs being passed
+  console.log('TransactionTable: Received trading pairs:', tradingPairs);
+  console.log('TransactionTable: Selected pair:', selectedPair);
+
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
       <div className="p-4 border-b">
@@ -39,6 +43,7 @@ const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: Transact
           onChange={(e) => onPairChange(e.target.value)}
           className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
         >
+          <option value="">Select a trading pair</option>
           {tradingPairs.map((pair) => (
             <option key={pair.id} value={pair.id}>
               {pair.displayName}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMetaMask } from './useMetaMask';
-import { useTradeContract } from './useTradeContract';
+import { configUtils } from '../lib/config-utils';
 import MidribV2ABI from '@/lib/abi/MidribV2.json';
 
 export const useContract = () => {
@@ -30,8 +30,8 @@ export const useContract = () => {
   const addNetwork = async (chainId: number) => {
     if (!window.ethereum) return false;
     
-    // Get network info from config
-    const { chainConfig } = useTradeContract(chainId);
+    // Get network info from configUtils
+    const chainConfig = configUtils.getChainByChainId(chainId);
     if (!chainConfig) return false;
 
     try {
@@ -61,7 +61,7 @@ export const useContract = () => {
       throw new Error('MetaMask not connected');
     }
 
-    const { tradeContractAddress } = useTradeContract(chainId);
+    const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
     if (!tradeContractAddress) {
       throw new Error(`No trade contract found for chain ID ${chainId}`);
     }

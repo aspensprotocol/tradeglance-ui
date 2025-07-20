@@ -19,10 +19,21 @@ export const useTradeContract = (chainId: number) => {
 export const useTradeContracts = () => {
   const { config, loading, error } = useConfig();
   
-  const getAllChains = () => configUtils.getAllChains();
+  const getAllChains = () => {
+    const chains = configUtils.getAllChains();
+    console.log('useTradeContracts: getAllChains returned:', chains);
+    return chains;
+  };
+  
+  const getTradingPairs = () => {
+    const pairs = configUtils.getTradingPairs();
+    console.log('useTradeContracts: getTradingPairs returned:', pairs);
+    return pairs;
+  };
   
   return {
     getAllChains,
+    getTradingPairs,
     loading,
     error,
   };

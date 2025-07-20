@@ -1,22 +1,51 @@
 import { useState, useEffect } from 'react';
 import { configUtils } from '../lib/config-utils';
+import { useConfig } from './useConfig';
 
 export const useChainMonitor = () => {
   const [currentChainId, setCurrentChainId] = useState<number | null>(null);
   const [isSupported, setIsSupported] = useState<boolean>(false);
+  const { config, loading: configLoading } = useConfig();
 
   useEffect(() => {
+    // Don't check chain support until config is loaded
+    if (configLoading || !config) {
+      console.log('Chain monitor: Waiting for config to load...', { configLoading, hasConfig: !!config });
+      return;
+    }
+
+    console.log('Chain monitor: Config loaded, checking chain support...');
+
     const getCurrentChainId = async () => {
       if (typeof window.ethereum !== 'undefined') {
         try {
           const chainId = await window.ethereum.request({ method: 'eth_chainId' });
           const chainIdNumber = parseInt(chainId, 16);
+          console.log('Chain monitor: Current chain ID from MetaMask:', chainIdNumber);
           setCurrentChainId(chainIdNumber);
+          
+          // Debug: Check what chains are available in config
+          const allChains = configUtils.getAllChains();
+          console.log('Chain monitor: All chains from config:', allChains);
+          console.log('Chain monitor: Looking for chain ID:', chainIdNumber);
+          
+          // Check if the chain exists in the config
+          const chainExists = allChains.some(chain => chain.chainId === chainIdNumber);
+          console.log('Chain monitor: Chain exists in config:', chainExists);
           
           // Get trade contract info for this chain using configUtils directly
           const tradeContractAddress = configUtils.getTradeContractAddress(chainIdNumber);
           const chainConfig = configUtils.getChainByChainId(chainIdNumber);
           const supported = !!tradeContractAddress;
+          
+          console.log('Chain monitor: Chain analysis:', {
+            chainId: chainIdNumber,
+            hasTradeContract: !!tradeContractAddress,
+            tradeContractAddress,
+            hasChainConfig: !!chainConfig,
+            supported,
+            chainExists
+          });
           
           if (supported && tradeContractAddress) {
             console.log(`✅ Supported chain detected!`);
@@ -38,6 +67,20 @@ export const useChainMonitor = () => {
             console.log(`🔗 Current Chain ID: ${chainIdNumber}`);
             console.log(`⚠️  This chain is not supported for deposits and withdrawals`);
             console.log(`💡 Please switch to a supported network in MetaMask`);
+            
+            // Log available chains for debugging
+            console.log('Available chains in config:', allChains.map(c => ({ 
+              chainId: c.chainId, 
+              network: c.network,
+              hasTradeContract: !!c.tradeContractAddress 
+            })));
+            
+            // Show user-friendly message about supported networks
+            console.log('💡 Supported networks you can switch to:');
+            allChains.forEach(chain => {
+              console.log(`   • ${chain.network} (Chain ID: ${chain.chainId})`);
+            });
+            
             setIsSupported(false);
           }
         } catch (error) {
@@ -45,6 +88,8 @@ export const useChainMonitor = () => {
           setCurrentChainId(null);
           setIsSupported(false);
         }
+      } else {
+        console.log('Chain monitor: MetaMask not available');
       }
     };
 
@@ -54,6 +99,7 @@ export const useChainMonitor = () => {
     // Listen for chain changes
     const handleChainChanged = (chainId: string) => {
       const chainIdNumber = parseInt(chainId, 16);
+      console.log('Chain monitor: Chain changed to:', chainIdNumber);
       setCurrentChainId(chainIdNumber);
       
       // Get trade contract info for the new chain using configUtils directly
@@ -94,7 +140,7 @@ export const useChainMonitor = () => {
         window.ethereum.removeListener('chainChanged', handleChainChanged);
       }
     };
-  }, []);
+  }, [config, configLoading]);
 
   return {
     currentChainId,
