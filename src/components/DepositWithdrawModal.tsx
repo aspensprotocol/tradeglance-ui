@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useContract } from "@/hooks/useContract";
 import { useTradeContracts } from "@/hooks/useTradeContract";
-import { Loader2 } from "lucide-react";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useMetaMask } from "@/hooks/useMetaMask";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -18,9 +18,11 @@ interface DepositWithdrawModalProps {
 const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("");
-  const { deposit, withdraw, isLoading, error, isConnected } = useContract();
+  const [tokenBalance, setTokenBalance] = useState<string>("");
+  const { deposit, withdraw, isLoading, error } = useContract();
   const { getAllChains, loading: configLoading, error: configError } = useTradeContracts();
   const { currentChainId } = useChainMonitor();
+  const { getTokenBalance, isConnected } = useMetaMask();
 
   const chains = getAllChains();
   
@@ -37,6 +39,37 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     decimals: token.decimals
   })) : [];
 
+  // Fetch token balance when token selection changes
+  useEffect(() => {
+    const fetchBalance = async () => {
+      console.log('DepositWithdrawModal: Fetching balance for token:', selectedToken, 'on chain:', currentChainId);
+      
+      if (selectedToken && currentChainId) {
+        try {
+          const balance = await getTokenBalance(selectedToken, currentChainId);
+          console.log('DepositWithdrawModal: Received balance:', balance);
+          setTokenBalance(balance || "0");
+        } catch (error) {
+          console.error('Error fetching token balance:', error);
+          setTokenBalance("0");
+        }
+      } else {
+        console.log('DepositWithdrawModal: No token selected or no chain ID');
+        setTokenBalance("");
+      }
+    };
+
+    fetchBalance();
+  }, [selectedToken, currentChainId, getTokenBalance]);
+
+  // Auto-select first token if available and none selected
+  useEffect(() => {
+    if (availableTokens.length > 0 && !selectedToken) {
+      console.log('DepositWithdrawModal: Auto-selecting first token:', availableTokens[0].value);
+      setSelectedToken(availableTokens[0].value);
+    }
+  }, [availableTokens, selectedToken]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -44,16 +77,24 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
       return;
     }
 
+    // Find the selected token object to get the address
+    const selectedTokenObj = availableTokens.find(token => token.value === selectedToken);
+    if (!selectedTokenObj) {
+      console.error('Selected token not found in available tokens');
+      return;
+    }
+
     try {
       if (type === "deposit") {
-        await deposit(amount, selectedToken, currentChainId);
+        await deposit(amount, selectedTokenObj.address, currentChainId);
       } else {
-        await withdraw(amount, selectedToken, currentChainId);
+        await withdraw(amount, selectedTokenObj.address, currentChainId);
       }
       
       // Reset form and close modal on success
       setAmount("");
       setSelectedToken("");
+      setTokenBalance("");
       onClose();
     } catch (err) {
       // Error is handled by the hook
@@ -64,6 +105,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
   const handleClose = () => {
     setAmount("");
     setSelectedToken("");
+    setTokenBalance("");
     onClose();
   };
 
@@ -119,13 +161,6 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="network">Network</Label>
-              <div className="px-3 py-2 rounded-lg border bg-gray-50 text-sm">
-                {currentChain?.network || `Chain ${currentChainId}`}
-              </div>
-            </div>
-
             {currentChainId && (
               <div className="space-y-2">
                 <Label htmlFor="token">Select Token</Label>
@@ -150,7 +185,14 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="amount">Amount</Label>
+                {tokenBalance && (
+                  <span className="text-xs text-gray-500">
+                    Balance: {tokenBalance}
+                  </span>
+                )}
+              </div>
               <Input
                 id="amount"
                 type="number"

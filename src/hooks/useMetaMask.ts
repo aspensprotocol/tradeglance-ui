@@ -164,10 +164,67 @@ export const useMetaMask = () => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  const getTokenBalance = async (tokenSymbol: string, chainId: number): Promise<string> => {
+    console.log('getTokenBalance: Starting with token:', tokenSymbol, 'chainId:', chainId);
+    console.log('getTokenBalance: Wallet connected:', state.isConnected, 'account:', state.account);
+    
+    if (!state.isConnected || !state.account) {
+      console.log('getTokenBalance: Wallet not connected or no account');
+      return "0";
+    }
+
+    try {
+      // Get the token address from the config
+      const { configUtils } = await import('../lib/config-utils');
+      const tokenAddress = configUtils.getTokenAddress(chainId, tokenSymbol);
+      
+      console.log('getTokenBalance: Token address:', tokenAddress);
+      
+      if (!tokenAddress) {
+        console.error(`Token address not found for ${tokenSymbol} on chain ${chainId}`);
+        return "0";
+      }
+
+      // ERC-20 token balance call
+      const balance = await window.ethereum!.request({
+        method: 'eth_call',
+        params: [
+          {
+            to: tokenAddress,
+            data: '0x70a08231' + '000000000000000000000000' + state.account.slice(2), // balanceOf(address)
+          },
+          'latest'
+        ]
+      });
+
+      console.log('getTokenBalance: Raw balance response:', balance);
+
+      // Convert hex balance to decimal
+      const balanceDecimal = parseInt(balance, 16);
+      
+      // Get token decimals from config
+      const chainConfig = configUtils.getChainByChainId(chainId);
+      const tokenConfig = chainConfig?.tokens[tokenSymbol];
+      const decimals = tokenConfig?.decimals || 18;
+      
+      console.log('getTokenBalance: Balance decimal:', balanceDecimal, 'decimals:', decimals);
+      
+      // Convert to human readable format
+      const formattedBalance = (balanceDecimal / Math.pow(10, decimals)).toFixed(6);
+      
+      console.log(`Token balance for ${tokenSymbol}:`, formattedBalance);
+      return formattedBalance;
+    } catch (error) {
+      console.error('Error fetching token balance:', error);
+      return "0";
+    }
+  };
+
   return {
     ...state,
     connect,
     disconnect,
     formatAddress,
+    getTokenBalance,
   };
 };
