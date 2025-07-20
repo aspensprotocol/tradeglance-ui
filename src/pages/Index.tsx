@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import WalletButton from "@/components/WalletButton";
+import { WalletButton } from "@/components/WalletButton";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
 
@@ -74,8 +74,7 @@ const Index = () => {
                 {isSupported ? '✅' : '❌'} Chain {currentChainId}
               </div>
             )}
-            <WalletButton walletNumber={1} />
-            <WalletButton walletNumber={2} />
+            <WalletButton />
           </div>
         </div>
         <div className="grid grid-cols-4 gap-4">

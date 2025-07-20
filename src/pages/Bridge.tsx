@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpDown, Settings, History } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import WalletButton from "@/components/WalletButton";
+import { WalletButton } from "@/components/WalletButton";
 
 const attestationData = {
   "tee_tcb_svn": "06010300000000000000000000000000",
@@ -64,8 +64,7 @@ const Bridge = () => {
           </div>
           
           <div className="flex gap-3">
-            <WalletButton walletNumber={1} />
-            <WalletButton walletNumber={2} />
+            <WalletButton />
           </div>
         </div>
 

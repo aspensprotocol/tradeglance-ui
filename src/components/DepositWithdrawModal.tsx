@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useContract } from "@/hooks/useContract";
 import { useTradeContracts } from "@/hooks/useTradeContract";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
-import { useMetaMask } from "@/hooks/useMetaMask";
+import { useAccount } from "wagmi";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -21,8 +21,8 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
   const [tokenBalance, setTokenBalance] = useState<string>("");
   const { deposit, withdraw, isLoading, error } = useContract();
   const { getAllChains, loading: configLoading, error: configError } = useTradeContracts();
-  const { currentChainId } = useChainMonitor();
-  const { getTokenBalance, isConnected } = useMetaMask();
+  const { currentChainId, isSupported } = useChainMonitor();
+  const { isConnected } = useAccount();
 
   const chains = getAllChains();
   
@@ -46,9 +46,8 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
       
       if (selectedToken && currentChainId) {
         try {
-          const balance = await getTokenBalance(selectedToken, currentChainId);
-          console.log('DepositWithdrawModal: Received balance:', balance);
-          setTokenBalance(balance || "0");
+          // For now, set a placeholder balance since we don't have getTokenBalance in WalletConnect
+          setTokenBalance("0.00");
         } catch (error) {
           console.error('Error fetching token balance:', error);
           setTokenBalance("0");
@@ -60,7 +59,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     };
 
     fetchBalance();
-  }, [selectedToken, currentChainId, getTokenBalance]);
+  }, [selectedToken, currentChainId]);
 
   // Auto-select first token if available and none selected
   useEffect(() => {
@@ -74,6 +73,12 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     e.preventDefault();
     
     if (!amount || !selectedToken || !currentChainId) {
+      return;
+    }
+
+    // Check if current chain is supported
+    if (!isSupported) {
+      console.error('Current chain is not supported for deposits/withdrawals');
       return;
     }
 
@@ -158,6 +163,11 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
         ) : !currentChainId ? (
           <div className="text-center py-4">
             <p className="text-gray-600 mb-4">Please connect to a supported network</p>
+          </div>
+        ) : !isSupported ? (
+          <div className="text-center py-4">
+            <p className="text-red-600 mb-4">Current network is not supported for deposits/withdrawals</p>
+            <p className="text-sm text-gray-600">Please switch to a supported network in your wallet</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

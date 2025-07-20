@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import WalletButton from "@/components/WalletButton";
+import { WalletButton } from "@/components/WalletButton";
 
 const attestationData = {
   "tee_tcb_svn": "06010300000000000000000000000000",
@@ -76,8 +76,7 @@ const Portfolio = () => {
           </div>
           
           <div className="flex gap-3">
-            <WalletButton walletNumber={1} />
-            <WalletButton walletNumber={2} />
+            <WalletButton />
           </div>
         </div>
         

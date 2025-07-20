@@ -3,7 +3,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import WalletButton from "@/components/WalletButton";
+import { WalletButton } from "@/components/WalletButton";
 import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface TradeFormProps {
@@ -170,7 +170,7 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
 
         {/* Wallet Button */}
         <div className="w-full">
-          <WalletButton walletNumber={1} className="w-full" />
+          <WalletButton />
         </div>
       </div>
     </div>
