@@ -78,6 +78,11 @@ export class OrderbookRequest extends jspb.Message {
   hasHistoricalOpenOrders(): boolean;
   clearHistoricalOpenOrders(): OrderbookRequest;
 
+  getFilterByTrader(): string;
+  setFilterByTrader(value: string): OrderbookRequest;
+  hasFilterByTrader(): boolean;
+  clearFilterByTrader(): OrderbookRequest;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OrderbookRequest.AsObject;
   static toObject(includeInstance: boolean, msg: OrderbookRequest): OrderbookRequest.AsObject;
@@ -91,11 +96,61 @@ export namespace OrderbookRequest {
     continueStream: boolean,
     marketId: string,
     historicalOpenOrders?: boolean,
+    filterByTrader?: string,
   }
 
   export enum HistoricalOpenOrdersCase { 
     _HISTORICAL_OPEN_ORDERS_NOT_SET = 0,
     HISTORICAL_OPEN_ORDERS = 3,
+  }
+
+  export enum FilterByTraderCase { 
+    _FILTER_BY_TRADER_NOT_SET = 0,
+    FILTER_BY_TRADER = 4,
+  }
+}
+
+export class TradeRequest extends jspb.Message {
+  getContinueStream(): boolean;
+  setContinueStream(value: boolean): TradeRequest;
+
+  getMarketId(): string;
+  setMarketId(value: string): TradeRequest;
+
+  getHistoricalClosedTrades(): boolean;
+  setHistoricalClosedTrades(value: boolean): TradeRequest;
+  hasHistoricalClosedTrades(): boolean;
+  clearHistoricalClosedTrades(): TradeRequest;
+
+  getFilterByTrader(): string;
+  setFilterByTrader(value: string): TradeRequest;
+  hasFilterByTrader(): boolean;
+  clearFilterByTrader(): TradeRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TradeRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TradeRequest): TradeRequest.AsObject;
+  static serializeBinaryToWriter(message: TradeRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TradeRequest;
+  static deserializeBinaryFromReader(message: TradeRequest, reader: jspb.BinaryReader): TradeRequest;
+}
+
+export namespace TradeRequest {
+  export type AsObject = {
+    continueStream: boolean,
+    marketId: string,
+    historicalClosedTrades?: boolean,
+    filterByTrader?: string,
+  }
+
+  export enum HistoricalClosedTradesCase { 
+    _HISTORICAL_CLOSED_TRADES_NOT_SET = 0,
+    HISTORICAL_CLOSED_TRADES = 3,
+  }
+
+  export enum FilterByTraderCase { 
+    _FILTER_BY_TRADER_NOT_SET = 0,
+    FILTER_BY_TRADER = 4,
   }
 }
 

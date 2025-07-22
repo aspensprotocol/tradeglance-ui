@@ -125,26 +125,26 @@ export class ArborterServiceClient {
     this.methodDescriptorCancelOrder);
   }
 
-  methodDescriptorGetRecentTrades = new grpcWeb.MethodDescriptor(
-    '/xyz.aspens.arborter.v1.ArborterService/GetRecentTrades',
+  methodDescriptorTrades = new grpcWeb.MethodDescriptor(
+    '/xyz.aspens.arborter.v1.ArborterService/Trades',
     grpcWeb.MethodType.SERVER_STREAMING,
-    arborter_pb.Empty,
+    arborter_pb.TradeRequest,
     arborter_pb.Trade,
-    (request: arborter_pb.Empty) => {
+    (request: arborter_pb.TradeRequest) => {
       return request.serializeBinary();
     },
     arborter_pb.Trade.deserializeBinary
   );
 
-  getRecentTrades(
-    request: arborter_pb.Empty,
+  trades(
+    request: arborter_pb.TradeRequest,
     metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<arborter_pb.Trade> {
     return this.client_.serverStreaming(
       this.hostname_ +
-        '/xyz.aspens.arborter.v1.ArborterService/GetRecentTrades',
+        '/xyz.aspens.arborter.v1.ArborterService/Trades',
       request,
       metadata || {},
-      this.methodDescriptorGetRecentTrades);
+      this.methodDescriptorTrades);
   }
 
   methodDescriptorOrderbook = new grpcWeb.MethodDescriptor(
