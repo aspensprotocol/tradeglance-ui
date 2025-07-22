@@ -1,6 +1,13 @@
 // Configuration
 const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://0.0.0.0:8811';
 
+// Import generated gRPC-Web client and messages
+import { ConfigServiceClient } from '../proto/generated/Arborter_configServiceClientPb';
+import { GetConfigRequest, GetConfigResponse } from '../proto/generated/arborter_config_pb';
+
+// Create the gRPC-Web client instance
+const configGrpcClient = new ConfigServiceClient(GRPC_WEB_PROXY_URL, null, null);
+
 // Simple gRPC-Web client using fetch API for unary calls
 class SimpleGrpcWebClient {
   private baseUrl: string;
@@ -337,189 +344,17 @@ export const arborterService = {
   }
 };
 
-// Config Service
+// Config Service using gRPC-Web generated client
 export const configService = {
   // Get configuration
-  async getConfig(token?: string): Promise<any> {
-    const data = {};
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'GetConfig',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Get version info
-  async getVersion(token?: string): Promise<any> {
-    const data = {};
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'GetVersion',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Deploy contract
-  async deployContract(
-    chainNetwork: string,
-    baseOrQuote: string,
-    token?: string
-  ): Promise<any> {
-    const data = {
-      chainNetwork,
-      baseOrQuote
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'DeployContract',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Add chain
-  async addChain(chain: any, token?: string): Promise<any> {
-    const data = {
-      chain
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'AddChain',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Add token
-  async addToken(
-    chainNetwork: string,
-    tokenData: any,
-    token?: string
-  ): Promise<any> {
-    const data = {
-      chainNetwork,
-      token: tokenData
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'AddToken',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Add market
-  async addMarket(marketData: any, token?: string): Promise<any> {
-    const data = {
-      baseChainNetwork: marketData.baseChainNetwork,
-      quoteChainNetwork: marketData.quoteChainNetwork,
-      baseChainTokenSymbol: marketData.baseChainTokenSymbol,
-      quoteChainTokenSymbol: marketData.quoteChainTokenSymbol,
-      baseChainTokenAddress: marketData.baseChainTokenAddress,
-      quoteChainTokenAddress: marketData.quoteChainTokenAddress,
-      baseChainTokenDecimals: marketData.baseChainTokenDecimals,
-      quoteChainTokenDecimals: marketData.quoteChainTokenDecimals,
-      pairDecimals: marketData.pairDecimals
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'AddMarket',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Add trade contract
-  async addTradeContract(
-    address: string,
-    chainId: number,
-    token?: string
-  ): Promise<any> {
-    const data = {
-      address,
-      chainId
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'AddTradeContract',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Delete market
-  async deleteMarket(marketId: string, token?: string): Promise<any> {
-    const data = {
-      marketId
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'DeleteMarket',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Delete token
-  async deleteToken(
-    chainNetwork: string,
-    tokenSymbol: string,
-    token?: string
-  ): Promise<any> {
-    const data = {
-      chainNetwork,
-      tokenSymbol
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'DeleteToken',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Delete chain
-  async deleteChain(chainNetwork: string, token?: string): Promise<any> {
-    const data = {
-      chainNetwork
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'DeleteChain',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
-  },
-
-  // Delete trade contract
-  async deleteTradeContract(
-    address: string,
-    chainId: number,
-    token?: string
-  ): Promise<any> {
-    const data = {
-      address,
-      chainId
-    };
-    
-    return configClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'DeleteTradeContract',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
+  async getConfig(token?: string): Promise<GetConfigResponse.AsObject> {
+    const request = new GetConfigRequest();
+    const metadata: Record<string, string> = {};
+    if (token) {
+      metadata['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await configGrpcClient.getConfig(request, metadata);
+    return response.toObject();
   }
 };
 
