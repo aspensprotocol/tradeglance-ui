@@ -1,5 +1,5 @@
 // Configuration
-const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://localhost:8083/grpc';
+const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://0.0.0.0:8811';
 
 // Simple gRPC-Web client using fetch API for unary calls
 class SimpleGrpcWebClient {

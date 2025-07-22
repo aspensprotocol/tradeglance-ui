@@ -7,7 +7,7 @@ option optimize_for = SPEED;
 service ArborterService {
   rpc SendOrder(SendOrderRequest) returns (SendOrderResponse) {}
   rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse) {}
-  rpc Trades(TradeRequest) returns (stream Trade) {}
+  rpc GetRecentTrades(Empty) returns (stream Trade) {}
   rpc Orderbook(OrderbookRequest) returns (stream OrderbookEntry) {}
   rpc AddOrderbook(AddOrderbookRequest) returns (AddOrderbookResponse) {}
   rpc RemoveOrderbook(RemoveOrderbookRequest) returns (RemoveOrderbookResponse) {}
@@ -31,23 +31,10 @@ message CancelOrderResponse {
 message OrderbookRequest {
   // Used to keep the client alive
   bool continue_stream = 1;
-  // The market id to stream orders for
+  // The market ID to stream orders for
   string market_id = 2;
   // If true, returns existing open orders when stream starts, then continues streaming
   optional bool historical_open_orders = 3;
-  // If this is sent too, then we filter by a specific trader
-  optional string filter_by_trader = 4;
-}
-
-message TradeRequest {
-    // Used to keep the client alive
-    bool continue_stream = 1;
-    // The market id to stream orders for
-    string market_id = 2;
-    // If true, returns existing closed when stream starts, then continues streaming
-    optional bool historical_closed_trades = 3;
-    // If this is sent too, then we filter by a specific trader
-    optional string filter_by_trader = 4;
 }
 
 message SendOrderRequest {
