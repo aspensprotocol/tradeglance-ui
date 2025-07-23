@@ -1,6 +1,34 @@
 import { useConfig } from './useConfig';
 import { configUtils } from '../lib/config-utils';
 
+// Define the actual config structure based on what the API returns
+interface ConfigData {
+  chains?: Array<{
+    chain_id: number | string; // The actual field name from the API
+    network: string;
+    rpc_url: string; // The actual field name from the API
+    trade_contract: { // Nested structure
+      address: string;
+    };
+    service_address: string; // The actual field name from the API
+    tokens?: Record<string, {
+      address: string;
+      decimals: number;
+      symbol: string;
+    }>;
+  }>;
+  markets?: Array<{
+    market_id: string; // The actual field name from the API
+    base_chain_network: string; // The actual field name from the API
+    quote_chain_network: string; // The actual field name from the API
+    base_chain_token_symbol: string; // The actual field name from the API
+    quote_chain_token_symbol: string; // The actual field name from the API
+    base_chain_token_decimals: number; // The actual field name from the API
+    quote_chain_token_decimals: number; // The actual field name from the API
+    pair_decimals: number; // The actual field name from the API
+  }>;
+}
+
 export interface TradingPair {
   id: string;
   displayName: string;
@@ -9,88 +37,62 @@ export interface TradingPair {
   baseChainId: number;
   quoteChainId: number;
   marketId: string;
+  // Add decimal information from market configuration
+  baseTokenDecimals: number;
+  quoteTokenDecimals: number;
+  pairDecimals: number;
 }
 
 export const useTradingPairs = () => {
   const { config, loading, error } = useConfig();
   
   const getTradingPairs = (): TradingPair[] => {
-    console.log('useTradingPairs: Starting getTradingPairs');
-    console.log('useTradingPairs: Config available:', !!config);
-    console.log('useTradingPairs: Config markets:', config?.markets);
-    
     if (!config) {
-      console.log('useTradingPairs: No config available');
       return [];
     }
 
-    // Use the configUtils method to get trading pairs
-    const configPairs = configUtils.getTradingPairs();
-    console.log('useTradingPairs: Config pairs from configUtils:', configPairs);
+    // The config is a plain JavaScript object, not a protobuf object
+    const chains = config.chains || [];
+    const markets = config.markets || [];
 
-    if (configPairs.length === 0) {
-      console.log('useTradingPairs: No config pairs returned from configUtils');
+    if (chains.length === 0 || markets.length === 0) {
       return [];
     }
 
-    // Convert to TradingPair format
-    const pairs = configPairs.map(configPair => {
-      console.log('useTradingPairs: Processing configPair:', configPair);
-      
-      // Find the market data
-      const market = configPair.market;
-      
-      // Use the correct snake_case property names from protobuf
-      const baseChainNetwork = (market as any).base_chain_network || market.baseChainNetwork;
-      const quoteChainNetwork = (market as any).quote_chain_network || market.quoteChainNetwork;
-      
-      // Find the base and quote chains
-      const baseChain = config.chains?.find(chain => chain.network === baseChainNetwork);
-      const quoteChain = config.chains?.find(chain => chain.network === quoteChainNetwork);
+    const tradingPairs: TradingPair[] = [];
+
+    // Create trading pairs from markets
+    markets.forEach((market: any) => {
+      // Find base and quote chains by network name
+      const baseChain = chains.find((chain: any) => chain.network === market.base_chain_network);
+      const quoteChain = chains.find((chain: any) => chain.network === market.quote_chain_network);
       
       if (!baseChain || !quoteChain) {
-        console.log(`useTradingPairs: Could not find chains for market ${market.slug}`);
-        console.log(`  Base chain network: ${baseChainNetwork}`);
-        console.log(`  Quote chain network: ${quoteChainNetwork}`);
-        console.log(`  Available chains:`, config.chains?.map(c => ({ network: c.network, chainId: (c as any).chain_id })));
-        return null;
+        return;
       }
 
-      // Use the correct property name from protobuf
-      const baseChainId = (baseChain as any).chain_id || baseChain.chainId;
-      const quoteChainId = (quoteChain as any).chain_id || quoteChain.chainId;
+      // Convert chain IDs to numbers for consistency
+      const baseChainId = typeof baseChain.chain_id === 'string' ? parseInt(baseChain.chain_id, 10) : baseChain.chain_id;
+      const quoteChainId = typeof quoteChain.chain_id === 'string' ? parseInt(quoteChain.chain_id, 10) : quoteChain.chain_id;
 
-      // Use the correct snake_case property names for symbols
-      const baseSymbol = (market as any).base_chain_token_symbol || market.baseChainTokenSymbol;
-      const quoteSymbol = (market as any).quote_chain_token_symbol || market.quoteChainTokenSymbol;
-
-      const pair: TradingPair = {
-        id: configPair.value,
-        displayName: configPair.label, // This is already in "symbol_1/symbol_2" format
-        baseSymbol: baseSymbol,
-        quoteSymbol: quoteSymbol,
+      // Create trading pair
+      const tradingPair: TradingPair = {
+        id: `${market.base_chain_token_symbol}-${market.quote_chain_token_symbol}`,
+        displayName: `${market.base_chain_token_symbol}/${market.quote_chain_token_symbol}`,
+        baseSymbol: market.base_chain_token_symbol,
+        quoteSymbol: market.quote_chain_token_symbol,
         baseChainId: baseChainId,
         quoteChainId: quoteChainId,
-        marketId: market.marketId,
+        marketId: market.market_id,
+        baseTokenDecimals: market.base_chain_token_decimals || 18,
+        quoteTokenDecimals: market.quote_chain_token_decimals || 18,
+        pairDecimals: market.pair_decimals || 8,
       };
 
-      console.log(`useTradingPairs: Created pair ${pair.displayName}:`, pair);
-      return pair;
-    }).filter(Boolean) as TradingPair[];
-    
-    // Log available trading pairs
-    if (pairs.length > 0) {
-      console.log(`📊 Available trading pairs from config:`);
-      pairs.forEach(pair => {
-        console.log(`   • ${pair.displayName} (Market ID: ${pair.marketId})`);
-        console.log(`     Base: ${pair.baseSymbol} on Chain ${pair.baseChainId}`);
-        console.log(`     Quote: ${pair.quoteSymbol} on Chain ${pair.quoteChainId}`);
-      });
-    } else {
-      console.log('useTradingPairs: No valid trading pairs found');
-    }
-    
-    return pairs;
+      tradingPairs.push(tradingPair);
+    });
+
+    return tradingPairs;
   };
 
   const getTradingPairById = (id: string): TradingPair | null => {

@@ -1,15 +1,11 @@
 // Configuration
 const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://localhost:8811';
 
+console.log('Environment variable VITE_GRPC_WEB_PROXY_URL:', import.meta.env.VITE_GRPC_WEB_PROXY_URL);
+console.log('Using GRPC_WEB_PROXY_URL:', GRPC_WEB_PROXY_URL);
+
 // This must point to the Envoy proxy, not the Express server
 const ENVOY_PROXY_URL = GRPC_WEB_PROXY_URL;
-
-// Import generated gRPC-Web client and messages
-import { ConfigServiceClient } from '../proto/generated/Arborter_configServiceClientPb';
-import { GetConfigRequest, GetConfigResponse, Empty } from '../proto/generated/arborter_config_pb';
-
-// Create the gRPC-Web client instance using Envoy proxy
-const configGrpcClient = new ConfigServiceClient(ENVOY_PROXY_URL, null, null);
 
 // Simple gRPC-Web client using fetch API for unary calls
 class SimpleGrpcWebClient {
@@ -22,21 +18,87 @@ class SimpleGrpcWebClient {
   async call(service: string, method: string, data: any, headers: any = {}) {
     const url = `${this.baseUrl}/${service}/${method}`;
     
+    console.log(`gRPC client making request to: ${url}`);
+    console.log(`gRPC client base URL: ${this.baseUrl}`);
+    
+    // Convert data to proper gRPC-Web format
+    const messageBytes = new TextEncoder().encode(JSON.stringify(data));
+    const messageLength = messageBytes.length;
+    
+    // Create gRPC-Web frame: [1 byte flag][4 bytes length][message]
+    const frame = new Uint8Array(5 + messageLength);
+    frame[0] = 0; // No compression flag
+    frame[1] = (messageLength >>> 24) & 0xFF; // Length bytes (big-endian)
+    frame[2] = (messageLength >>> 16) & 0xFF;
+    frame[3] = (messageLength >>> 8) & 0xFF;
+    frame[4] = messageLength & 0xFF;
+    frame.set(messageBytes, 5); // Set message after header
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/grpc-web+proto',
         'X-Grpc-Web': '1',
         ...headers
       },
-      body: JSON.stringify(data)
+      body: frame
     });
 
     if (!response.ok) {
       throw new Error(`gRPC call failed: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    // Check gRPC status from headers
+    const grpcStatus = response.headers.get('grpc-status');
+    const grpcMessage = response.headers.get('grpc-message');
+    
+    console.log(`gRPC response status: ${response.status}`);
+    console.log(`gRPC grpc-status: ${grpcStatus}`);
+    console.log(`gRPC grpc-message: ${grpcMessage}`);
+    console.log(`gRPC response headers:`, Object.fromEntries(response.headers.entries()));
+    
+    // Check if gRPC call failed
+    if (grpcStatus && grpcStatus !== '0') {
+      throw new Error(`gRPC call failed: ${grpcStatus} - ${grpcMessage || 'Unknown error'}`);
+    }
+    
+    // Get response as array buffer for binary processing
+    const arrayBuffer = await response.arrayBuffer();
+    const responseBytes = new Uint8Array(arrayBuffer);
+    
+    console.log(`gRPC response bytes length: ${responseBytes.length}`);
+    console.log(`gRPC response bytes:`, Array.from(responseBytes.slice(0, 20))); // Log first 20 bytes
+    
+    if (responseBytes.length === 0) {
+      console.log('Empty response received');
+      return {}; // Return empty object for empty responses
+    }
+    
+    // Parse gRPC-Web response frame
+    if (responseBytes.length >= 5) {
+      const flag = responseBytes[0];
+      const length = (responseBytes[1] << 24) | (responseBytes[2] << 16) | (responseBytes[3] << 8) | responseBytes[4];
+      const messageBytes = responseBytes.slice(5, 5 + length);
+      
+      console.log(`gRPC response flag: ${flag}, length: ${length}`);
+      
+      if (messageBytes.length > 0) {
+        try {
+          const messageText = new TextDecoder().decode(messageBytes);
+          console.log(`gRPC response message text:`, messageText);
+          
+          const parsed = JSON.parse(messageText);
+          console.log('Successfully parsed JSON response:', parsed);
+          return parsed;
+        } catch (error) {
+          console.warn('Failed to parse response as JSON:', error);
+          return { rawResponse: Array.from(messageBytes) };
+        }
+      }
+    }
+    
+    console.log('No valid message in response');
+    return {};
   }
 }
 
@@ -209,17 +271,47 @@ export const arborterService = {
     signatureHash: Uint8Array,
     token?: string
   ): Promise<any> {
-    const data = {
-      order: order,
+    // Create the proper SendOrderRequest structure (matching aspens SDK)
+    const request = {
+      order: {
+        side: order.side,
+        quantity: order.quantity.toString(), // Convert to string (SDK expects string)
+        price: order.price ? order.price.toString() : undefined, // Convert to string (SDK expects string)
+        marketId: order.marketId, // Use marketId (SDK expects marketId, not marketName/tradeSymbol)
+        baseAccountAddress: order.baseAccountAddress,
+        quoteAccountAddress: order.quoteAccountAddress,
+        executionType: order.executionType || 0,
+        matchingOrderIds: order.matchingOrderIds || []
+      },
       signatureHash: Array.from(signatureHash)
     };
     
-    return arborterClient.call(
-      'xyz.aspens.arborter.v1.ArborterService',
-      'SendOrder',
-      data,
-      { Authorization: token ? `Bearer ${token}` : '' }
-    );
+    // Use proxy server for send order since it handles protobuf conversion properly
+    const proxyUrl = 'http://localhost:8083';
+    const url = `${proxyUrl}/grpc/xyz.aspens.arborter.v1.ArborterService/SendOrder`;
+    
+    console.log(`Sending order via proxy server to: ${url}`);
+    console.log(`Order request:`, JSON.stringify(request, null, 2));
+    console.log(`Signature hash length:`, signatureHash.length);
+    console.log(`Signature hash bytes:`, Array.from(signatureHash));
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Grpc-Web': '1',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Proxy server response:', result);
+    return result;
   },
 
   // Cancel an order
@@ -350,10 +442,10 @@ export const arborterService = {
 // Config Service using gRPC-Web generated client
 export const configService = {
   // Get configuration
-  async getConfig(token?: string): Promise<GetConfigResponse.AsObject> {
+  async getConfig(token?: string): Promise<any> {
     try {
       console.log('Calling getConfig via gRPC-Web');
-      const request = new GetConfigRequest();
+      const request = {}; // No specific request object needed for getConfig
       const metadata: Record<string, string> = {};
       if (token) {
         metadata['Authorization'] = `Bearer ${token}`;
@@ -361,14 +453,19 @@ export const configService = {
       
       // Use the Promise-based API for better error handling
       return new Promise((resolve, reject) => {
-        configGrpcClient.getConfig(request, metadata, (err, response) => {
-          if (err) {
-            console.error('gRPC-Web getConfig error:', err);
-            reject(err);
-          } else {
-            console.log('gRPC-Web getConfig success:', response);
-            resolve(response.toObject());
-          }
+        configClient.call(
+          'xyz.aspens.arborter.v1.ConfigService',
+          'GetConfig',
+          request,
+          metadata
+        )
+        .then(response => {
+          console.log('gRPC-Web getConfig success:', response);
+          resolve(response);
+        })
+        .catch(error => {
+          console.error('gRPC-Web getConfig error:', error);
+          reject(error);
         });
       });
     } catch (error) {
@@ -381,21 +478,26 @@ export const configService = {
   async getVersion(token?: string): Promise<any> {
     try {
       console.log('Calling getVersion via gRPC-Web');
-      const request = new Empty();
+      const request = {}; // No specific request object needed for getVersion
       const metadata: Record<string, string> = {};
       if (token) {
         metadata['Authorization'] = `Bearer ${token}`;
       }
       
       return new Promise((resolve, reject) => {
-        configGrpcClient.getVersion(request, metadata, (err, response) => {
-          if (err) {
-            console.error('gRPC-Web getVersion error:', err);
-            reject(err);
-          } else {
-            console.log('gRPC-Web getVersion success:', response);
-            resolve(response.toObject());
-          }
+        configClient.call(
+          'xyz.aspens.arborter.v1.ConfigService',
+          'GetVersion',
+          request,
+          metadata
+        )
+        .then(response => {
+          console.log('gRPC-Web getVersion success:', response);
+          resolve(response);
+        })
+        .catch(error => {
+          console.error('gRPC-Web getVersion error:', error);
+          reject(error);
         });
       });
     } catch (error) {

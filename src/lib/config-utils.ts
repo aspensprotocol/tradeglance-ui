@@ -1,7 +1,33 @@
-import { Configuration, Chain } from '../proto/generated/src/proto/arborter_config';
+// Define the actual config structure based on what the API returns
+interface ConfigData {
+  chains?: Array<{
+    chain_id: number | string; // The actual field name from the API
+    network: string;
+    rpc_url: string; // The actual field name from the API
+    trade_contract: { // Nested structure
+      address: string;
+    };
+    service_address: string; // The actual field name from the API
+    tokens?: Record<string, {
+      address: string;
+      decimals: number;
+      symbol: string;
+    }>;
+  }>;
+  markets?: Array<{
+    market_id: string; // The actual field name from the API
+    base_chain_network: string; // The actual field name from the API
+    quote_chain_network: string; // The actual field name from the API
+    base_chain_token_symbol: string; // The actual field name from the API
+    quote_chain_token_symbol: string; // The actual field name from the API
+    base_chain_token_decimals: number; // The actual field name from the API
+    quote_chain_token_decimals: number; // The actual field name from the API
+    pair_decimals: number; // The actual field name from the API
+  }>;
+}
 
 export interface ChainConfig {
-  chainId: number;
+  chainId: number | string; // Allow both string and number
   network: string;
   rpcUrl: string;
   tradeContractAddress: string;
@@ -14,173 +40,98 @@ export interface ChainConfig {
 }
 
 export class ConfigUtils {
-  private config: Configuration | null = null;
+  private config: ConfigData | null = null;
 
-  setConfig(config: Configuration) {
-    console.log('ConfigUtils: Setting config:', config);
+  setConfig(config: ConfigData) {
     this.config = config;
   }
 
   getChainByChainId(chainId: number): ChainConfig | null {
     if (!this.config?.chains) {
-      console.log('ConfigUtils: No chains in config');
       return null;
     }
 
-    console.log(`ConfigUtils: Looking for chain ID ${chainId} (type: ${typeof chainId}) in config chains:`, this.config.chains.map(c => ({ 
-      chainId: c.chainId, 
-      chain_id: (c as any).chain_id, // Access the raw protobuf field
-      chainIdType: typeof c.chainId,
-      network: c.network,
-      canonicalName: c.canonicalName
-    })));
-
-    // Try to find the chain using both property names
-    let chain = this.config.chains.find(c => c.chainId === chainId);
-    if (!chain) {
-      // Try using the raw protobuf field name
-      chain = this.config.chains.find(c => (c as any).chain_id === chainId);
-    }
+    // Try to find chain with type conversion, using the correct field name
+    const chain = this.config.chains.find(c => {
+      const configChainId = typeof c.chain_id === 'string' ? parseInt(c.chain_id, 10) : c.chain_id;
+      return configChainId === chainId;
+    });
     
     if (!chain) {
-      console.log(`ConfigUtils: Chain ${chainId} not found in config. Available chain IDs:`, this.config.chains.map(c => (c as any).chain_id || c.chainId));
       return null;
     }
 
-    console.log(`ConfigUtils: Found chain ${chainId}:`, chain);
-
-    // Use the correct property name from protobuf
-    const actualChainId = (chain as any).chain_id || chain.chainId;
-    
-    // Get trade contract address using the correct property name
-    const tradeContractAddress = (chain as any).trade_contract?.address || chain.tradeContract?.address || '';
-    
-    console.log(`ConfigUtils: Trade contract address for chain ${chainId}:`, tradeContractAddress);
-    
     return {
-      chainId: actualChainId,
+      chainId: typeof chain.chain_id === 'string' ? parseInt(chain.chain_id, 10) : chain.chain_id,
       network: chain.network,
-      rpcUrl: chain.rpcUrl,
-      tradeContractAddress: tradeContractAddress,
-      serviceAddress: chain.serviceAddress,
-      tokens: Object.entries(chain.tokens || {}).reduce((acc, [symbol, token]) => {
-        acc[symbol] = {
-          address: token.address,
-          decimals: token.decimals,
-          symbol: token.symbol,
-        };
-        return acc;
-      }, {} as Record<string, { address: string; decimals: number; symbol: string }>)
+      rpcUrl: chain.rpc_url,
+      tradeContractAddress: chain.trade_contract?.address || '',
+      serviceAddress: chain.service_address,
+      tokens: chain.tokens || {},
     };
   }
 
-  getTradeContractAddress(chainId: number): string | null {
-    const chainConfig = this.getChainByChainId(chainId);
-    const address = chainConfig?.tradeContractAddress || null;
-    console.log(`ConfigUtils: getTradeContractAddress for chain ${chainId}:`, address);
-    return address;
-  }
-
-  getTradingPairs(): Array<{ value: string; label: string; market: any }> {
-    console.log('ConfigUtils.getTradingPairs: Starting');
-    console.log('ConfigUtils.getTradingPairs: Config available:', !!this.config);
-    console.log('ConfigUtils.getTradingPairs: Config markets:', this.config?.markets);
-    
-    if (!this.config?.markets) {
-      console.log('ConfigUtils.getTradingPairs: No markets in config for getTradingPairs');
-      return [];
+  getChainByNetwork(network: string): ChainConfig | null {
+    if (!this.config?.chains) {
+      return null;
     }
 
-    console.log('ConfigUtils.getTradingPairs: Processing markets:', this.config.markets);
+    const chain = this.config.chains.find(c => c.network === network);
     
-    const pairs = this.config.markets.map(market => {
-      console.log('ConfigUtils.getTradingPairs: Processing market:', market);
-      
-      // Use the correct snake_case property names from protobuf
-      const baseSymbol = (market as any).base_chain_token_symbol || market.baseChainTokenSymbol;
-      const quoteSymbol = (market as any).quote_chain_token_symbol || market.quoteChainTokenSymbol;
-      
-      // Create label in format "symbol_1/symbol_2"
-      const label = `${baseSymbol}/${quoteSymbol}`;
-      const value = market.slug || `${baseSymbol}_${quoteSymbol}`;
-      
-      console.log(`ConfigUtils.getTradingPairs: Trading pair: ${label} (${value})`);
-      
-      return {
-        value,
-        label,
-        market
-      };
-    });
-    
-    console.log('ConfigUtils.getTradingPairs: Final result:', pairs);
-    return pairs;
-  }
+    if (!chain) {
+      return null;
+    }
 
-  getTokenAddress(chainId: number, symbol: string): string | null {
-    const chainConfig = this.getChainByChainId(chainId);
-    return chainConfig?.tokens[symbol]?.address || null;
-  }
-
-  getRpcUrl(chainId: number): string | null {
-    const chainConfig = this.getChainByChainId(chainId);
-    return chainConfig?.rpcUrl || null;
+    return {
+      chainId: typeof chain.chain_id === 'string' ? parseInt(chain.chain_id, 10) : chain.chain_id,
+      network: chain.network,
+      rpcUrl: chain.rpc_url,
+      tradeContractAddress: chain.trade_contract?.address || '',
+      serviceAddress: chain.service_address,
+      tokens: chain.tokens || {},
+    };
   }
 
   getAllChains(): ChainConfig[] {
     if (!this.config?.chains) {
-      console.log('ConfigUtils: No chains in config for getAllChains');
       return [];
     }
 
-    console.log('ConfigUtils: Processing chains:', this.config.chains);
-    console.log('ConfigUtils: Available chain IDs:', this.config.chains.map(c => ({ 
-      chainId: c.chainId, 
-      chain_id: (c as any).chain_id, // Access the raw protobuf field
-      network: c.network,
-      canonicalName: c.canonicalName 
-    })));
-    
-    const result = this.config.chains.map(chain => {
-      console.log('ConfigUtils: Processing chain:', chain);
-      // Use the correct property name from protobuf
-      const chainId = (chain as any).chain_id || chain.chainId;
-      return {
-        chainId: chainId,
-        network: chain.network,
-        rpcUrl: chain.rpcUrl,
-        tradeContractAddress: chain.tradeContract?.address || '',
-        serviceAddress: chain.serviceAddress,
-        tokens: Object.entries(chain.tokens || {}).reduce((acc, [symbol, token]) => {
-          acc[symbol] = {
-            address: token.address,
-            decimals: token.decimals,
-            symbol: token.symbol,
-          };
-          return acc;
-        }, {} as Record<string, { address: string; decimals: number; symbol: string }>)
-      };
-    });
-    
-    console.log('ConfigUtils: getAllChains result:', result);
-    return result;
+    return this.config.chains.map(chain => ({
+      chainId: typeof chain.chain_id === 'string' ? parseInt(chain.chain_id, 10) : chain.chain_id,
+      network: chain.network,
+      rpcUrl: chain.rpc_url,
+      tradeContractAddress: chain.trade_contract?.address || '',
+      serviceAddress: chain.service_address,
+      tokens: chain.tokens || {},
+    }));
   }
 
-  getMarketByChainIds(baseChainId: number, quoteChainId: number) {
+  getTokenByAddress(chainId: number, tokenAddress: string): { address: string; decimals: number; symbol: string } | null {
+    const chain = this.getChainByChainId(chainId);
+    if (!chain) {
+      return null;
+    }
+
+    return chain.tokens[tokenAddress] || null;
+  }
+
+  getMarketById(marketId: string): any {
     if (!this.config?.markets) {
       return null;
     }
 
-    return this.config.markets.find(market => {
-      const baseChain = this.getChainByChainId(baseChainId);
-      const quoteChain = this.getChainByChainId(quoteChainId);
-      
-      return baseChain && quoteChain && 
-             market.baseChainNetwork === baseChain.network &&
-             market.quoteChainNetwork === quoteChain.network;
-    });
+    return this.config.markets.find(m => m.market_id === marketId) || null;
+  }
+
+  getAllMarkets(): any[] {
+    return this.config?.markets || [];
+  }
+
+  getTradeContractAddress(chainId: number): string | null {
+    const chain = this.getChainByChainId(chainId);
+    return chain?.tradeContractAddress || null;
   }
 }
 
-// Create a singleton instance
 export const configUtils = new ConfigUtils(); 

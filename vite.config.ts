@@ -27,4 +27,7 @@ export default defineConfig(({ mode }) => ({
       external: ['google-protobuf/google-protobuf.js'],
     },
   },
+  define: {
+    global: 'globalThis',
+  },
 }));

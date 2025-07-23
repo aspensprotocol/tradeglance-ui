@@ -233,12 +233,13 @@ export const arborterService = {
     signatureHash: Uint8Array,
     token?: string
   ): Promise<any> {
-    const data = {
+    // Create the proper SendOrderRequest structure
+    const request = {
       order: order,
       signatureHash: Array.from(signatureHash)
     };
     
-    return apiClient.post('/arborter/send-order', data, token);
+    return apiClient.post('/arborter/send-order', request, token);
   },
 
   // Cancel an order

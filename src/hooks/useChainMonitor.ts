@@ -22,16 +22,8 @@ export const useChainMonitor = () => {
           const chainId = await window.ethereum.request({ method: 'eth_chainId' });
           const chainIdNumber = parseInt(chainId, 16);
           console.log('Chain monitor: Current chain ID from MetaMask:', chainIdNumber);
+          console.log('Chain monitor: Chain ID type:', typeof chainIdNumber);
           setCurrentChainId(chainIdNumber);
-          
-          // Debug: Check what chains are available in config
-          const allChains = configUtils.getAllChains();
-          console.log('Chain monitor: All chains from config:', allChains);
-          console.log('Chain monitor: Looking for chain ID:', chainIdNumber);
-          
-          // Check if the chain exists in the config
-          const chainExists = allChains.some(chain => chain.chainId === chainIdNumber);
-          console.log('Chain monitor: Chain exists in config:', chainExists);
           
           // Get trade contract info for this chain using configUtils directly
           const tradeContractAddress = configUtils.getTradeContractAddress(chainIdNumber);
@@ -40,11 +32,11 @@ export const useChainMonitor = () => {
           
           console.log('Chain monitor: Chain analysis:', {
             chainId: chainIdNumber,
+            chainIdType: typeof chainIdNumber,
             hasTradeContract: !!tradeContractAddress,
             tradeContractAddress,
             hasChainConfig: !!chainConfig,
-            supported,
-            chainExists
+            supported
           });
           
           if (supported && tradeContractAddress) {
@@ -69,6 +61,7 @@ export const useChainMonitor = () => {
             console.log(`💡 Please switch to a supported network in MetaMask`);
             
             // Log available chains for debugging
+            const allChains = configUtils.getAllChains();
             console.log('Available chains in config:', allChains.map(c => ({ 
               chainId: c.chainId, 
               network: c.network,
@@ -78,7 +71,9 @@ export const useChainMonitor = () => {
             // Show user-friendly message about supported networks
             console.log('💡 Supported networks you can switch to:');
             allChains.forEach(chain => {
-              console.log(`   • ${chain.network} (Chain ID: ${chain.chainId})`);
+              if (chain.tradeContractAddress) {
+                console.log(`   • ${chain.network} (Chain ID: ${chain.chainId})`);
+              }
             });
             
             setIsSupported(false);

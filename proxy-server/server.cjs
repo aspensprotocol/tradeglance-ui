@@ -271,14 +271,48 @@ app.use('/grpc', async (req, res) => {
         const request = req.body;
         console.log(`${methodName} request:`, request);
         
-        arborterClient[methodName.toLowerCase()](request, (err, response) => {
-          if (err) {
-            console.error(`gRPC ${methodName} error:`, err);
-            res.status(500).json({ error: err.message });
-          } else {
-            res.json(response);
-          }
-        });
+        // Handle SendOrder specifically
+        if (methodName === 'SendOrder') {
+          console.log('Processing SendOrder request:', JSON.stringify(request, null, 2));
+          
+          // Convert signatureHash from array to Buffer for protobuf
+          // Also ensure field names match protobuf expectations
+          const processedRequest = {
+            order: {
+              side: request.order.side,
+              quantity: request.order.quantity,
+              price: request.order.price,
+              market_id: request.order.marketId || request.order.market_id, // Handle both camelCase and snake_case
+              base_account_address: request.order.baseAccountAddress || request.order.base_account_address, // Handle both camelCase and snake_case
+              quote_account_address: request.order.quoteAccountAddress || request.order.quote_account_address, // Handle both camelCase and snake_case
+              execution_type: request.order.executionType || request.order.execution_type, // Handle both camelCase and snake_case
+              matching_order_ids: request.order.matchingOrderIds || request.order.matching_order_ids || [] // Handle both camelCase and snake_case
+            },
+            signature_hash: Buffer.from(request.signatureHash || request.signature_hash || []) // Handle both camelCase and snake_case
+          };
+          
+          console.log('Processed SendOrder request:', JSON.stringify(processedRequest, null, 2));
+          
+          arborterClient.sendOrder(processedRequest, (err, response) => {
+            if (err) {
+              console.error(`gRPC ${methodName} error:`, err);
+              res.status(500).json({ error: err.message });
+            } else {
+              console.log('SendOrder response:', response);
+              res.json(response);
+            }
+          });
+        } else {
+          // Handle other methods
+          arborterClient[methodName.toLowerCase()](request, (err, response) => {
+            if (err) {
+              console.error(`gRPC ${methodName} error:`, err);
+              res.status(500).json({ error: err.message });
+            } else {
+              res.json(response);
+            }
+          });
+        }
       }
     } else {
       res.status(404).json({ error: `Service ${serviceName} not found` });

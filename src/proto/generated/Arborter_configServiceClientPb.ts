@@ -17,7 +17,7 @@
 
 import * as grpcWeb from 'grpc-web';
 
-import * as arborter_config_pb from './arborter_config_pb'; // proto import: "arborter_config.proto"
+import * as arborter_config_pb from './arborter_config_pb.js'; // proto import: "arborter_config.proto"
 
 
 export class ConfigServiceClient {

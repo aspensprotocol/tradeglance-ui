@@ -17,7 +17,7 @@
 
 import * as grpcWeb from 'grpc-web';
 
-import * as arborter_pb from './arborter_pb'; // proto import: "arborter.proto"
+import * as arborter_pb from './arborter_pb.js'; // proto import: "arborter.proto"
 
 
 export class ArborterServiceClient {
