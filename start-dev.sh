@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Get the current directory
+CURRENT_DIR=$(pwd)
+
+# Start Envoy in the background
+echo "Starting Envoy proxy..."
+docker run -d --name envoy-grpc-web \
+  -v "$CURRENT_DIR/envoy.yaml:/etc/envoy/envoy.yaml:ro" \
+  -p 8811:8811 \
+  --network host \
+  envoyproxy/envoy:v1.28-latest
+
+# Start the proxy server in the background
+echo "Starting proxy server..."
+(cd proxy-server && npm start) &
+PROXY_PID=$!
+
+# Wait a moment for the proxy server to start
+sleep 2
+
+# Start the frontend development server
+echo "Starting frontend development server..."
+npm run dev
+
+# When the frontend server is stopped, also stop the proxy server
+echo "Stopping services..."
+kill $PROXY_PID 2>/dev/null
+
+# Stop and remove the Envoy container
+docker stop envoy-grpc-web 2>/dev/null
+docker rm envoy-grpc-web 2>/dev/null
+
+echo "All services stopped."

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { configService } from '../lib/grpc-client';
+import { configService } from '../lib/api-client';
 import { configUtils } from '../lib/config-utils';
-import { Configuration } from '../proto/generated/src/proto/arborter_config';
+import { Configuration } from '../proto/generated/arborter_config_pb';
 
 interface UseConfigReturn {
   config: Configuration | null;
@@ -21,13 +21,13 @@ export const useConfig = (): UseConfigReturn => {
       setError(null);
       
       const response = await configService.getConfig();
-      console.log('Config response:', response);
       
-      if (response.config) {
+      if (response.success && response.config) {
         setConfig(response.config);
         // Set the config in our utils for easy access
         configUtils.setConfig(response.config);
       } else {
+        setError(response.message || 'Failed to fetch configuration');
         setConfig(null);
       }
     } catch (err) {

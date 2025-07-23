@@ -1,12 +1,15 @@
 // Configuration
-const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://0.0.0.0:8811';
+const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://localhost:8811';
+
+// This must point to the Envoy proxy, not the Express server
+const ENVOY_PROXY_URL = GRPC_WEB_PROXY_URL;
 
 // Import generated gRPC-Web client and messages
 import { ConfigServiceClient } from '../proto/generated/Arborter_configServiceClientPb';
-import { GetConfigRequest, GetConfigResponse } from '../proto/generated/arborter_config_pb';
+import { GetConfigRequest, GetConfigResponse, Empty } from '../proto/generated/arborter_config_pb';
 
-// Create the gRPC-Web client instance
-const configGrpcClient = new ConfigServiceClient(GRPC_WEB_PROXY_URL, null, null);
+// Create the gRPC-Web client instance using Envoy proxy
+const configGrpcClient = new ConfigServiceClient(ENVOY_PROXY_URL, null, null);
 
 // Simple gRPC-Web client using fetch API for unary calls
 class SimpleGrpcWebClient {
@@ -170,10 +173,10 @@ class StreamingGrpcWebClient {
   }
 }
 
-// Create clients
-const arborterClient = new SimpleGrpcWebClient(GRPC_WEB_PROXY_URL);
-const configClient = new SimpleGrpcWebClient(GRPC_WEB_PROXY_URL);
-const streamingClient = new StreamingGrpcWebClient(GRPC_WEB_PROXY_URL);
+// Create clients using Envoy proxy
+const arborterClient = new SimpleGrpcWebClient(ENVOY_PROXY_URL);
+const configClient = new SimpleGrpcWebClient(ENVOY_PROXY_URL);
+const streamingClient = new StreamingGrpcWebClient(ENVOY_PROXY_URL);
 
 // Utility function to convert protobuf objects to plain objects
 export function convertToPlainObject<T>(protoObj: any): T {
@@ -348,19 +351,64 @@ export const arborterService = {
 export const configService = {
   // Get configuration
   async getConfig(token?: string): Promise<GetConfigResponse.AsObject> {
-    const request = new GetConfigRequest();
-    const metadata: Record<string, string> = {};
-    if (token) {
-      metadata['Authorization'] = `Bearer ${token}`;
+    try {
+      console.log('Calling getConfig via gRPC-Web');
+      const request = new GetConfigRequest();
+      const metadata: Record<string, string> = {};
+      if (token) {
+        metadata['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Use the Promise-based API for better error handling
+      return new Promise((resolve, reject) => {
+        configGrpcClient.getConfig(request, metadata, (err, response) => {
+          if (err) {
+            console.error('gRPC-Web getConfig error:', err);
+            reject(err);
+          } else {
+            console.log('gRPC-Web getConfig success:', response);
+            resolve(response.toObject());
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error in getConfig:', error);
+      throw error;
     }
-    const response = await configGrpcClient.getConfig(request, metadata);
-    return response.toObject();
+  },
+  
+  // Get version information
+  async getVersion(token?: string): Promise<any> {
+    try {
+      console.log('Calling getVersion via gRPC-Web');
+      const request = new Empty();
+      const metadata: Record<string, string> = {};
+      if (token) {
+        metadata['Authorization'] = `Bearer ${token}`;
+      }
+      
+      return new Promise((resolve, reject) => {
+        configGrpcClient.getVersion(request, metadata, (err, response) => {
+          if (err) {
+            console.error('gRPC-Web getVersion error:', err);
+            reject(err);
+          } else {
+            console.log('gRPC-Web getVersion success:', response);
+            resolve(response.toObject());
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error in getVersion:', error);
+      throw error;
+    }
   }
 };
 
 // Test gRPC connection
 export async function testGrpcConnection(): Promise<boolean> {
   try {
+    console.log('Testing gRPC connection to Envoy proxy at:', ENVOY_PROXY_URL);
     const version = await configService.getVersion();
     console.log('gRPC connection successful:', version);
     return true;
@@ -368,4 +416,4 @@ export async function testGrpcConnection(): Promise<boolean> {
     console.error('gRPC connection failed:', error);
     return false;
   }
-} 
+}

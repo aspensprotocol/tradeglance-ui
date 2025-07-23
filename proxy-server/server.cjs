@@ -66,6 +66,43 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Direct API routes for configuration
+app.get('/api/config', (req, res) => {
+  console.log('API request for config received');
+  try {
+    configClient.getConfig({}, (err, response) => {
+      if (err) {
+        console.error('gRPC GetConfig error:', err);
+        res.status(500).json({ error: err.message });
+      } else {
+        console.log('Config response received successfully');
+        res.json(response);
+      }
+    });
+  } catch (error) {
+    console.error('Exception in /api/config route:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/config/version', (req, res) => {
+  console.log('API request for version received');
+  try {
+    configClient.getVersion({}, (err, response) => {
+      if (err) {
+        console.error('gRPC GetVersion error:', err);
+        res.status(500).json({ error: err.message });
+      } else {
+        console.log('Version response received successfully');
+        res.json(response);
+      }
+    });
+  } catch (error) {
+    console.error('Exception in /api/config/version route:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // gRPC-Web proxy
 app.use('/grpc', async (req, res) => {
   // Handle CORS preflight requests
@@ -259,9 +296,9 @@ app.use('/grpc', async (req, res) => {
 // Serve static files (optional, for serving the frontend)
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Fallback route for SPA
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Fallback route for SPA - only for non-API routes
+app.get('/', (req, res) => {
+  res.json({ message: 'gRPC-Web Proxy Server', status: 'running' });
 });
 
 app.listen(PORT, () => {
@@ -269,4 +306,4 @@ app.listen(PORT, () => {
   console.log(`Target gRPC service: ${GRPC_TARGET}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`gRPC-Web endpoint: http://localhost:${PORT}/grpc`);
-}); 
+});
