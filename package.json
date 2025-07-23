@@ -12,6 +12,9 @@
     "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/proto/generated --ts_proto_opt=esModuleInterop=true,outputServices=grpc-web,outputClientImpl=grpc-web ./src/proto/*.proto"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.6.2",
+    "@connectrpc/connect": "^2.0.2",
+    "@connectrpc/connect-web": "^2.0.2",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.7.15",
     "@hookform/resolvers": "^3.9.0",
@@ -35,7 +38,7 @@
     "embla-carousel-react": "^8.3.0",
     "ethers": "^5.8.0",
     "express": "^5.1.0",
-    "google-protobuf": "^3.21.2",
+    "google-protobuf": "^3.21.4",
     "grpc-web": "^1.5.0",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",

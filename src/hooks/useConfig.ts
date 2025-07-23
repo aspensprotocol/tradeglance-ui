@@ -2,31 +2,42 @@ import { useState, useEffect } from 'react';
 import { configService } from '../lib/api-client';
 import { configUtils } from '../lib/config-utils';
 
-// Define the actual config structure based on what the API returns
+// Define the actual config structure based on the protobuf definition
 interface ConfigData {
   chains?: Array<{
-    chain_id: number | string; // The actual field name from the API
+    architecture: string;
+    canonicalName: string;
     network: string;
-    rpc_url: string; // The actual field name from the API
-    trade_contract: { // Nested structure
+    chainId: number;
+    contractOwnerAddress: string;
+    explorerUrl?: string;
+    rpcUrl: string;
+    serviceAddress: string;
+    tradeContract: {
+      contractId?: string;
       address: string;
     };
-    service_address: string; // The actual field name from the API
-    tokens?: Record<string, {
-      address: string;
-      decimals: number;
+    tokens: Record<string, {
+      name: string;
       symbol: string;
+      address: string;
+      tokenId?: string;
+      decimals: number;
+      tradePrecision: number;
     }>;
+    baseOrQuote: string;
   }>;
   markets?: Array<{
-    market_id: string; // The actual field name from the API
-    base_chain_network: string; // The actual field name from the API
-    quote_chain_network: string; // The actual field name from the API
-    base_chain_token_symbol: string; // The actual field name from the API
-    quote_chain_token_symbol: string; // The actual field name from the API
-    base_chain_token_decimals: number; // The actual field name from the API
-    quote_chain_token_decimals: number; // The actual field name from the API
-    pair_decimals: number; // The actual field name from the API
+    slug: string;
+    name: string;
+    baseChainNetwork: string;
+    quoteChainNetwork: string;
+    baseChainTokenSymbol: string;
+    quoteChainTokenSymbol: string;
+    baseChainTokenDecimals: number;
+    quoteChainTokenDecimals: number;
+    pairDecimals: number;
+    marketId?: string;
   }>;
 }
 

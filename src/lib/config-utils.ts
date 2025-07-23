@@ -1,28 +1,39 @@
-// Define the actual config structure based on what the API returns
+// Define the actual config structure based on the protobuf definition
 interface ConfigData {
   chains?: Array<{
-    chain_id: number | string; // The actual field name from the API
+    architecture: string;
+    canonicalName: string;
     network: string;
-    rpc_url: string; // The actual field name from the API
-    trade_contract: { // Nested structure
+    chainId: number;
+    contractOwnerAddress: string;
+    explorerUrl?: string;
+    rpcUrl: string;
+    serviceAddress: string;
+    tradeContract: {
+      contractId?: string;
       address: string;
     };
-    service_address: string; // The actual field name from the API
-    tokens?: Record<string, {
-      address: string;
-      decimals: number;
+    tokens: Record<string, {
+      name: string;
       symbol: string;
+      address: string;
+      tokenId?: string;
+      decimals: number;
+      tradePrecision: number;
     }>;
+    baseOrQuote: string;
   }>;
   markets?: Array<{
-    market_id: string; // The actual field name from the API
-    base_chain_network: string; // The actual field name from the API
-    quote_chain_network: string; // The actual field name from the API
-    base_chain_token_symbol: string; // The actual field name from the API
-    quote_chain_token_symbol: string; // The actual field name from the API
-    base_chain_token_decimals: number; // The actual field name from the API
-    quote_chain_token_decimals: number; // The actual field name from the API
-    pair_decimals: number; // The actual field name from the API
+    slug: string;
+    name: string;
+    baseChainNetwork: string;
+    quoteChainNetwork: string;
+    baseChainTokenSymbol: string;
+    quoteChainTokenSymbol: string;
+    baseChainTokenDecimals: number;
+    quoteChainTokenDecimals: number;
+    pairDecimals: number;
+    marketId?: string;
   }>;
 }
 
@@ -53,7 +64,7 @@ export class ConfigUtils {
 
     // Try to find chain with type conversion, using the correct field name
     const chain = this.config.chains.find(c => {
-      const configChainId = typeof c.chain_id === 'string' ? parseInt(c.chain_id, 10) : c.chain_id;
+      const configChainId = typeof c.chainId === 'string' ? parseInt(c.chainId, 10) : c.chainId;
       return configChainId === chainId;
     });
     
@@ -62,11 +73,11 @@ export class ConfigUtils {
     }
 
     return {
-      chainId: typeof chain.chain_id === 'string' ? parseInt(chain.chain_id, 10) : chain.chain_id,
+      chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
       network: chain.network,
-      rpcUrl: chain.rpc_url,
-      tradeContractAddress: chain.trade_contract?.address || '',
-      serviceAddress: chain.service_address,
+      rpcUrl: chain.rpcUrl,
+      tradeContractAddress: chain.tradeContract?.address || '',
+      serviceAddress: chain.serviceAddress,
       tokens: chain.tokens || {},
     };
   }
@@ -83,11 +94,11 @@ export class ConfigUtils {
     }
 
     return {
-      chainId: typeof chain.chain_id === 'string' ? parseInt(chain.chain_id, 10) : chain.chain_id,
+      chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
       network: chain.network,
-      rpcUrl: chain.rpc_url,
-      tradeContractAddress: chain.trade_contract?.address || '',
-      serviceAddress: chain.service_address,
+      rpcUrl: chain.rpcUrl,
+      tradeContractAddress: chain.tradeContract?.address || '',
+      serviceAddress: chain.serviceAddress,
       tokens: chain.tokens || {},
     };
   }
@@ -98,11 +109,11 @@ export class ConfigUtils {
     }
 
     return this.config.chains.map(chain => ({
-      chainId: typeof chain.chain_id === 'string' ? parseInt(chain.chain_id, 10) : chain.chain_id,
+      chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
       network: chain.network,
-      rpcUrl: chain.rpc_url,
-      tradeContractAddress: chain.trade_contract?.address || '',
-      serviceAddress: chain.service_address,
+      rpcUrl: chain.rpcUrl,
+      tradeContractAddress: chain.tradeContract?.address || '',
+      serviceAddress: chain.serviceAddress,
       tokens: chain.tokens || {},
     }));
   }
@@ -121,7 +132,7 @@ export class ConfigUtils {
       return null;
     }
 
-    return this.config.markets.find(m => m.market_id === marketId) || null;
+    return this.config.markets.find(m => m.marketId === marketId) || null;
   }
 
   getAllMarkets(): any[] {

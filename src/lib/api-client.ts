@@ -342,152 +342,9 @@ export const configService = {
   // Get configuration
   async getConfig(token?: string): Promise<any> {
     try {
-      // Use the gRPC-Web endpoint directly
-      const response = await fetch(`${API_BASE_URL.replace('/api', '')}/grpc/xyz.aspens.arborter_config.v1.ConfigService/GetConfig`, {
-        method: 'POST',  // gRPC-Web requires POST method
-        headers: {
-          'Content-Type': 'application/grpc-web+proto',
-          'X-Grpc-Web': '1',
-          ...(token ? { 'Authorization': token } : {})
-        },
-        body: new Uint8Array(0)  // Empty message for GetConfig
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      // Parse the gRPC-Web response
-      const arrayBuffer = await response.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      
-      // Skip the gRPC-Web header (5 bytes) and parse the actual message
-      if (bytes.length > 5) {
-        const dataBytes = bytes.slice(5);
-        const jsonString = new TextDecoder().decode(dataBytes);
-        
-        // Debug: let's see what we're actually getting
-        console.log('Raw JSON string:', jsonString);
-        console.log('JSON string length:', jsonString.length);
-        
-        // The response starts with "fig": which suggests there's a prefix
-        // Let's find the actual JSON start and clean it
-        let cleanedJson = jsonString;
-        
-        // If it starts with a partial JSON, try to find the complete object
-        if (cleanedJson.includes('"chains"') && !cleanedJson.startsWith('{')) {
-          const startIndex = cleanedJson.indexOf('"chains"');
-          if (startIndex > 0) {
-            // Find the opening brace before "chains"
-            const beforeChains = cleanedJson.substring(0, startIndex);
-            const lastBraceIndex = beforeChains.lastIndexOf('{');
-            if (lastBraceIndex >= 0) {
-              cleanedJson = cleanedJson.substring(lastBraceIndex);
-            } else {
-              // If no opening brace found, add one
-              cleanedJson = '{' + cleanedJson;
-            }
-          }
-        }
-        
-        // Ensure the JSON is properly closed
-        if (!cleanedJson.endsWith('}')) {
-          const lastBraceIndex = cleanedJson.lastIndexOf('}');
-          if (lastBraceIndex > 0) {
-            cleanedJson = cleanedJson.substring(0, lastBraceIndex + 1);
-          }
-        }
-        
-        try {
-          const parsed = JSON.parse(cleanedJson);
-          // If the parsed object has a 'config' property, extract it
-          if (parsed.config) {
-            return { success: true, config: parsed.config };
-          }
-          return { success: true, config: parsed };
-        } catch (e) {
-          console.error('Failed to parse cleaned JSON:', e);
-          
-          // Fallback: try to find the actual JSON start
-          const jsonStartIndex = cleanedJson.indexOf('{"');
-          if (jsonStartIndex >= 0) {
-            const jsonEndIndex = cleanedJson.lastIndexOf('}');
-            if (jsonEndIndex > jsonStartIndex) {
-              const extractedJson = cleanedJson.substring(jsonStartIndex, jsonEndIndex + 1);
-              try {
-                const parsed = JSON.parse(extractedJson);
-                if (parsed.config) {
-                  return { success: true, config: parsed.config };
-                }
-                return { success: true, config: parsed };
-              } catch (e2) {
-                console.error('Failed to parse extracted JSON:', e2);
-                console.log('Extracted JSON:', extractedJson);
-              }
-            }
-          }
-          
-          // Last resort: try to parse the original string with aggressive cleaning
-          try {
-            // The response starts with "fig": so we need to find the actual JSON
-            const jsonStartIndex = jsonString.indexOf('{"');
-            if (jsonStartIndex >= 0) {
-              // Find the last complete JSON object by counting braces
-              let braceCount = 0;
-              let endIndex = jsonStartIndex;
-              let inString = false;
-              let escapeNext = false;
-              
-              for (let i = jsonStartIndex; i < jsonString.length; i++) {
-                const char = jsonString[i];
-                
-                if (escapeNext) {
-                  escapeNext = false;
-                  continue;
-                }
-                
-                if (char === '\\') {
-                  escapeNext = true;
-                  continue;
-                }
-                
-                if (char === '"' && !escapeNext) {
-                  inString = !inString;
-                  continue;
-                }
-                
-                if (!inString) {
-                  if (char === '{') {
-                    braceCount++;
-                  } else if (char === '}') {
-                    braceCount--;
-                    if (braceCount === 0) {
-                      endIndex = i;
-                      break;
-                    }
-                  }
-                }
-              }
-              
-              if (braceCount === 0) {
-                const finalJson = jsonString.substring(jsonStartIndex, endIndex + 1);
-                console.log('Final extracted JSON:', finalJson);
-                const parsed = JSON.parse(finalJson);
-                if (parsed.config) {
-                  return { success: true, config: parsed.config };
-                }
-                return { success: true, config: parsed };
-              }
-            }
-          } catch (e3) {
-            console.error('Failed to parse aggressively cleaned JSON:', e3);
-          }
-          
-          return { success: false, message: 'Failed to parse configuration' };
-        }
-      }
-      
-      return { success: false, message: 'Empty config received' };
+      // Use our new gRPC client that goes through Envoy
+      const { configService: grpcConfigService } = await import('./grpc-client');
+      return await grpcConfigService.getConfig(token);
     } catch (error) {
       console.error('Error fetching config:', error);
       throw error;
@@ -497,39 +354,9 @@ export const configService = {
   // Get version
   async getVersion(token?: string): Promise<any> {
     try {
-      // Use the gRPC-Web endpoint directly
-      const response = await fetch(`${API_BASE_URL.replace('/api', '')}/grpc/xyz.aspens.arborter_config.v1.ConfigService/GetVersion`, {
-        method: 'POST',  // gRPC-Web requires POST method
-        headers: {
-          'Content-Type': 'application/grpc-web+proto',
-          'X-Grpc-Web': '1',
-          ...(token ? { 'Authorization': token } : {})
-        },
-        body: new Uint8Array(0)  // Empty message for GetVersion
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      // Parse the gRPC-Web response
-      const arrayBuffer = await response.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      
-      // Skip the gRPC-Web header (5 bytes) and parse the actual message
-      if (bytes.length > 5) {
-        const dataBytes = bytes.slice(5);
-        const jsonString = new TextDecoder().decode(dataBytes);
-        try {
-          const parsed = JSON.parse(jsonString);
-          return { success: true, version: parsed };
-        } catch (e) {
-          console.error('Failed to parse version response:', e);
-          return { success: false, message: 'Failed to parse version' };
-        }
-      }
-      
-      return { success: false, message: 'Empty version received' };
+      // Use our new gRPC client that goes through Envoy
+      const { configService: grpcConfigService } = await import('./grpc-client');
+      return await grpcConfigService.getVersion(token);
     } catch (error) {
       console.error('Error fetching version:', error);
       throw error;
@@ -540,14 +367,9 @@ export const configService = {
 // Test API connection
 export async function testApiConnection(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
-    if (response.ok) {
-      const data = await response.json();
-      console.log('API connection successful:', data);
-      return true;
-    } else {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    // Use our new gRPC client to test the connection
+    const { testGrpcConnection } = await import('./grpc-client');
+    return await testGrpcConnection();
   } catch (error) {
     console.error('API connection failed:', error);
     return false;

@@ -21,6 +21,11 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['google-protobuf', 'grpc-web'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
   },
   build: {
     rollupOptions: {
@@ -29,5 +34,8 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     global: 'globalThis',
+  },
+  ssr: {
+    noExternal: ['google-protobuf', 'grpc-web']
   },
 }));

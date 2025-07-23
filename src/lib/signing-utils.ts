@@ -101,6 +101,16 @@ export async function signOrderWithProtobuf(
     matching_order_ids: orderData.matchingOrderIds || [], // Use snake_case (SDK expects snake_case)
   };
 
+  // Try without optional fields to see if that's the issue
+  const orderForSigningMinimal = {
+    side: side,
+    quantity: orderData.quantity,
+    market_id: orderData.marketId,
+    base_account_address: orderData.baseAccountAddress,
+    quote_account_address: orderData.quoteAccountAddress,
+    execution_type: executionType,
+  };
+
   // Also try with string enum values to see if that helps
   const orderForSigningWithStrings = {
     side: side === 1 ? 'SIDE_BID' : 'SIDE_ASK',
@@ -116,7 +126,7 @@ export async function signOrderWithProtobuf(
   console.log('Order object keys:', Object.keys(orderForSigning));
   console.log('Order object values:', Object.values(orderForSigning));
   console.log('Order with string enums:', orderForSigningWithStrings);
-
+  console.log('Minimal order object:', orderForSigningMinimal);
   console.log('Order for protobuf encoding (detailed):', {
     side: orderForSigning.side,
     quantity: orderForSigning.quantity,
@@ -152,21 +162,35 @@ export async function signOrderWithProtobuf(
     } else {
       console.log('String enum verification failed:', errMsgWithStrings);
       
-      // Try with numeric enums
-      const errMsg = OrderType.verify(orderForSigning);
-      if (errMsg) {
-        throw new Error(`Invalid order: ${errMsg}`);
+      // Try with minimal order (no optional fields)
+      const errMsgMinimal = OrderType.verify(orderForSigningMinimal);
+      if (!errMsgMinimal) {
+        console.log('Protobuf verification passed with minimal order');
+        const messageMinimal = OrderType.create(orderForSigningMinimal);
+        buffer = OrderType.encode(messageMinimal).finish();
+        console.log('Protobuf minimal - length:', buffer.length);
+        console.log('Protobuf minimal - bytes:', Array.from(buffer));
+      } else {
+        console.log('Minimal order verification failed:', errMsgMinimal);
+        
+        // Try with numeric enums
+        const errMsg = OrderType.verify(orderForSigning);
+        if (errMsg) {
+          throw new Error(`Invalid order: ${errMsg}`);
+        }
+
+        console.log('Protobuf verification passed with numeric enums');
+
+        // Create protobuf message
+        const message = OrderType.create(orderForSigning);
+        
+        console.log('Protobuf message created:', message);
+        console.log('Protobuf message keys:', Object.keys(message));
+        console.log('Protobuf message values:', Object.values(message));
+        
+        // Encode to bytes (matching aspens SDK approach)
+        buffer = OrderType.encode(message).finish();
       }
-
-      console.log('Protobuf verification passed with numeric enums');
-
-      // Create protobuf message
-      const message = OrderType.create(orderForSigning);
-      
-      console.log('Protobuf message created:', message);
-      
-      // Encode to bytes (matching aspens SDK approach)
-      buffer = OrderType.encode(message).finish();
     }
     
     console.log('Final protobuf encoded bytes length:', buffer.length);

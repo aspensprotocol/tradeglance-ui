@@ -1,31 +1,42 @@
 import { useConfig } from './useConfig';
 import { configUtils } from '../lib/config-utils';
 
-// Define the actual config structure based on what the API returns
+// Define the actual config structure based on the protobuf definition
 interface ConfigData {
   chains?: Array<{
-    chain_id: number | string; // The actual field name from the API
+    architecture: string;
+    canonicalName: string;
     network: string;
-    rpc_url: string; // The actual field name from the API
-    trade_contract: { // Nested structure
+    chainId: number;
+    contractOwnerAddress: string;
+    explorerUrl?: string;
+    rpcUrl: string;
+    serviceAddress: string;
+    tradeContract: {
+      contractId?: string;
       address: string;
     };
-    service_address: string; // The actual field name from the API
-    tokens?: Record<string, {
-      address: string;
-      decimals: number;
+    tokens: Record<string, {
+      name: string;
       symbol: string;
+      address: string;
+      tokenId?: string;
+      decimals: number;
+      tradePrecision: number;
     }>;
+    baseOrQuote: string;
   }>;
   markets?: Array<{
-    market_id: string; // The actual field name from the API
-    base_chain_network: string; // The actual field name from the API
-    quote_chain_network: string; // The actual field name from the API
-    base_chain_token_symbol: string; // The actual field name from the API
-    quote_chain_token_symbol: string; // The actual field name from the API
-    base_chain_token_decimals: number; // The actual field name from the API
-    quote_chain_token_decimals: number; // The actual field name from the API
-    pair_decimals: number; // The actual field name from the API
+    slug: string;
+    name: string;
+    baseChainNetwork: string;
+    quoteChainNetwork: string;
+    baseChainTokenSymbol: string;
+    quoteChainTokenSymbol: string;
+    baseChainTokenDecimals: number;
+    quoteChainTokenDecimals: number;
+    pairDecimals: number;
+    marketId?: string;
   }>;
 }
 
@@ -64,29 +75,29 @@ export const useTradingPairs = () => {
     // Create trading pairs from markets
     markets.forEach((market: any) => {
       // Find base and quote chains by network name
-      const baseChain = chains.find((chain: any) => chain.network === market.base_chain_network);
-      const quoteChain = chains.find((chain: any) => chain.network === market.quote_chain_network);
+      const baseChain = chains.find((chain: any) => chain.network === market.baseChainNetwork);
+      const quoteChain = chains.find((chain: any) => chain.network === market.quoteChainNetwork);
       
       if (!baseChain || !quoteChain) {
         return;
       }
 
       // Convert chain IDs to numbers for consistency
-      const baseChainId = typeof baseChain.chain_id === 'string' ? parseInt(baseChain.chain_id, 10) : baseChain.chain_id;
-      const quoteChainId = typeof quoteChain.chain_id === 'string' ? parseInt(quoteChain.chain_id, 10) : quoteChain.chain_id;
+      const baseChainId = typeof baseChain.chainId === 'string' ? parseInt(baseChain.chainId, 10) : baseChain.chainId;
+      const quoteChainId = typeof quoteChain.chainId === 'string' ? parseInt(quoteChain.chainId, 10) : quoteChain.chainId;
 
       // Create trading pair
       const tradingPair: TradingPair = {
-        id: `${market.base_chain_token_symbol}-${market.quote_chain_token_symbol}`,
-        displayName: `${market.base_chain_token_symbol}/${market.quote_chain_token_symbol}`,
-        baseSymbol: market.base_chain_token_symbol,
-        quoteSymbol: market.quote_chain_token_symbol,
+        id: `${market.baseChainTokenSymbol}-${market.quoteChainTokenSymbol}`,
+        displayName: `${market.baseChainTokenSymbol}/${market.quoteChainTokenSymbol}`,
+        baseSymbol: market.baseChainTokenSymbol,
+        quoteSymbol: market.quoteChainTokenSymbol,
         baseChainId: baseChainId,
         quoteChainId: quoteChainId,
-        marketId: market.market_id,
-        baseTokenDecimals: market.base_chain_token_decimals || 18,
-        quoteTokenDecimals: market.quote_chain_token_decimals || 18,
-        pairDecimals: market.pair_decimals || 8,
+        marketId: market.marketId,
+        baseTokenDecimals: market.baseChainTokenDecimals || 18,
+        quoteTokenDecimals: market.quoteChainTokenDecimals || 18,
+        pairDecimals: market.pairDecimals || 8,
       };
 
       tradingPairs.push(tradingPair);
