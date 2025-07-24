@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useContract } from "@/hooks/useContract";
 import { useTradeContracts } from "@/hooks/useTradeContract";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useAccount } from "wagmi";
 
 interface DepositWithdrawModalProps {
@@ -18,11 +19,13 @@ interface DepositWithdrawModalProps {
 const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("");
-  const [tokenBalance, setTokenBalance] = useState<string>("");
   const { deposit, withdraw, isLoading, error } = useContract();
   const { getAllChains, loading: configLoading, error: configError } = useTradeContracts();
   const { currentChainId, isSupported } = useChainMonitor();
   const { isConnected } = useAccount();
+  
+  // Use the new token balance hook
+  const { balance: tokenBalance, loading: balanceLoading, error: balanceError } = useTokenBalance(selectedToken, currentChainId || 0);
 
   const chains = getAllChains();
   
@@ -39,27 +42,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     decimals: token.decimals
   })) : [];
 
-  // Fetch token balance when token selection changes
-  useEffect(() => {
-    const fetchBalance = async () => {
-      console.log('DepositWithdrawModal: Fetching balance for token:', selectedToken, 'on chain:', currentChainId);
-      
-      if (selectedToken && currentChainId) {
-        try {
-          // For now, set a placeholder balance since we don't have getTokenBalance in WalletConnect
-          setTokenBalance("0.00");
-        } catch (error) {
-          console.error('Error fetching token balance:', error);
-          setTokenBalance("0");
-        }
-      } else {
-        console.log('DepositWithdrawModal: No token selected or no chain ID');
-        setTokenBalance("");
-      }
-    };
 
-    fetchBalance();
-  }, [selectedToken, currentChainId]);
 
   // Auto-select first token if available and none selected
   useEffect(() => {
@@ -99,7 +82,6 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
       // Reset form and close modal on success
       setAmount("");
       setSelectedToken("");
-      setTokenBalance("");
       onClose();
     } catch (err) {
       // Error is handled by the hook
@@ -110,7 +92,6 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
   const handleClose = () => {
     setAmount("");
     setSelectedToken("");
-    setTokenBalance("");
     onClose();
   };
 
@@ -197,9 +178,15 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="amount">Amount</Label>
-                {tokenBalance && (
+                {selectedToken && (
                   <span className="text-xs text-gray-500">
-                    Balance: {tokenBalance}
+                    {balanceLoading ? (
+                      "Loading balance..."
+                    ) : balanceError ? (
+                      <span className="text-red-500">Error loading balance</span>
+                    ) : (
+                      `Balance: ${tokenBalance}`
+                    )}
                   </span>
                 )}
               </div>
