@@ -234,6 +234,8 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
               <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400" />
               <input
                 type="text"
+                id="price"
+                name="price"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className="w-full pl-10 pr-20 py-3 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 bg-[#2a2d3a]"
@@ -253,11 +255,13 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-white">Order Amount</label>
-            <span className="text-xs text-gray-400">(Set Size Order)</span>
+            <span className="text-xs text-gray-400">(Set Order Size)</span>
           </div>
           <div className="relative">
             <input
               type="text"
+              id="amount"
+              name="amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="w-full pl-2 pr-32 py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
@@ -303,11 +307,11 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         <div className="space-y-2 py-3 border-t border-gray-700">
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Amount</span>
-            <span className="text-white">NaN {tradingPair?.baseSymbol || "ATOM"}</span>
+            <span className="text-white">{isNaN(Number(amount.replace(',', '.'))) || !amount ? '-' : amount} {tradingPair?.baseSymbol || "ATOM"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Order Price</span>
-            <span className="text-white">NaN {tradingPair?.quoteSymbol || "UST2"}</span>
+            <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Estimated Fee</span>
@@ -315,11 +319,11 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Total</span>
-            <span className="text-white">NaN {tradingPair?.quoteSymbol || "UST2"}</span>
+            <span className="text-white">{isNaN(Number(amount.replace(',', '.'))) || !amount ? '-' : amount} {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Purchase price</span>
-            <span className="text-white">NaN {tradingPair?.quoteSymbol || "UST2"}</span>
+            <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
         </div>
 

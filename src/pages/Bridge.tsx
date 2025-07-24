@@ -244,7 +244,7 @@ const Bridge = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
+              className="bg-green-500 text-white hover:bg-green-600 border-none text-xs px-3 py-1 h-auto"
             >
               online
             </Button>

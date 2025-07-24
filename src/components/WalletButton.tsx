@@ -14,7 +14,7 @@ export const WalletButton: React.FC = () => {
   if (isConnected && address) {
     return (
       <div className="flex items-center gap-2">
-        <div className="text-sm">
+        <div className="text-sm border border-gray-300 rounded px-2 py-0.5 bg-white/60 text-gray-900">
           <div className="font-medium">{formatAddress(address)}</div>
         </div>
         <Button 

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { WalletButton } from "@/components/WalletButton";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
+import { useConfig } from "@/hooks/useConfig";
 
 const attestationData = {
   "tee_tcb_svn": "06010300000000000000000000000000",
@@ -34,7 +35,15 @@ const Index = () => {
   
   // Monitor chain changes and log trade contract info
   const { currentChainId, isSupported } = useChainMonitor();
-  
+  const { config } = useConfig();
+
+  // Helper to get the chain network from config by chainId
+  const getChainNetwork = (chainId: number | null) => {
+    if (!config || !chainId) return null;
+    const chain = config.chains?.find((c: any) => c.chainId === chainId || c.chain_id === chainId);
+    return chain ? chain.network || chain.canonicalName || null : null;
+  };
+
   // Set default selected pair to first available pair, or empty string if none available
   const [selectedPair, setSelectedPair] = useState<string>("");
   
@@ -47,6 +56,18 @@ const Index = () => {
   
   // Get the current trading pair object
   const currentTradingPair = getTradingPairById(selectedPair);
+
+  // Log network analysis with chain network
+  useEffect(() => {
+    if (currentChainId && config) {
+      const network = getChainNetwork(currentChainId);
+      console.log('Network analysis:', {
+        chainId: currentChainId,
+        chainNetwork: network,
+        isSupported
+      });
+    }
+  }, [currentChainId, config, isSupported]);
 
   return (
     <div className="min-h-screen bg-neutral-soft/30 relative pb-12">
@@ -71,7 +92,7 @@ const Index = () => {
                   ? 'bg-green-100 text-green-800 border border-green-200' 
                   : 'bg-red-100 text-red-800 border border-red-200'
               }`}>
-                {isSupported ? '✅' : '❌'} Chain {currentChainId}
+                {isSupported ? '✅' : '❌'} {getChainNetwork(currentChainId) || currentChainId}
               </div>
             )}
             <WalletButton />
@@ -109,7 +130,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
+              className="bg-green-500 text-white hover:bg-green-600 border-none text-xs px-3 py-1 h-auto"
             >
               online
             </Button>
