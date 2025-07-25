@@ -186,8 +186,7 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
         
         const formattedDeposited = (depositedDecimal / Math.pow(10, decimals)).toFixed(6);
         const formattedLocked = (lockedDecimal / Math.pow(10, decimals)).toFixed(6);
-        const availableDecimal = depositedDecimal - lockedDecimal;
-        const formattedAvailable = (availableDecimal / Math.pow(10, decimals)).toFixed(6);
+        const formattedAvailable = formattedDeposited; // Use just the deposited balance
 
         console.log(`useTradingBalance: ${tokenSymbol} deposited:`, formattedDeposited);
         console.log(`useTradingBalance: ${tokenSymbol} locked:`, formattedLocked);

@@ -70,7 +70,7 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
         </select>
       </div>
       
-      <div className="p-4">
+      <div className="p-4 h-full overflow-auto">
         {/* Header */}
         <div className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
           <span className="text-left">Price</span>

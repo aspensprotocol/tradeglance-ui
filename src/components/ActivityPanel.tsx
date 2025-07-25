@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useTradingBalance } from "@/hooks/useTokenBalance";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 
 interface Trade {
   id: number;
@@ -11,12 +12,6 @@ interface Trade {
   amount: number;
   total: number;
   time: string;
-}
-
-interface Balance {
-  walletBalance: number;
-  availableMargin: number;
-  lockedBalance: number;
 }
 
 interface ActivityPanelProps {
@@ -32,19 +27,6 @@ const mockTrades: Trade[] = Array(5).fill(null).map((_, i) => ({
   time: new Date(Date.now() - i * 60000).toLocaleTimeString()
 }));
 
-const mockBalances = {
-  base: {
-    walletBalance: 1.2345,
-    availableMargin: 0.9876,
-    lockedBalance: 0.2469
-  },
-  quote: {
-    walletBalance: 50000,
-    availableMargin: 42000,
-    lockedBalance: 8000
-  }
-};
-
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   const { currentChainId } = useChainMonitor();
   const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
@@ -53,8 +35,14 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
 
   // Get trading balances for the current trading pair
-  const { lockedBalance, loading: balanceLoading } = useTradingBalance(
+  const { depositedBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
     tradingPair?.baseSymbol || "ATOM", 
+    currentChainId || 0
+  );
+
+  // Get wallet token balance (balanceOf)
+  const { balance: walletBalance, loading: walletLoading } = useTokenBalance(
+    tradingPair?.baseSymbol || "ATOM",
     currentChainId || 0
   );
 
@@ -68,22 +56,20 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     setModalOpen(true);
   };
 
-  const BalanceRow = ({ label, base, quote }: { label: string; base: number; quote: number }) => (
-    <div className="grid grid-cols-2 gap-4 py-2 border-b last:border-0">
+  const BalanceRow = ({ label, base, quote }: { label: string; base: string | number; quote: number }) => (
+    <div className="py-2 border-b last:border-0">
       <div className="space-y-1">
-        <span className="text-sm text-neutral">{label} (BTC)</span>
-        <p className="font-medium">{base.toFixed(8)}</p>
-      </div>
-      <div className="space-y-1">
-        <span className="text-sm text-neutral">{label} (USD)</span>
-        <p className="font-medium">{quote.toLocaleString()}</p>
+        <span className="text-sm text-neutral">{label}</span>
+        <p className="font-medium">
+          {typeof base === 'string' ? parseFloat(base) || 0 : base} {tradingPair?.baseSymbol || "ATOM"}
+        </p>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border animate-fade-in">
-      <div className="p-4">
+    <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
+      <div className="p-4 h-full flex flex-col">
         <div className="flex space-x-4 border-b mb-4">
           <button
             onClick={() => setActiveTab("trades")}
@@ -143,9 +129,17 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           </button>
         </div>
 
-        <div className="animate-fade-in">
+        <div className="animate-fade-in flex-1 overflow-auto">
           {activeTab === "trades" ? (
             <div className="space-y-2">
+              {/* Header row */}
+              <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b">
+                <span>Type</span>
+                <span className="text-right">Price</span>
+                <span className="text-right">Amount</span>
+                <span className="text-right">Time</span>
+              </div>
+              
               {trades.map((trade) => (
                 <div
                   key={trade.id}
@@ -166,7 +160,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             <div className="space-y-4">
               {/* Locked Balance */}
               <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-xs text-gray-600 mb-2">Locked Balance</div>
+                <div className="text-xs text-gray-600 mb-2">In Order Book</div>
                 <div className="text-sm font-medium text-gray-900">
                   {balanceLoading ? (
                     <span className="text-blue-500">Loading...</span>
@@ -177,7 +171,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                   )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Funds locked in active orders
+                  Funds in active orders
                 </div>
               </div>
 
@@ -210,18 +204,18 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             <div className="space-y-4">
               <BalanceRow 
                 label="Wallet Balance"
-                base={mockBalances.base.walletBalance}
-                quote={mockBalances.quote.walletBalance}
+                base={walletLoading ? "Loading..." : (walletBalance || "0")}
+                quote={1} // Placeholder - would need actual quote price
               />
               <BalanceRow 
-                label="Available Margin"
-                base={mockBalances.base.availableMargin}
-                quote={mockBalances.quote.availableMargin}
+                label="Deposited Balance"
+                base={balanceLoading ? "Loading..." : (depositedBalance || "0")}
+                quote={1} // Placeholder - would need actual quote price
               />
               <BalanceRow 
-                label="Locked Balance"
-                base={mockBalances.base.lockedBalance}
-                quote={mockBalances.quote.lockedBalance}
+                label="In Order Book"
+                base={balanceLoading ? "Loading..." : (lockedBalance || "0")}
+                quote={1} // Placeholder - would need actual quote price
               />
             </div>
           )}

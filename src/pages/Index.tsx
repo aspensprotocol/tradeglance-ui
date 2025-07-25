@@ -1,7 +1,6 @@
 import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
-import TransactionTable from "@/components/TransactionTable";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -70,9 +69,9 @@ const Index = () => {
   }, [currentChainId, config, isSupported]);
 
   return (
-    <div className="min-h-screen bg-neutral-soft/30 relative pb-12">
-      <div className="container py-8">
-        <div className="mb-6 flex justify-between items-center">
+    <div className="h-screen bg-neutral-soft/30 relative overflow-hidden">
+      <div className="container h-full flex flex-col">
+        <div className="p-4 flex justify-between items-center">
           <div className="flex gap-6">
             <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Trade
@@ -98,7 +97,7 @@ const Index = () => {
             <WalletButton />
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4 flex-1 px-4 pb-16">
           {pairsLoading ? (
             <div className="col-span-4 flex items-center justify-center py-12">
               <div className="text-center">
@@ -108,10 +107,10 @@ const Index = () => {
             </div>
           ) : (
             <>
-              <div className="col-span-2 space-y-6">
-                <TransactionTable selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
+              <div className="col-span-2">
+                <ActivityPanel tradingPair={currentTradingPair} />
               </div>
-              <div className="col-span-1 space-y-6">
+              <div className="col-span-1">
                 <VerticalOrderBook 
                   tradingPair={currentTradingPair} 
                   selectedPair={selectedPair} 
@@ -119,17 +118,14 @@ const Index = () => {
                   tradingPairs={tradingPairs} 
                 />
               </div>
-              <div className="col-span-1 space-y-6">
+              <div className="col-span-1">
                 <TradeForm selectedPair={selectedPair} tradingPair={currentTradingPair} />
-              </div>
-              <div className="col-span-4">
-                <ActivityPanel tradingPair={currentTradingPair} />
               </div>
             </>
           )}
         </div>
       </div>
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
+      <footer className="absolute bottom-0 left-0 right-0 bg-white border-t py-2 text-xs">
         <div className="container mx-auto flex justify-between items-center">
           <div className="ml-2 flex items-center gap-3">
             <Button 

@@ -19,11 +19,11 @@ interface TradeFormProps {
 }
 
 const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
+  const [activeOrderType, setActiveOrderType] = useState<"limit" | "market">("limit");
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
-  const [activeOrderType, setActiveOrderType] = useState<"market" | "limit">("limit");
-  const [amount, setAmount] = useState("0,0");
+  const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
-  const [percentageValue, setPercentageValue] = useState(0);
+  const [percentageValue, setPercentageValue] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { address, isConnected } = useAccount();
@@ -227,85 +227,54 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   };
 
   return (
-    <div className="h-full bg-[#1a1d29] rounded-lg shadow-sm border border-gray-700 animate-fade-in text-white">
-      <div className="p-4 space-y-4">
+    <div className="h-full bg-[#1a1c23] rounded-lg shadow-sm border border-gray-700 animate-fade-in">
+      <div className="p-6 h-full flex flex-col">
         {/* Order Type Tabs */}
-        <div className="flex rounded-lg bg-[#2a2d3a] p-1">
+        <div className="flex bg-[#2a2d3a] rounded-lg p-1 mb-6">
           {["limit", "market"].map((type) => (
             <button
               key={type}
-              onClick={() => setActiveOrderType(type as any)}
+              onClick={() => setActiveOrderType(type as "limit" | "market")}
               className={cn(
-                "flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors capitalize",
+                "flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors",
                 activeOrderType === type
-                  ? "bg-[#1a1d29] text-white"
+                  ? "bg-blue-600 text-white"
                   : "text-gray-400 hover:text-white"
               )}
             >
-              {type}
+              {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Buy/Sell Toggle */}
-        <div className="flex rounded-lg border border-gray-600 overflow-hidden">
-          <button
-            onClick={() => setActiveTab("buy")}
-            className={cn(
-              "flex-1 py-3 text-sm font-medium transition-colors",
-              activeTab === "buy"
-                ? "bg-[#00b8a9] text-white border-2 border-[#00b8a9]"
-                : "text-gray-400 hover:text-white"
-            )}
-          >
-            Buy
-          </button>
-          <button
-            onClick={() => setActiveTab("sell")}
-            className={cn(
-              "flex-1 py-3 text-sm font-medium transition-colors",
-              activeTab === "sell"
-                ? "bg-red-400 text-white border-2 border-red-400"
-                : "text-gray-400 hover:text-white"
-            )}
-          >
-            Sell
-          </button>
+        {/* Buy/Sell Tabs */}
+        <div className="flex bg-[#2a2d3a] rounded-lg p-1 mb-6">
+          {["buy", "sell"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as "buy" | "sell")}
+              className={cn(
+                "flex-1 py-3 text-sm font-bold rounded-md transition-colors",
+                activeTab === tab
+                  ? tab === "buy"
+                    ? "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] text-white"
+                    : "bg-gradient-to-r from-red-500 to-red-600 text-white"
+                  : "text-gray-400 hover:text-white"
+              )}
+            >
+              {tab.toUpperCase()}
+            </button>
+          ))}
         </div>
 
-        {/* Price Section - Only show for limit orders */}
-        {activeOrderType === "limit" && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-white">Price</label>
-            </div>
-            <div className="relative">
-              <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400" />
-              <input
-                type="text"
-                id="price"
-                name="price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full pl-10 pr-20 py-3 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 bg-[#2a2d3a]"
-                placeholder=""
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
-                  <span className="text-xs text-white font-bold">₿</span>
-                </div>
-                <span className="text-sm text-gray-300">{tradingPair?.quoteSymbol || "UST2"}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Order Amount */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-white">Order Amount</label>
-              <span className="text-xs text-gray-400">(Set Order Size)</span>
+        {/* Trade Form */}
+        <div className="flex-1 flex flex-col">
+          {/* Amount Input */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <label htmlFor="amount" className="text-sm font-medium text-gray-300">
+                Order Amount
+              </label>
             </div>
             <div className="text-xs text-gray-400">
               Available: {balanceLoading ? (
@@ -313,7 +282,6 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
               ) : (
                 <span className="text-green-400">
                   {availableBalance} {tradingPair?.baseSymbol || "ATOM"}
-                  <span className="text-gray-500 ml-1">(deposited - locked)</span>
                 </span>
               )}
             </div>
@@ -354,73 +322,87 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Percentage Buttons */}
-        <div className="flex gap-2">
-          {[10, 25, 50, 75, 100].map((percentage) => (
-            <button
-              key={percentage}
-              onClick={() => handlePercentageClick(percentage)}
-              className={cn(
-                "flex-1 py-2 text-sm rounded-lg transition-colors",
-                percentageValue === percentage
-                  ? "bg-blue-600 text-white"
-                  : "bg-[#2a2d3a] text-gray-400 hover:text-white hover:bg-[#3a3d4a]"
-              )}
-            >
-              {percentage}%
-            </button>
-          ))}
-        </div>
+          {/* Percentage Buttons */}
+          <div className="flex gap-2 mb-6">
+            {[10, 25, 50, 75, 100].map((percentage) => (
+              <button
+                key={percentage}
+                onClick={() => handlePercentageClick(percentage)}
+                className={cn(
+                  "flex-1 py-2 text-sm rounded-lg transition-colors",
+                  percentageValue === percentage
+                    ? "bg-blue-600 text-white"
+                    : "bg-[#2a2d3a] text-gray-400 hover:text-white hover:bg-[#3a3d4a]"
+                )}
+              >
+                {percentage}%
+              </button>
+            ))}
+          </div>
 
-        {/* Order Summary */}
-        <div className="space-y-2 py-3 border-t border-gray-700">
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-400">Amount</span>
-            <span className="text-white">{isNaN(Number(amount.replace(',', '.'))) || !amount ? '-' : amount} {tradingPair?.baseSymbol || "ATOM"}</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-400">Price</span>
-            <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-400">Estimated Fee</span>
-            <span className="text-white">
-              {(() => {
-                const amountValue = parseFloat(amount.replace(',', '.'));
-                if (isNaN(amountValue) || !amountValue) return '0.00';
-                const fee = amountValue * 0.01; // 1% fee
-                return fee.toFixed(2);
-              })()} {tradingPair?.quoteSymbol || "UST2"}
-            </span>
-          </div>
-        </div>
-
-        {/* Prominent Buy/Sell Button */}
-        <Button
-          onClick={handleSubmitOrder}
-          disabled={isSubmitting || !isConnected || !currentChainId}
-          className={cn(
-            "w-full py-4 text-lg font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg",
-            activeTab === "buy"
-              ? "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] hover:from-[#00a8b9] hover:to-[#0098a9] text-white border-2 border-[#00b8a9] hover:border-[#00a8b9]"
-              : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-2 border-red-500 hover:border-red-600"
+          {/* Price Input (for limit orders) */}
+          {activeOrderType === "limit" && (
+            <div className="mb-6">
+              <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
+                Price
+              </label>
+              <input
+                type="text"
+                id="price"
+                name="price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="w-full px-3 py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                placeholder="0,00"
+              />
+            </div>
           )}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Processing...
-            </>
-          ) : !isConnected ? (
-            "Connect Wallet to Trade"
-          ) : !currentChainId ? (
-            "Switch to Supported Network"
-          ) : (
-            `${activeTab === "buy" ? "Buy" : "Sell"} ${tradingPair?.baseSymbol || "ATOM"}`
-          )}
-        </Button>
+
+          {/* Order Summary */}
+          <div className="space-y-2 py-3 border-t border-gray-700 mb-6">
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Amount</span>
+              <span className="text-white">{isNaN(Number(amount.replace(',', '.'))) || !amount ? '-' : amount} {tradingPair?.baseSymbol || "ATOM"}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Price</span>
+              <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Estimated Fee</span>
+              <span className="text-white">
+                {(() => {
+                  const amountValue = parseFloat(amount.replace(',', '.'));
+                  if (isNaN(amountValue) || !amountValue) return '0.00';
+                  const fee = amountValue * 0.01; // 1% fee
+                  return fee.toFixed(2);
+                })()} {tradingPair?.quoteSymbol || "UST2"}
+              </span>
+            </div>
+          </div>
+
+          {/* Prominent Buy/Sell Button */}
+          <Button
+            onClick={handleSubmitOrder}
+            disabled={isSubmitting || !isConnected || !currentChainId}
+            className={cn(
+              "w-full py-4 text-lg font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg",
+              activeTab === "buy"
+                ? "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] hover:from-[#00a8b9] hover:to-[#0098a9] text-white border-2 border-[#00b8a9] hover:border-[#00a8b9]"
+                : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-2 border-red-500 hover:border-red-600"
+            )}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Processing...
+              </div>
+            ) : (
+              `${activeTab.toUpperCase()} ${tradingPair?.baseSymbol || "ATOM"}`
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
