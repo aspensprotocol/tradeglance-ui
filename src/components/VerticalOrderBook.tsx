@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface Order {
