@@ -43,6 +43,7 @@ export interface ChainConfig {
   rpcUrl: string;
   tradeContractAddress: string;
   serviceAddress: string;
+  explorerUrl?: string; // Optional explorer URL
   tokens: Record<string, {
     address: string;
     decimals: number;
@@ -78,6 +79,7 @@ export class ConfigUtils {
       rpcUrl: chain.rpcUrl,
       tradeContractAddress: chain.tradeContract?.address || '',
       serviceAddress: chain.serviceAddress,
+      explorerUrl: chain.explorerUrl,
       tokens: chain.tokens || {},
     };
   }
@@ -99,6 +101,7 @@ export class ConfigUtils {
       rpcUrl: chain.rpcUrl,
       tradeContractAddress: chain.tradeContract?.address || '',
       serviceAddress: chain.serviceAddress,
+      explorerUrl: chain.explorerUrl,
       tokens: chain.tokens || {},
     };
   }
@@ -114,6 +117,7 @@ export class ConfigUtils {
       rpcUrl: chain.rpcUrl,
       tradeContractAddress: chain.tradeContract?.address || '',
       serviceAddress: chain.serviceAddress,
+      explorerUrl: chain.explorerUrl,
       tokens: chain.tokens || {},
     }));
   }

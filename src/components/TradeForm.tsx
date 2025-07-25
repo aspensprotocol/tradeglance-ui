@@ -11,6 +11,7 @@ import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
+import { useTradingBalance } from "@/hooks/useTokenBalance";
 
 interface TradeFormProps {
   selectedPair: string;
@@ -24,20 +25,53 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   const [price, setPrice] = useState("");
   const [percentageValue, setPercentageValue] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { address, isConnected } = useAccount();
-  const { toast } = useToast();
+  const chainId = useChainId();
   const { currentChainId } = useChainMonitor();
+  const { toast } = useToast();
+
+  // Get trading balances for the current trading pair
+  const { availableBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
+    tradingPair?.baseSymbol || "ATOM", 
+    currentChainId || 0
+  );
+
+  // Debug logging
+  console.log('TradeForm balances:', {
+    availableBalance,
+    lockedBalance,
+    tradingPair: tradingPair?.baseSymbol,
+    currentChainId
+  });
 
   const handlePercentageClick = (percentage: number) => {
+    const availableBalanceNum = parseFloat(availableBalance);
+    console.log('handlePercentageClick:', {
+      percentage,
+      availableBalance,
+      availableBalanceNum
+    });
+    
+    if (isNaN(availableBalanceNum) || availableBalanceNum <= 0) {
+      toast({
+        title: "No available balance",
+        description: "Please deposit funds to trade",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const calculatedAmount = (availableBalanceNum * percentage) / 100;
+    setAmount(calculatedAmount.toFixed(6).replace('.', ','));
     setPercentageValue(percentage);
   };
 
   const handleSubmitOrder = async () => {
-    if (!isConnected || !address) {
+    if (!isConnected || !address || !currentChainId) {
       toast({
         title: "Wallet not connected",
-        description: "Please connect your wallet to place an order",
+        description: "Please connect your wallet to trade",
         variant: "destructive",
       });
       return;
@@ -45,17 +79,8 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
 
     if (!tradingPair) {
       toast({
-        title: "No trading pair selected",
+        title: "Trading pair not found",
         description: "Please select a valid trading pair",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!currentChainId) {
-      toast({
-        title: "Chain not detected",
-        description: "Please ensure your wallet is connected to a supported network",
         variant: "destructive",
       });
       return;
@@ -65,13 +90,31 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
     if (isNaN(quantity) || quantity <= 0) {
       toast({
         title: "Invalid amount",
-        description: "Please enter a valid order amount",
+        description: "Please enter a valid amount",
         variant: "destructive",
       });
       return;
     }
 
-    if (activeOrderType === "limit" && (!price || parseFloat(price) <= 0)) {
+    // Check if user has enough available balance
+    const availableBalanceNum = parseFloat(availableBalance);
+    console.log('Balance validation:', {
+      quantity,
+      availableBalance,
+      availableBalanceNum,
+      isEnough: quantity <= availableBalanceNum
+    });
+    
+    if (isNaN(availableBalanceNum) || quantity > availableBalanceNum) {
+      toast({
+        title: "Insufficient balance",
+        description: `You only have ${availableBalance} ${tradingPair.baseSymbol} available. Please deposit more funds or reduce your order size.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (activeOrderType === "limit" && (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0)) {
       toast({
         title: "Invalid price",
         description: "Please enter a valid price for limit orders",
@@ -259,9 +302,21 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
 
         {/* Order Amount */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-white">Order Amount</label>
-            <span className="text-xs text-gray-400">(Set Order Size)</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-white">Order Amount</label>
+              <span className="text-xs text-gray-400">(Set Order Size)</span>
+            </div>
+            <div className="text-xs text-gray-400">
+              Available: {balanceLoading ? (
+                <span className="text-blue-400">Loading...</span>
+              ) : (
+                <span className="text-green-400">
+                  {availableBalance} {tradingPair?.baseSymbol || "ATOM"}
+                  <span className="text-gray-500 ml-1">(deposited - locked)</span>
+                </span>
+              )}
+            </div>
           </div>
           <div className="relative">
             <input
@@ -270,7 +325,17 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
               name="amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full pl-2 pr-32 py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              className={cn(
+                "w-full pl-2 pr-32 py-3 rounded-lg bg-[#2a2d3a] border text-white placeholder-gray-400 focus:outline-none",
+                (() => {
+                  const quantity = parseFloat(amount.replace(',', '.'));
+                  const availableBalanceNum = parseFloat(availableBalance);
+                  if (!isNaN(quantity) && !isNaN(availableBalanceNum) && quantity > availableBalanceNum) {
+                    return "border-red-500 focus:border-red-500";
+                  }
+                  return "border-gray-600 focus:border-blue-500";
+                })()
+              )}
               placeholder="0,0"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">

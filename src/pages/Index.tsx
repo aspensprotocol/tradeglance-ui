@@ -112,7 +112,7 @@ const Index = () => {
                 <TransactionTable selectedPair={selectedPair} onPairChange={setSelectedPair} tradingPairs={tradingPairs} />
               </div>
               <div className="col-span-1 space-y-6">
-                <VerticalOrderBook />
+                <VerticalOrderBook tradingPair={currentTradingPair} />
               </div>
               <div className="col-span-1 space-y-6">
                 <TradeForm selectedPair={selectedPair} tradingPair={currentTradingPair} />

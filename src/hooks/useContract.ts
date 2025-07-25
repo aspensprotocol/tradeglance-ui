@@ -13,8 +13,37 @@ export const useContract = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to get the correct chain based on chain ID
+  // Helper function to get the correct chain based on chain ID from config
   const getChainById = (id: number) => {
+    // First try to get chain config from gRPC config
+    const chainConfig = configUtils.getChainByChainId(id);
+    if (chainConfig) {
+      const chainObj: any = {
+        id: typeof chainConfig.chainId === 'string' ? parseInt(chainConfig.chainId, 10) : chainConfig.chainId,
+        name: chainConfig.network,
+        network: chainConfig.network,
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        rpcUrls: {
+          default: { http: [chainConfig.rpcUrl] },
+          public: { http: [chainConfig.rpcUrl] },
+        },
+      };
+
+      // Add block explorer if available
+      if (chainConfig.explorerUrl) {
+        chainObj.blockExplorers = {
+          default: { name: 'Explorer', url: chainConfig.explorerUrl },
+        };
+      }
+
+      return chainObj;
+    }
+
+    // Fallback to known chains
     switch (id) {
       case 1:
         return mainnet;
@@ -22,25 +51,6 @@ export const useContract = () => {
         return sepolia;
       case 84532:
         return baseSepolia;
-      case 114:
-        // Custom chain: Anvil 1
-        return {
-          id: 114,
-          name: 'Anvil 1 - 8545',
-          network: 'anvil-1',
-          nativeCurrency: {
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-          },
-          rpcUrls: {
-            default: { http: ['https://coston2-api.flare.network/ext/C/rpc'] },
-            public: { http: ['https://coston2-api.flare.network/ext/C/rpc'] },
-          },
-          blockExplorers: {
-            default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
-          },
-        };
       default:
         // For unknown chains, create a custom chain object
         return {
@@ -62,20 +72,9 @@ export const useContract = () => {
 
   useEffect(() => {
     if (isConnected && address) {
-      // Create a Viem client
-      const client = createPublicClient({
-        chain: mainnet, // You might want to make this configurable
-        transport: http(),
-      });
-
-      // Create contract instance
-      const contractInstance = {
-        address: '0x...', // Replace with your contract address
-        abi: MidribV2ABI as any,
-        client,
-      };
-
-      setContract(contractInstance);
+      // Contract operations are handled dynamically based on config
+      // No need to create a static contract instance
+      setContract({ isConnected: true });
     } else {
       setContract(null);
     }

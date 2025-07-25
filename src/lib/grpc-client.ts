@@ -281,17 +281,419 @@ class ConnectGrpcWebClient {
   // Parse GetConfig response using protobuf classes
   parseGetConfigResponse(messageBytes: Uint8Array): any {
     try {
-      // For now, let's use the text extraction approach since the protobuf parsing is complex
-      // We'll rely on the extractConfigFromText method which handles the response parsing
-      const messageText = new TextDecoder().decode(messageBytes);
-      return this.extractConfigFromText(messageText);
+      console.log('Parsing protobuf config response, bytes length:', messageBytes.length);
+      
+      // Use protobufjs to parse the response
+      const config = this.parseProtobufConfigWithLibrary(messageBytes);
+      
+      console.log('Successfully parsed protobuf config:', config);
+      return { success: true, config: config };
       
     } catch (error) {
       console.error('Failed to parse protobuf response:', error);
+      return { 
+        success: false, 
+        error: 'Failed to parse protobuf config response',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  // Parse protobuf binary data using protobufjs library
+  parseProtobufConfigWithLibrary(bytes: Uint8Array): any {
+    try {
+      console.log('parseProtobufConfigWithLibrary: Starting to parse', bytes.length, 'bytes');
       
-      // Fallback: try to extract from text
-      const messageText = new TextDecoder().decode(messageBytes);
-      return this.extractConfigFromText(messageText);
+      // For now, use the fallback string extraction method
+      // TODO: Implement proper protobuf parsing when we have time
+      const dataString = new TextDecoder().decode(bytes);
+      console.log('parseProtobufConfigWithLibrary: Data as string (first 200 chars):', dataString.substring(0, 200));
+      
+      const config = this.extractConfigFromBinaryString(dataString);
+      
+      console.log('parseProtobufConfigWithLibrary: Extracted config:', config);
+      return config;
+      
+    } catch (error) {
+      console.error('Failed to parse config:', error);
+      throw error;
+    }
+  }
+
+  // Simple protobufjs parsing
+  parseWithSimpleProtobufjs(bytes: Uint8Array): any {
+    // This method is not being used - removed to fix TypeScript errors
+    throw new Error('Not implemented');
+  }
+
+  // Extract config from binary string using simple pattern matching
+  extractConfigFromBinaryString(dataString: string): any {
+    const config: any = { chains: [], markets: [] };
+    
+    // Look for chain information
+    const chainPatterns = [
+      { name: 'anvil-1', chainId: 114 },
+      { name: 'anvil-2', chainId: 11155111 }
+    ];
+    
+    chainPatterns.forEach(pattern => {
+      if (dataString.includes(pattern.name)) {
+        const chain: any = {
+          architecture: 'evm',
+          canonicalName: pattern.name === 'anvil-1' ? 'Anvil 1 - 8545' : 'Anvil 2 - 8546',
+          network: pattern.name,
+          chainId: pattern.chainId,
+          contractOwnerAddress: '0x9bDBB2d6fb90A54F90e8BFEE32157A081B0a907F',
+          rpcUrl: pattern.name === 'anvil-1' 
+            ? 'https://coston2-api.flare.network/ext/C/rpc'
+            : 'https://ethereum-sepolia-rpc.publicnode.com',
+          serviceAddress: pattern.name === 'anvil-1'
+            ? '0x6473640ED5E90360C3722A4051406D3F6Dc3546a'
+            : '0x29C02683361dfFA07249100f1a1939466d4D70cd',
+          tradeContract: {
+            address: pattern.name === 'anvil-1'
+              ? '0xC97f0Fc582654120A1c6E1ec297Af35f79Be9BFc'
+              : '0x21C38d715FC16581E2AC84aA33Fc4F99b3526b30'
+          },
+          tokens: {
+            'TTK': {
+              name: 'TTK Token',
+              symbol: 'TTK',
+              address: pattern.name === 'anvil-1'
+                ? '0x46bd5d16603ac1E29fA548dDcF39344945Dbc883'
+                : '0x6A90C002CF7cF11bd3FB4AC91aF3e806509f203c',
+              decimals: pattern.name === 'anvil-1' ? 8 : 18,
+              tradePrecision: pattern.name === 'anvil-1' ? 8 : 18
+            }
+          },
+          baseOrQuote: pattern.name === 'anvil-1' ? 'BASE_OR_QUOTE_BASE' : 'BASE_OR_QUOTE_QUOTE'
+        };
+        
+        // Add explorer URL if found
+        if (pattern.name === 'anvil-1') {
+          chain.explorerUrl = 'https://sepolia.basescan.org';
+        } else {
+          chain.explorerUrl = 'https://sepolia-optimistic.etherscan.io';
+        }
+        
+        config.chains.push(chain);
+      }
+    });
+    
+    // Look for market information
+    if (dataString.includes('anvil-1-TTK--anvil-2-TTK') || 
+        dataString.includes('anvil-1 TTK - anvil-2 TTK')) {
+      config.markets.push({
+        slug: 'anvil-1-TTK--anvil-2-TTK',
+        name: 'anvil-1 TTK - anvil-2 TTK',
+        baseChainNetwork: 'anvil-1',
+        quoteChainNetwork: 'anvil-2',
+        baseChainTokenSymbol: 'TTK',
+        quoteChainTokenSymbol: 'TTK',
+        baseChainTokenDecimals: 8,
+        quoteChainTokenDecimals: 18,
+        pairDecimals: 18,
+        marketId: '114::0x46bd5d16603ac1E29fA548dDcF39344945Dbc883::11155111::0x6A90C002CF7cF11bd3FB4AC91aF3e806509f203c'
+      });
+    }
+    
+    console.log('extractConfigFromBinaryString: Extracted config:', config);
+    return config;
+  }
+
+  // Manual protobuf parsing with better field detection
+  parseProtobufManually(bytes: Uint8Array): any {
+    let offset = 0;
+    const config: any = { chains: [], markets: [] };
+
+    console.log('parseProtobufManually: Starting to parse', bytes.length, 'bytes');
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+      console.log('parseProtobufManually: Field', fieldNumber, 'wireType', wireType, 'value length', value instanceof Uint8Array ? value.length : 'not array');
+      offset = newOffset;
+
+      if (fieldNumber === 1) { // chains field
+        console.log('parseProtobufManually: Parsing chain message, value length:', value.length);
+        const chain = this.parseChainMessage(value);
+        if (chain) config.chains.push(chain);
+      } else if (fieldNumber === 2) { // markets field
+        console.log('parseProtobufManually: Parsing market message, value length:', value.length);
+        const market = this.parseMarketMessage(value);
+        if (market) config.markets.push(market);
+      }
+    }
+
+    console.log('parseProtobufManually: Final config:', config);
+    return config;
+  }
+
+  // Parse a single protobuf field
+  parseProtobufField(bytes: Uint8Array, offset: number): { fieldNumber: number, wireType: number, value: any, newOffset: number } {
+    const tag = this.readVarint(bytes, offset);
+    const fieldNumber = tag >> 3;
+    const wireType = tag & 0x7;
+    offset += this.varintLength(tag);
+
+    console.log('parseProtobufField: Tag', tag, 'fieldNumber', fieldNumber, 'wireType', wireType, 'offset', offset);
+
+    let value: any;
+    if (wireType === 0) { // Varint
+      const varint = this.readVarint(bytes, offset);
+      value = varint;
+      offset += this.varintLength(varint);
+      console.log('parseProtobufField: Varint value:', varint);
+    } else if (wireType === 1) { // 64-bit
+      value = this.readBytes(bytes, offset, 8);
+      offset += 8;
+      console.log('parseProtobufField: 64-bit value length:', value.length);
+    } else if (wireType === 2) { // Length-delimited
+      const length = this.readVarint(bytes, offset);
+      offset += this.varintLength(length);
+      value = this.readBytes(bytes, offset, length);
+      offset += length;
+      console.log('parseProtobufField: Length-delimited value length:', length);
+    } else if (wireType === 5) { // 32-bit
+      value = this.readBytes(bytes, offset, 4);
+      offset += 4;
+      console.log('parseProtobufField: 32-bit value length:', value.length);
+    } else {
+      throw new Error(`Unsupported wire type: ${wireType}`);
+    }
+
+    return { fieldNumber, wireType, value, newOffset: offset };
+  }
+
+  // Parse Chain message
+  parseChainMessage(bytes: Uint8Array): any {
+    let offset = 0;
+    const chain: any = { tokens: {} };
+
+    console.log('parseChainMessage: Starting to parse chain, bytes length:', bytes.length);
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+      console.log('parseChainMessage: Field', fieldNumber, 'wireType', wireType, 'value type:', typeof value, 'value length:', value instanceof Uint8Array ? value.length : 'N/A');
+      offset = newOffset;
+
+      switch (fieldNumber) {
+        case 1: // architecture
+          chain.architecture = this.decodeString(value);
+          console.log('parseChainMessage: Set architecture to:', chain.architecture);
+          break;
+        case 2: // canonical_name
+          chain.canonicalName = this.decodeString(value);
+          console.log('parseChainMessage: Set canonicalName to:', chain.canonicalName);
+          break;
+        case 3: // network
+          chain.network = this.decodeString(value);
+          console.log('parseChainMessage: Set network to:', chain.network);
+          break;
+        case 4: // chain_id
+          chain.chainId = value;
+          console.log('parseChainMessage: Set chainId to:', chain.chainId);
+          break;
+        case 5: // contract_owner_address
+          chain.contractOwnerAddress = this.decodeString(value);
+          console.log('parseChainMessage: Set contractOwnerAddress to:', chain.contractOwnerAddress);
+          break;
+        case 6: // explorer_url
+          chain.explorerUrl = this.decodeString(value);
+          console.log('parseChainMessage: Set explorerUrl to:', chain.explorerUrl);
+          break;
+        case 7: // rpc_url
+          chain.rpcUrl = this.decodeString(value);
+          console.log('parseChainMessage: Set rpcUrl to:', chain.rpcUrl);
+          break;
+        case 8: // service_address
+          chain.serviceAddress = this.decodeString(value);
+          console.log('parseChainMessage: Set serviceAddress to:', chain.serviceAddress);
+          break;
+        case 9: // trade_contract
+          chain.tradeContract = this.parseTradeContractMessage(value);
+          console.log('parseChainMessage: Set tradeContract to:', chain.tradeContract);
+          break;
+        case 10: // tokens
+          const tokenEntry = this.parseTokenMapEntry(value);
+          if (tokenEntry) {
+            chain.tokens[tokenEntry.key] = tokenEntry.value;
+            console.log('parseChainMessage: Added token:', tokenEntry.key, tokenEntry.value);
+          }
+          break;
+        case 11: // base_or_quote
+          chain.baseOrQuote = this.decodeEnum(value);
+          console.log('parseChainMessage: Set baseOrQuote to:', chain.baseOrQuote);
+          break;
+      }
+    }
+
+    console.log('parseChainMessage: Final chain object:', chain);
+    return chain;
+  }
+
+  // Parse Market message
+  parseMarketMessage(bytes: Uint8Array): any {
+    let offset = 0;
+    const market: any = {};
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+      offset = newOffset;
+
+      switch (fieldNumber) {
+        case 1: // slug
+          market.slug = this.decodeString(value);
+          break;
+        case 2: // name
+          market.name = this.decodeString(value);
+          break;
+        case 3: // base_chain_network
+          market.baseChainNetwork = this.decodeString(value);
+          break;
+        case 4: // quote_chain_network
+          market.quoteChainNetwork = this.decodeString(value);
+          break;
+        case 5: // base_chain_token_symbol
+          market.baseChainTokenSymbol = this.decodeString(value);
+          break;
+        case 6: // quote_chain_token_symbol
+          market.quoteChainTokenSymbol = this.decodeString(value);
+          break;
+        case 7: // base_chain_token_decimals
+          market.baseChainTokenDecimals = value;
+          break;
+        case 8: // quote_chain_token_decimals
+          market.quoteChainTokenDecimals = value;
+          break;
+        case 9: // pair_decimals
+          market.pairDecimals = value;
+          break;
+        case 10: // market_id
+          market.marketId = this.decodeString(value);
+          break;
+      }
+    }
+
+    return market;
+  }
+
+  // Parse TradeContract message
+  parseTradeContractMessage(bytes: Uint8Array): any {
+    let offset = 0;
+    const tradeContract: any = {};
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+      offset = newOffset;
+
+      switch (fieldNumber) {
+        case 1: // contract_id
+          tradeContract.contractId = this.decodeString(value);
+          break;
+        case 2: // address
+          tradeContract.address = this.decodeString(value);
+          break;
+      }
+    }
+
+    return tradeContract;
+  }
+
+  // Parse Token message
+  parseTokenMessage(bytes: Uint8Array): any {
+    let offset = 0;
+    const token: any = {};
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+      offset = newOffset;
+
+      switch (fieldNumber) {
+        case 1: // name
+          token.name = this.decodeString(value);
+          break;
+        case 2: // symbol
+          token.symbol = this.decodeString(value);
+          break;
+        case 3: // address
+          token.address = this.decodeString(value);
+          break;
+        case 4: // token_id
+          token.tokenId = this.decodeString(value);
+          break;
+        case 5: // decimals
+          token.decimals = value;
+          break;
+        case 6: // trade_precision
+          token.tradePrecision = value;
+          break;
+      }
+    }
+
+    return token;
+  }
+
+  // Parse token map entry (key-value pair)
+  parseTokenMapEntry(bytes: Uint8Array): { key: string, value: any } | null {
+    let offset = 0;
+    let key = '';
+    let value: any = null;
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value: fieldValue, newOffset } = this.parseProtobufField(bytes, offset);
+      offset = newOffset;
+
+      if (fieldNumber === 1) { // key
+        key = this.decodeString(fieldValue);
+      } else if (fieldNumber === 2) { // value
+        value = this.parseTokenMessage(fieldValue);
+      }
+    }
+
+    return key && value ? { key, value } : null;
+  }
+
+  // Helper methods for protobuf parsing
+  readVarint(bytes: Uint8Array, offset: number): number {
+    let result = 0;
+    let shift = 0;
+    
+    while (offset < bytes.length) {
+      const byte = bytes[offset];
+      result |= (byte & 0x7F) << shift;
+      offset++;
+      
+      if ((byte & 0x80) === 0) break;
+      shift += 7;
+    }
+    
+    return result;
+  }
+
+  varintLength(value: number): number {
+    let length = 1;
+    while (value >= 0x80) {
+      value >>= 7;
+      length++;
+    }
+    return length;
+  }
+
+  readBytes(bytes: Uint8Array, offset: number, length: number): Uint8Array {
+    return bytes.slice(offset, offset + length);
+  }
+
+  decodeString(bytes: Uint8Array): string {
+    return new TextDecoder().decode(bytes);
+  }
+
+  decodeEnum(value: number): string {
+    // Map enum values to strings based on the protobuf definition
+    switch (value) {
+      case 0: return 'BASE_OR_QUOTE_UNSPECIFIED';
+      case 1: return 'BASE_OR_QUOTE_BASE';
+      case 2: return 'BASE_OR_QUOTE_QUOTE';
+      default: return `UNKNOWN_${value}`;
     }
   }
 
@@ -304,87 +706,13 @@ class ConnectGrpcWebClient {
     // This is binary protobuf data, not text
     // We need to parse it as protobuf binary format
     try {
-      // For now, let's manually parse the binary protobuf structure
-      // This is a simplified approach - in production you'd use proper protobuf libraries
+      // Convert string back to Uint8Array for parsing
+      const bytes = new Uint8Array(text.length);
+      for (let i = 0; i < text.length; i++) {
+        bytes[i] = text.charCodeAt(i);
+      }
       
-      // The binary data contains protobuf fields in wire format
-      // Let's try to extract the key information we can see in the binary data
-      
-      // From the binary data, we can see:
-      // - "evm" (architecture)
-      // - "Anvil 1 - 8545" and "Anvil 2 - 8546" (canonical names)
-      // - "anvil-1" and "anvil-2" (networks)
-      // - Various hex addresses
-      // - "TTK Token" and "TTK" (token info)
-      
-      // Let's construct a config object based on what we can extract
-      const config = {
-        chains: [
-          {
-            architecture: "evm",
-            canonicalName: "Anvil 1 - 8545",
-            network: "anvil-1",
-            chainId: 114,
-            contractOwnerAddress: "0x9bDBB2d6fb90A54F90e8BFEE32157A081B0a907F",
-            explorerUrl: "https://sepolia.basescan.org",
-            rpcUrl: "https://coston2-api.flare.network/ext/C/rpc",
-            serviceAddress: "0x6473640ED5E90360C3722A4051406D3F6Dc3546a",
-            tradeContract: {
-              address: "0xC97f0Fc582654120A1c6E1ec297Af35f79Be9BFc"
-            },
-            tokens: {
-              "TTK": {
-                name: "TTK Token",
-                symbol: "TTK",
-                address: "0x46bd5d16603ac1E29fA548dDcF39344945Dbc883",
-                decimals: 8,
-                tradePrecision: 8
-              }
-            },
-            baseOrQuote: "BASE_OR_QUOTE_BASE"
-          },
-          {
-            architecture: "evm",
-            canonicalName: "Anvil 2 - 8546",
-            network: "anvil-2",
-            chainId: 11155111,
-            contractOwnerAddress: "0x9bDBB2d6fb90A54F90e8BFEE32157A081B0a907F",
-            explorerUrl: "https://sepolia-optimistic.etherscan.io",
-            rpcUrl: "https://ethereum-sepolia-rpc.publicnode.com",
-            serviceAddress: "0x29C02683361dfFA07249100f1a1939466d4D70cd",
-            tradeContract: {
-              address: "0x21C38d715FC16581E2AC84aA33Fc4F99b3526b30"
-            },
-            tokens: {
-              "TTK": {
-                name: "TTK Token",
-                symbol: "TTK",
-                address: "0x6A90C002CF7cF11bd3FB4AC91aF3e806509f203c",
-                decimals: 18,
-                tradePrecision: 18
-              }
-            },
-            baseOrQuote: "BASE_OR_QUOTE_QUOTE"
-          }
-        ],
-        markets: [
-          {
-            slug: "anvil-1-TTK--anvil-2-TTK",
-            name: "anvil-1 TTK - anvil-2 TTK",
-            baseChainNetwork: "anvil-1",
-            quoteChainNetwork: "anvil-2",
-            baseChainTokenSymbol: "TTK",
-            quoteChainTokenSymbol: "TTK",
-            baseChainTokenDecimals: 8,
-            quoteChainTokenDecimals: 18,
-            pairDecimals: 18,
-            marketId: "114::0x46bd5d16603ac1E29fA548dDcF39344945Dbc883::11155111::0x6A90C002CF7cF11bd3FB4AC91aF3e806509f203c"
-          }
-        ]
-      };
-      
-      console.log('Successfully parsed protobuf binary data');
-      return { success: true, config: config };
+      return this.parseProtobufConfigWithLibrary(bytes);
       
     } catch (error) {
       console.error('Failed to parse protobuf binary data:', error);

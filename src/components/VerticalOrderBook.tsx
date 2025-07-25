@@ -1,6 +1,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useTradingBalance } from "@/hooks/useTokenBalance";
+import { useChainMonitor } from "@/hooks/useChainMonitor";
 
 interface Order {
   price: number;
@@ -8,7 +10,19 @@ interface Order {
   total: number;
 }
 
-const VerticalOrderBook = () => {
+interface VerticalOrderBookProps {
+  tradingPair?: any;
+}
+
+const VerticalOrderBook = ({ tradingPair }: VerticalOrderBookProps) => {
+  const { currentChainId } = useChainMonitor();
+  
+  // Get trading balances for the current trading pair
+  const { lockedBalance, loading: balanceLoading } = useTradingBalance(
+    tradingPair?.baseSymbol || "ATOM", 
+    currentChainId || 0
+  );
+
   // Mock data based on the screenshot
   const [asks] = useState<Order[]>([
     { price: 109.172, amount: 73348, total: 3080740 },
@@ -55,9 +69,29 @@ const VerticalOrderBook = () => {
         <div className="px-4 py-3 text-sm text-gray-500">
           Trades
         </div>
+        <div className="px-4 py-3 text-sm font-medium text-gray-900 border-l border-gray-200">
+          Open Orders
+        </div>
       </div>
       
       <div className="p-4">
+        {/* Open Orders Section */}
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="text-xs text-gray-600 mb-2">Locked Balance</div>
+          <div className="text-sm font-medium text-gray-900">
+            {balanceLoading ? (
+              <span className="text-blue-500">Loading...</span>
+            ) : (
+              <span className="text-orange-600">
+                {lockedBalance} {tradingPair?.baseSymbol || "ATOM"}
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Funds locked in active orders
+          </div>
+        </div>
+
         {/* Header */}
         <div className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
           <span className="text-left">Price</span>
