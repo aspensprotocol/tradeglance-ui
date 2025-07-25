@@ -32,11 +32,6 @@ const Home = () => {
               <CardTitle className="text-center">Trade Glance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Link to="/portfolio" className="block">
-                <Button className="w-full" variant="outline">
-                  Portfolio
-                </Button>
-              </Link>
               <Link to="/trade" className="block">
                 <Button className="w-full" variant="outline">
                   Trade
@@ -45,6 +40,11 @@ const Home = () => {
               <Link to="/bridge" className="block">
                 <Button className="w-full" variant="outline">
                   Bridge
+                </Button>
+              </Link>
+              <Link to="/docs" className="block">
+                <Button className="w-full" variant="outline">
+                  Docs
                 </Button>
               </Link>
             </CardContent>

@@ -1,8 +1,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useTradingBalance } from "@/hooks/useTokenBalance";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface Order {
   price: number;
@@ -12,17 +11,12 @@ interface Order {
 
 interface VerticalOrderBookProps {
   tradingPair?: any;
+  selectedPair: string;
+  onPairChange: (pair: string) => void;
+  tradingPairs: TradingPair[];
 }
 
-const VerticalOrderBook = ({ tradingPair }: VerticalOrderBookProps) => {
-  const { currentChainId } = useChainMonitor();
-  
-  // Get trading balances for the current trading pair
-  const { lockedBalance, loading: balanceLoading } = useTradingBalance(
-    tradingPair?.baseSymbol || "ATOM", 
-    currentChainId || 0
-  );
-
+const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPairs }: VerticalOrderBookProps) => {
   // Mock data based on the screenshot
   const [asks] = useState<Order[]>([
     { price: 109.172, amount: 73348, total: 3080740 },
@@ -50,48 +44,33 @@ const VerticalOrderBook = ({ tradingPair }: VerticalOrderBookProps) => {
     { price: 109.151, amount: 12, total: 263383 },
   ]);
 
-  // Calculate actual spread
-  const lowestAsk = Math.min(...asks.map(ask => ask.price));
-  const highestBid = Math.max(...bids.map(bid => bid.price));
-  const spreadValue = lowestAsk - highestBid;
-  const spreadPercentage = (spreadValue / lowestAsk) * 100;
-
   const formatNumber = (num: number) => {
-    return num.toLocaleString();
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toFixed(0);
   };
+
+  const spreadValue = asks[0]?.price - bids[0]?.price || 0;
+  const spreadPercentage = ((spreadValue / asks[0]?.price) * 100) || 0;
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border">
-      <div className="flex border-b">
-        <div className="px-4 py-3 border-r border-gray-200 bg-white text-sm font-medium text-gray-900">
-          Order Book
-        </div>
-        <div className="px-4 py-3 text-sm text-gray-500">
-          Trades
-        </div>
-        <div className="px-4 py-3 text-sm font-medium text-gray-900 border-l border-gray-200">
-          Open Orders
-        </div>
+      <div className="p-4 border-b">
+        <select
+          value={selectedPair}
+          onChange={(e) => onPairChange(e.target.value)}
+          className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
+        >
+          <option value="">Select a trading pair</option>
+          {tradingPairs.map((pair) => (
+            <option key={pair.id} value={pair.id}>
+              {pair.displayName}
+            </option>
+          ))}
+        </select>
       </div>
       
       <div className="p-4">
-        {/* Open Orders Section */}
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <div className="text-xs text-gray-600 mb-2">Locked Balance</div>
-          <div className="text-sm font-medium text-gray-900">
-            {balanceLoading ? (
-              <span className="text-blue-500">Loading...</span>
-            ) : (
-              <span className="text-orange-600">
-                {lockedBalance} {tradingPair?.baseSymbol || "ATOM"}
-              </span>
-            )}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            Funds locked in active orders
-          </div>
-        </div>
-
         {/* Header */}
         <div className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
           <span className="text-left">Price</span>

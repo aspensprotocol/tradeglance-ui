@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
+import { useTradingBalance } from "@/hooks/useTokenBalance";
+import { useChainMonitor } from "@/hooks/useChainMonitor";
 
 interface Trade {
   id: number;
@@ -15,6 +17,10 @@ interface Balance {
   walletBalance: number;
   availableMargin: number;
   lockedBalance: number;
+}
+
+interface ActivityPanelProps {
+  tradingPair?: any;
 }
 
 const mockTrades: Trade[] = Array(5).fill(null).map((_, i) => ({
@@ -39,11 +45,18 @@ const mockBalances = {
   }
 };
 
-const ActivityPanel = () => {
+const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
+  const { currentChainId } = useChainMonitor();
   const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
   const [trades] = useState<Trade[]>(mockTrades);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
+
+  // Get trading balances for the current trading pair
+  const { lockedBalance, loading: balanceLoading } = useTradingBalance(
+    tradingPair?.baseSymbol || "ATOM", 
+    currentChainId || 0
+  );
 
   const handleDepositClick = () => {
     setModalType("deposit");
@@ -150,8 +163,28 @@ const ActivityPanel = () => {
               ))}
             </div>
           ) : activeTab === "orders" ? (
-            <div className="text-center py-8 text-neutral">
-              No open orders
+            <div className="space-y-4">
+              {/* Locked Balance */}
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="text-xs text-gray-600 mb-2">Locked Balance</div>
+                <div className="text-sm font-medium text-gray-900">
+                  {balanceLoading ? (
+                    <span className="text-blue-500">Loading...</span>
+                  ) : (
+                    <span className="text-orange-600">
+                      {lockedBalance} {tradingPair?.baseSymbol || "ATOM"}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Funds locked in active orders
+                </div>
+              </div>
+
+              {/* Open Orders List */}
+              <div className="text-center py-8 text-neutral">
+                No open orders
+              </div>
             </div>
           ) : activeTab === "deposits" ? (
             <div className="space-y-4">

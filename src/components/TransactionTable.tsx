@@ -37,21 +37,6 @@ const TransactionTable = ({ selectedPair, onPairChange, tradingPairs }: Transact
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
-      <div className="p-4 border-b">
-        <select
-          value={selectedPair}
-          onChange={(e) => onPairChange(e.target.value)}
-          className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
-        >
-          <option value="">Select a trading pair</option>
-          {tradingPairs.map((pair) => (
-            <option key={pair.id} value={pair.id}>
-              {pair.displayName}
-            </option>
-          ))}
-        </select>
-      </div>
-      
       <div className="p-4">
         <Table>
           <TableHeader>

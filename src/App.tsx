@@ -8,8 +8,8 @@ import { WagmiProvider } from 'wagmi'
 import { wagmiConfig } from './lib/web3modal-config'
 import Home from "./pages/Home";
 import Index from "./pages/Index";
-import Portfolio from "./pages/Portfolio";
 import Bridge from "./pages/Bridge";
+import Docs from "./pages/Docs";
 import NotFound from "./pages/NotFound";
 import { ConfigTest } from "./components/ConfigTest";
 
@@ -25,8 +25,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/trade" element={<Index />} />
-            <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/bridge" element={<Bridge />} />
+            <Route path="/docs" element={<Docs />} />
             <Route path="/config" element={<ConfigTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

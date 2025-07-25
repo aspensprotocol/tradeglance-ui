@@ -52,14 +52,14 @@ const Bridge = () => {
       <div className="container py-8">
         <div className="mb-6 flex justify-between items-center">
           <div className="flex gap-6">
-            <Link to="/portfolio" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Portfolio
-            </Link>
             <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Trade
             </Link>
             <Link to="/bridge" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Bridge
+            </Link>
+            <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Docs
             </Link>
           </div>
           
