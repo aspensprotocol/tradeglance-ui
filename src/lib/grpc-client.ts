@@ -35,8 +35,11 @@ class ConnectGrpcWebClient {
     return result;
   }
 
-  // Simple protobuf encoder for order data
+  // Simple protobuf encoder for SendOrderRequest
   private encodeOrderProtobuf(data: any): Uint8Array {
+    console.log('=== ENCODING SENDORDERREQUEST ===');
+    console.log('Input data:', data);
+    
     const fields: Uint8Array[] = [];
     
     // Helper function to encode varint
@@ -91,43 +94,55 @@ class ConnectGrpcWebClient {
     // First, encode the order as a nested message
     const orderFields: Uint8Array[] = [];
     
+    console.log('Encoding order fields...');
+    
     // Encode order fields (assuming field numbers based on common patterns)
-    if (data.side !== undefined) {
-      orderFields.push(encodeVarintField(1, data.side));
+    if (data.order.side !== undefined) {
+      console.log('Encoding side:', data.order.side);
+      orderFields.push(encodeVarintField(1, data.order.side));
     }
-    if (data.quantity !== undefined) {
-      orderFields.push(encodeStringField(2, data.quantity));
+    if (data.order.quantity !== undefined) {
+      console.log('Encoding quantity:', data.order.quantity);
+      orderFields.push(encodeStringField(2, data.order.quantity));
     }
-    if (data.price !== undefined) {
-      orderFields.push(encodeStringField(3, data.price));
+    if (data.order.price !== undefined && data.order.price !== '') {
+      console.log('Encoding price:', data.order.price);
+      orderFields.push(encodeStringField(3, data.order.price));
     }
-    if (data.marketId !== undefined) {
-      orderFields.push(encodeStringField(4, data.marketId));
+    if (data.order.market_id !== undefined) {
+      console.log('Encoding market_id:', data.order.market_id);
+      orderFields.push(encodeStringField(4, data.order.market_id));
     }
-    if (data.baseAccountAddress !== undefined) {
-      orderFields.push(encodeStringField(5, data.baseAccountAddress));
+    if (data.order.base_account_address !== undefined) {
+      console.log('Encoding base_account_address:', data.order.base_account_address);
+      orderFields.push(encodeStringField(5, data.order.base_account_address));
     }
-    if (data.quoteAccountAddress !== undefined) {
-      orderFields.push(encodeStringField(6, data.quoteAccountAddress));
+    if (data.order.quote_account_address !== undefined) {
+      console.log('Encoding quote_account_address:', data.order.quote_account_address);
+      orderFields.push(encodeStringField(6, data.order.quote_account_address));
     }
-    if (data.executionType !== undefined) {
-      orderFields.push(encodeVarintField(7, data.executionType));
+    if (data.order.execution_type !== undefined) {
+      console.log('Encoding execution_type:', data.order.execution_type);
+      orderFields.push(encodeVarintField(7, data.order.execution_type));
     }
-    if (data.matchingOrderIds && data.matchingOrderIds.length > 0) {
-      for (const orderId of data.matchingOrderIds) {
+    if (data.order.matching_order_ids && data.order.matching_order_ids.length > 0) {
+      console.log('Encoding matching_order_ids:', data.order.matching_order_ids);
+      for (const orderId of data.order.matching_order_ids) {
         orderFields.push(encodeVarintField(8, orderId));
       }
     }
 
     // Combine order fields
     const orderBytes = this.concatenateUint8Arrays(orderFields);
+    console.log('Order bytes length:', orderBytes.length);
     
     // Now encode the SendOrderRequest with the order as field 1
     fields.push(encodeMessageField(1, orderBytes));
     
     // Add signature as field 2
-    if (data.signatureHash !== undefined) {
-      fields.push(encodeStringField(2, data.signatureHash));
+    if (data.signature_hash !== undefined) {
+      console.log('Encoding signature_hash:', data.signature_hash);
+      fields.push(encodeStringField(2, data.signature_hash));
     }
 
     // Combine all fields
@@ -138,6 +153,9 @@ class ConnectGrpcWebClient {
       result.set(field, offset);
       offset += field.length;
     }
+    
+    console.log('Final protobuf bytes length:', result.length);
+    console.log('=== END ENCODING ===');
     
     return result;
   }
@@ -421,17 +439,19 @@ export const arborterService = {
       // Convert signature to base64 string for better compatibility
       const signatureBase64 = btoa(String.fromCharCode(...signatureHash));
       
-      // Create the request data in the format expected by the protobuf encoder
+      // Create the request data with CORRECT protobuf field names (snake_case)
       const request = {
-        side: order.side,
-        quantity: order.quantity,
-        price: order.price,
-        marketId: order.marketId,
-        baseAccountAddress: order.baseAccountAddress,
-        quoteAccountAddress: order.quoteAccountAddress,
-        executionType: order.executionType,
-        matchingOrderIds: order.matchingOrderIds || [],
-        signatureHash: signatureBase64
+        order: {
+          side: order.side,
+          quantity: order.quantity,
+          price: order.price,
+          market_id: order.marketId, // CORRECT: snake_case
+          base_account_address: order.baseAccountAddress, // CORRECT: snake_case
+          quote_account_address: order.quoteAccountAddress, // CORRECT: snake_case
+          execution_type: order.executionType, // CORRECT: snake_case
+          matching_order_ids: order.matchingOrderIds || [] // CORRECT: snake_case
+        },
+        signature_hash: signatureBase64 // CORRECT: snake_case
       };
       
       console.log('Sending request to gRPC:', request);

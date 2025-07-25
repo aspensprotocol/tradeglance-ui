@@ -99,23 +99,17 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
       const quoteTokenDecimals = tradingPair.quoteTokenDecimals;
       const pairDecimals = tradingPair.pairDecimals;
 
-      // For signing, use token decimals
-      const signingQuantity = (quantity * Math.pow(10, baseTokenDecimals)).toString();
-      const signingPrice = activeOrderType === "limit" 
-        ? (parseFloat(price) * Math.pow(10, quoteTokenDecimals)).toString()
-        : undefined;
-
-      // For the actual transaction, use pair decimals
-      const transactionQuantity = (quantity * Math.pow(10, pairDecimals)).toString();
-      const transactionPrice = activeOrderType === "limit" 
+      // Use pair decimals for both signing and transaction (they should match)
+      const orderQuantity = (quantity * Math.pow(10, pairDecimals)).toString();
+      const orderPrice = activeOrderType === "limit" 
         ? (parseFloat(price) * Math.pow(10, pairDecimals)).toString()
         : undefined;
 
-      // Create order data for signing (using token decimals)
+      // Create order data for signing (using pair decimals to match what we send to server)
       const orderData = {
         side: (activeTab === "buy" ? "SIDE_BID" : "SIDE_ASK") as "SIDE_BID" | "SIDE_ASK",
-        quantity: signingQuantity,
-        price: signingPrice,
+        quantity: orderQuantity,
+        price: orderPrice,
         marketId: tradingPair.marketId, // Use the actual marketId from the trading pair
         baseAccountAddress: address,
         quoteAccountAddress: address, // Using same address for both for now
@@ -132,15 +126,26 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         tradingPair
       });
 
+      console.log('Decimal conversions:', {
+        originalQuantity: quantity,
+        originalPrice: price,
+        orderQuantity, // Pair decimals (for both signing and transaction)
+        orderPrice, // Pair decimals (for both signing and transaction)
+        baseTokenDecimals,
+        quoteTokenDecimals,
+        pairDecimals
+      });
+
       console.log('About to call signOrderWithGlobalProtobuf...');
       // Sign the order with MetaMask using global protobuf encoding (matching aspens SDK)
       const signatureHash = await signOrderWithGlobalProtobuf(orderData, currentChainId);
 
       // Create the order object for gRPC (matching aspens SDK structure)
+      // Use pair decimals for both signing and transaction (they should match)
       const orderForGrpc = {
         side: orderData.side === "SIDE_BID" ? 1 : 2,
-        quantity: orderData.quantity,
-        price: orderData.price,
+        quantity: orderQuantity, // Use pair decimals (same as signing)
+        price: orderPrice, // Use pair decimals (same as signing)
         marketId: orderData.marketId,
         baseAccountAddress: orderData.baseAccountAddress,
         quoteAccountAddress: orderData.quoteAccountAddress,

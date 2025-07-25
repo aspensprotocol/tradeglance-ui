@@ -113,36 +113,65 @@ export async function signOrderWithGlobalProtobuf(
   }
 
   try {
-    // Create a simple JSON-like structure that matches the expected order format
-    // This approach avoids complex protobuf wire format encoding issues
+    // Create the order object with CORRECT protobuf field names (snake_case)
     const orderObject = {
       side: side,
       quantity: orderData.quantity,
       price: orderData.price || '',
-      marketId: orderData.marketId,
-      baseAccountAddress: orderData.baseAccountAddress,
-      quoteAccountAddress: orderData.quoteAccountAddress,
-      executionType: executionType,
-      matchingOrderIds: orderData.matchingOrderIds || []
+      market_id: orderData.marketId, // CORRECT: snake_case
+      base_account_address: orderData.baseAccountAddress, // CORRECT: snake_case
+      quote_account_address: orderData.quoteAccountAddress, // CORRECT: snake_case
+      execution_type: executionType, // CORRECT: snake_case
+      matching_order_ids: orderData.matchingOrderIds || [] // CORRECT: snake_case
     };
 
-    // Convert to JSON string and then to bytes
-    const jsonString = JSON.stringify(orderObject);
-    const encoder = new TextEncoder();
-    const messageBytes = encoder.encode(jsonString);
+    // Encode the order as protobuf wire format (matching the expected structure)
+    const encodedFields: Uint8Array[] = [];
     
-    console.log('JSON message to sign:', jsonString);
-    console.log('Message bytes length:', messageBytes.length);
-    console.log('Message bytes:', Array.from(messageBytes));
+    // Field 1: side (varint)
+    encodedFields.push(encodeProtobufWireFormat(1, 0, orderObject.side));
     
-    // Convert bytes to hex string for MetaMask
-    const hexString = '0x' + Array.from(messageBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    // Field 2: quantity (length-delimited string)
+    encodedFields.push(encodeProtobufWireFormat(2, 2, orderObject.quantity));
+    
+    // Field 3: price (optional, length-delimited string)
+    if (orderObject.price) {
+      encodedFields.push(encodeProtobufWireFormat(3, 2, orderObject.price));
+    }
+    
+    // Field 4: market_id (length-delimited string)
+    encodedFields.push(encodeProtobufWireFormat(4, 2, orderObject.market_id));
+    
+    // Field 5: base_account_address (length-delimited string)
+    encodedFields.push(encodeProtobufWireFormat(5, 2, orderObject.base_account_address));
+    
+    // Field 6: quote_account_address (length-delimited string)
+    encodedFields.push(encodeProtobufWireFormat(6, 2, orderObject.quote_account_address));
+    
+    // Field 7: execution_type (varint)
+    encodedFields.push(encodeProtobufWireFormat(7, 0, orderObject.execution_type));
+    
+    // Field 8: matching_order_ids (repeated varint)
+    if (orderObject.matching_order_ids && orderObject.matching_order_ids.length > 0) {
+      for (const orderId of orderObject.matching_order_ids) {
+        encodedFields.push(encodeProtobufWireFormat(8, 0, orderId));
+      }
+    }
+    
+    // Combine all encoded fields
+    const protobufBytes = concatenateUint8Arrays(encodedFields);
+    
+    console.log('Protobuf encoded bytes length:', protobufBytes.length);
+    console.log('Protobuf encoded bytes:', Array.from(protobufBytes));
+    
+    // Convert protobuf bytes to hex string for MetaMask
+    const hexString = '0x' + Array.from(protobufBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     
     console.log('Hex string for signing:', hexString);
     
     // Log the exact message that should be signed (for debugging)
-    console.log('=== MESSAGE TO BE SIGNED (JSON) ===');
-    console.log('Message length:', messageBytes.length, 'bytes');
+    console.log('=== MESSAGE TO BE SIGNED (protobuf bytes) ===');
+    console.log('Message length:', protobufBytes.length, 'bytes');
     console.log('Message (hex):', hexString.slice(2));
     console.log('Order details:');
     console.log('  Side:', orderData.side === 'SIDE_BID' ? 'BID (1)' : 'ASK (2)');
@@ -155,7 +184,7 @@ export async function signOrderWithGlobalProtobuf(
     console.log('  Matching Order IDs:', orderData.matchingOrderIds || []);
     console.log('=== END MESSAGE DETAILS ===');
     
-    // Sign the message bytes with MetaMask
+    // Sign the protobuf bytes with MetaMask
     const signature = await window.ethereum.request({
       method: 'personal_sign',
       params: [hexString, orderData.baseAccountAddress],
@@ -179,8 +208,8 @@ export async function signOrderWithGlobalProtobuf(
     
     return signatureBytes;
   } catch (error) {
-    console.error('JSON signing error:', error);
-    throw new Error('Failed to sign order with JSON encoding');
+    console.error('Protobuf signing error:', error);
+    throw new Error('Failed to sign order with protobuf encoding');
   }
 }
 
