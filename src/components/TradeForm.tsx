@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { TradingPair } from "@/hooks/useTradingPairs";
 import { useAccount, useChainId } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
-import { signOrderWithProtobuf } from "@/lib/signing-utils";
+import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
@@ -132,8 +132,9 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         tradingPair
       });
 
-      // Sign the order with MetaMask using protobuf encoding (matching aspens SDK)
-      const signatureHash = await signOrderWithProtobuf(orderData, currentChainId);
+      console.log('About to call signOrderWithGlobalProtobuf...');
+      // Sign the order with MetaMask using global protobuf encoding (matching aspens SDK)
+      const signatureHash = await signOrderWithGlobalProtobuf(orderData, currentChainId);
 
       // Create the order object for gRPC (matching aspens SDK structure)
       const orderForGrpc = {

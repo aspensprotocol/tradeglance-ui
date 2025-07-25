@@ -1,6 +1,5 @@
 import React from 'react';
 import { useConfig } from '../hooks/useConfig';
-import { Configuration, Chain, Market, Token } from '../proto/generated/src/proto/arborter_config';
 
 export const ConfigTest: React.FC = () => {
   const { config, loading, error, refetch } = useConfig();

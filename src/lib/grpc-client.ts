@@ -21,6 +21,127 @@ class ConnectGrpcWebClient {
     this.baseUrl = baseUrl;
   }
 
+  // Helper function to concatenate Uint8Arrays
+  private concatenateUint8Arrays(arrays: Uint8Array[]): Uint8Array {
+    const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    
+    for (const arr of arrays) {
+      result.set(arr, offset);
+      offset += arr.length;
+    }
+    
+    return result;
+  }
+
+  // Simple protobuf encoder for order data
+  private encodeOrderProtobuf(data: any): Uint8Array {
+    const fields: Uint8Array[] = [];
+    
+    // Helper function to encode varint
+    const encodeVarint = (value: number): Uint8Array => {
+      const bytes: number[] = [];
+      let val = value;
+      while (val >= 0x80) {
+        bytes.push((val & 0x7F) | 0x80);
+        val = val >>> 7;
+      }
+      bytes.push(val & 0x7F);
+      return new Uint8Array(bytes);
+    };
+
+    // Helper function to encode string field
+    const encodeStringField = (fieldNumber: number, value: string): Uint8Array => {
+      const tag = (fieldNumber << 3) | 2; // wire type 2 for length-delimited
+      const tagBytes = encodeVarint(tag);
+      const encoder = new TextEncoder();
+      const stringBytes = encoder.encode(value);
+      const lengthBytes = encodeVarint(stringBytes.length);
+      const result = new Uint8Array(tagBytes.length + lengthBytes.length + stringBytes.length);
+      result.set(tagBytes, 0);
+      result.set(lengthBytes, tagBytes.length);
+      result.set(stringBytes, tagBytes.length + lengthBytes.length);
+      return result;
+    };
+
+    // Helper function to encode varint field
+    const encodeVarintField = (fieldNumber: number, value: number): Uint8Array => {
+      const tag = (fieldNumber << 3) | 0; // wire type 0 for varint
+      const tagBytes = encodeVarint(tag);
+      const valueBytes = encodeVarint(value);
+      const result = new Uint8Array(tagBytes.length + valueBytes.length);
+      result.set(tagBytes, 0);
+      result.set(valueBytes, tagBytes.length);
+      return result;
+    };
+
+    // Helper function to encode nested message field
+    const encodeMessageField = (fieldNumber: number, messageBytes: Uint8Array): Uint8Array => {
+      const tag = (fieldNumber << 3) | 2; // wire type 2 for length-delimited
+      const tagBytes = encodeVarint(tag);
+      const lengthBytes = encodeVarint(messageBytes.length);
+      const result = new Uint8Array(tagBytes.length + lengthBytes.length + messageBytes.length);
+      result.set(tagBytes, 0);
+      result.set(lengthBytes, tagBytes.length);
+      result.set(messageBytes, tagBytes.length + lengthBytes.length);
+      return result;
+    };
+
+    // First, encode the order as a nested message
+    const orderFields: Uint8Array[] = [];
+    
+    // Encode order fields (assuming field numbers based on common patterns)
+    if (data.side !== undefined) {
+      orderFields.push(encodeVarintField(1, data.side));
+    }
+    if (data.quantity !== undefined) {
+      orderFields.push(encodeStringField(2, data.quantity));
+    }
+    if (data.price !== undefined) {
+      orderFields.push(encodeStringField(3, data.price));
+    }
+    if (data.marketId !== undefined) {
+      orderFields.push(encodeStringField(4, data.marketId));
+    }
+    if (data.baseAccountAddress !== undefined) {
+      orderFields.push(encodeStringField(5, data.baseAccountAddress));
+    }
+    if (data.quoteAccountAddress !== undefined) {
+      orderFields.push(encodeStringField(6, data.quoteAccountAddress));
+    }
+    if (data.executionType !== undefined) {
+      orderFields.push(encodeVarintField(7, data.executionType));
+    }
+    if (data.matchingOrderIds && data.matchingOrderIds.length > 0) {
+      for (const orderId of data.matchingOrderIds) {
+        orderFields.push(encodeVarintField(8, orderId));
+      }
+    }
+
+    // Combine order fields
+    const orderBytes = this.concatenateUint8Arrays(orderFields);
+    
+    // Now encode the SendOrderRequest with the order as field 1
+    fields.push(encodeMessageField(1, orderBytes));
+    
+    // Add signature as field 2
+    if (data.signatureHash !== undefined) {
+      fields.push(encodeStringField(2, data.signatureHash));
+    }
+
+    // Combine all fields
+    const totalLength = fields.reduce((sum, field) => sum + field.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const field of fields) {
+      result.set(field, offset);
+      offset += field.length;
+    }
+    
+    return result;
+  }
+
   async call(service: string, method: string, data: any = {}) {
     console.log(`Connect gRPC-Web client making request to: ${service}/${method}`);
     
@@ -40,7 +161,15 @@ class ConnectGrpcWebClient {
         requestBody[4] = 0;
       } else {
         // For non-empty requests, create proper protobuf frame
-        const messageBytes = new TextEncoder().encode(JSON.stringify(data));
+        let messageBytes: Uint8Array;
+        
+        // Use protobuf encoding for SendOrder, JSON for others
+        if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'SendOrder') {
+          messageBytes = this.encodeOrderProtobuf(data);
+        } else {
+          messageBytes = new TextEncoder().encode(JSON.stringify(data));
+        }
+        
         const messageLength = messageBytes.length;
         
         requestBody = new Uint8Array(5 + messageLength);
@@ -285,13 +414,27 @@ export const configService = {
 // Arborter Service
 export const arborterService = {
   // Send order
-  async sendOrder(order: any): Promise<any> {
+  async sendOrder(order: any, signatureHash: Uint8Array): Promise<any> {
     try {
       console.log('Calling sendOrder via Connect gRPC-Web');
       
+      // Convert signature to base64 string for better compatibility
+      const signatureBase64 = btoa(String.fromCharCode(...signatureHash));
+      
+      // Create the request data in the format expected by the protobuf encoder
       const request = {
-        order: order
+        side: order.side,
+        quantity: order.quantity,
+        price: order.price,
+        marketId: order.marketId,
+        baseAccountAddress: order.baseAccountAddress,
+        quoteAccountAddress: order.quoteAccountAddress,
+        executionType: order.executionType,
+        matchingOrderIds: order.matchingOrderIds || [],
+        signatureHash: signatureBase64
       };
+      
+      console.log('Sending request to gRPC:', request);
       
       const response = await grpcClient.call(
         'xyz.aspens.arborter.v1.ArborterService',

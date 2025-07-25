@@ -41,9 +41,6 @@ export const useContract = () => {
             default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
           },
         };
-      case 11155111:
-        // Custom chain: Anvil 2 (this is the same as sepolia, but keeping for clarity)
-        return sepolia;
       default:
         // For unknown chains, create a custom chain object
         return {

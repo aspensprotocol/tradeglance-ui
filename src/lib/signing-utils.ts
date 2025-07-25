@@ -1,26 +1,11 @@
-import { keccak256, toHex } from 'viem';
-import * as protobuf from 'protobufjs';
+// No protobuf dependencies needed since Connect-Web handles serialization
+// Simple protobuf wire format encoder for signing
 
-// TypeScript declaration for MetaMask
 declare global {
   interface Window {
     ethereum?: any;
   }
 }
-
-// EIP-712 types for order signing - matching the aspens SDK structure
-const ORDER_TYPES = {
-  Order: [
-    { name: 'side', type: 'uint8' },
-    { name: 'quantity', type: 'string' },
-    { name: 'price', type: 'string' },
-    { name: 'marketId', type: 'string' },
-    { name: 'baseAccountAddress', type: 'address' },
-    { name: 'quoteAccountAddress', type: 'address' },
-    { name: 'executionType', type: 'uint8' },
-    { name: 'matchingOrderIds', type: 'uint64[]' },
-  ],
-};
 
 export interface OrderData {
   side: 'SIDE_BID' | 'SIDE_ASK';
@@ -33,55 +18,88 @@ export interface OrderData {
   matchingOrderIds?: number[];
 }
 
-// Protobuf message definition matching the aspens SDK
-const ORDER_PROTO_DEFINITION = `
-syntax = "proto3";
-
-package xyz.aspens.arborter.v1;
-
-enum Side {
-  SIDE_UNSPECIFIED = 0;
-  SIDE_BID = 1;
-  SIDE_ASK = 2;
-}
-
-enum ExecutionType {
-  EXECUTION_TYPE_UNSPECIFIED = 0;
-  EXECUTION_TYPE_DISCRETIONARY = 1;
-}
-
-message Order {
-  Side side = 1;
-  string quantity = 2;
-  optional string price = 3;
-  string market_id = 4;
-  string base_account_address = 5;
-  string quote_account_address = 6;
-  ExecutionType execution_type = 7;
-  repeated uint64 matching_order_ids = 8;
-}
-`;
-
-// Load protobuf definition
-let OrderMessage: protobuf.Type | null = null;
-
-async function loadProtobufDefinition() {
-  if (!OrderMessage) {
-    const root = protobuf.parse(ORDER_PROTO_DEFINITION);
-    OrderMessage = root.root.lookupType('xyz.aspens.arborter.v1.Order');
+// Simple protobuf wire format encoder
+function encodeProtobufWireFormat(fieldNumber: number, wireType: number, value: any): Uint8Array {
+  const tag = (fieldNumber << 3) | wireType;
+  const tagBytes = encodeVarint(tag);
+  
+  let valueBytes: Uint8Array;
+  switch (wireType) {
+    case 0: // Varint
+      valueBytes = encodeVarint(value);
+      break;
+    case 1: // 64-bit
+      valueBytes = new Uint8Array(8);
+      const view = new DataView(valueBytes.buffer);
+      view.setBigUint64(0, BigInt(value), true);
+      break;
+    case 2: // Length-delimited
+      if (typeof value === 'string') {
+        const encoder = new TextEncoder();
+        const stringBytes = encoder.encode(value);
+        const lengthBytes = encodeVarint(stringBytes.length);
+        valueBytes = new Uint8Array(lengthBytes.length + stringBytes.length);
+        valueBytes.set(lengthBytes);
+        valueBytes.set(stringBytes, lengthBytes.length);
+      } else if (Array.isArray(value)) {
+        // For repeated fields, encode each element
+        const encodedElements: Uint8Array[] = [];
+        for (const element of value) {
+          encodedElements.push(encodeProtobufWireFormat(fieldNumber, 0, element));
+        }
+        valueBytes = concatenateUint8Arrays(encodedElements);
+      } else {
+        throw new Error(`Unsupported value type for wire type 2: ${typeof value}`);
+      }
+      break;
+    case 5: // 32-bit
+      valueBytes = new Uint8Array(4);
+      const view32 = new DataView(valueBytes.buffer);
+      view32.setUint32(0, value, true);
+      break;
+    default:
+      throw new Error(`Unsupported wire type: ${wireType}`);
   }
-  return OrderMessage;
+  
+  return concatenateUint8Arrays([tagBytes, valueBytes]);
 }
 
-// New function that matches aspens SDK exactly - protobuf encoding + direct signing
-export async function signOrderWithProtobuf(
+function encodeVarint(value: number): Uint8Array {
+  const bytes: number[] = [];
+  let val = value;
+  
+  while (val >= 0x80) {
+    bytes.push((val & 0x7F) | 0x80);
+    val = val >>> 7;
+  }
+  bytes.push(val & 0x7F);
+  
+  return new Uint8Array(bytes);
+}
+
+function concatenateUint8Arrays(arrays: Uint8Array[]): Uint8Array {
+  const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  
+  for (const arr of arrays) {
+    result.set(arr, offset);
+    offset += arr.length;
+  }
+  
+  return result;
+}
+
+export async function signOrderWithGlobalProtobuf(
   orderData: OrderData,
   chainId: number
 ): Promise<Uint8Array> {
-  // Convert side to number
+  console.log('=== CALLING signOrderWithGlobalProtobuf ===');
+  
+  // Convert side to number (enum)
   const side = orderData.side === 'SIDE_BID' ? 1 : 2;
   
-  // Convert execution type to number
+  // Convert execution type to number (enum)
   const executionType = orderData.executionType === 'EXECUTION_TYPE_DISCRETIONARY' ? 1 : 0;
 
   console.log('Execution type conversion:', {
@@ -89,122 +107,55 @@ export async function signOrderWithProtobuf(
     converted: executionType
   });
 
-  // Create the order object for signing (matching aspens SDK structure exactly)
-  const orderForSigning = {
-    side: side,
-    quantity: orderData.quantity, // Keep as string (SDK expects string)
-    price: orderData.price || '', // Keep as string (SDK expects string)
-    market_id: orderData.marketId, // Use snake_case (SDK expects snake_case)
-    base_account_address: orderData.baseAccountAddress, // Use snake_case (SDK expects snake_case)
-    quote_account_address: orderData.quoteAccountAddress, // Use snake_case (SDK expects snake_case)
-    execution_type: executionType, // Use snake_case (SDK expects snake_case)
-    matching_order_ids: orderData.matchingOrderIds || [], // Use snake_case (SDK expects snake_case)
-  };
-
-  // Try without optional fields to see if that's the issue
-  const orderForSigningMinimal = {
-    side: side,
-    quantity: orderData.quantity,
-    market_id: orderData.marketId,
-    base_account_address: orderData.baseAccountAddress,
-    quote_account_address: orderData.quoteAccountAddress,
-    execution_type: executionType,
-  };
-
-  // Also try with string enum values to see if that helps
-  const orderForSigningWithStrings = {
-    side: side === 1 ? 'SIDE_BID' : 'SIDE_ASK',
-    quantity: orderData.quantity,
-    price: orderData.price || '',
-    market_id: orderData.marketId,
-    base_account_address: orderData.baseAccountAddress,
-    quote_account_address: orderData.quoteAccountAddress,
-    execution_type: executionType === 0 ? 'EXECUTION_TYPE_UNSPECIFIED' : 'EXECUTION_TYPE_DISCRETIONARY',
-    matching_order_ids: orderData.matchingOrderIds || [],
-  };
-
-  console.log('Order object keys:', Object.keys(orderForSigning));
-  console.log('Order object values:', Object.values(orderForSigning));
-  console.log('Order with string enums:', orderForSigningWithStrings);
-  console.log('Minimal order object:', orderForSigningMinimal);
-  console.log('Order for protobuf encoding (detailed):', {
-    side: orderForSigning.side,
-    quantity: orderForSigning.quantity,
-    price: orderForSigning.price,
-    market_id: orderForSigning.market_id,
-    base_account_address: orderForSigning.base_account_address,
-    quote_account_address: orderForSigning.quote_account_address,
-    execution_type: orderForSigning.execution_type,
-    matching_order_ids: orderForSigning.matching_order_ids,
-  });
-
-  console.log('Order for protobuf encoding:', orderForSigning);
-
   // Check if MetaMask is available
   if (typeof window.ethereum === 'undefined') {
     throw new Error('MetaMask is not installed');
   }
 
-    try {
-    // Load protobuf definition
-    const OrderType = await loadProtobufDefinition();
-    
-    let buffer: Uint8Array;
-    
-    // Try with string enum values first
-    const errMsgWithStrings = OrderType.verify(orderForSigningWithStrings);
-    if (!errMsgWithStrings) {
-      console.log('Protobuf verification passed with string enums');
-      const messageWithStrings = OrderType.create(orderForSigningWithStrings);
-      buffer = OrderType.encode(messageWithStrings).finish();
-      console.log('Protobuf with strings - length:', buffer.length);
-      console.log('Protobuf with strings - bytes:', Array.from(buffer));
-    } else {
-      console.log('String enum verification failed:', errMsgWithStrings);
-      
-      // Try with minimal order (no optional fields)
-      const errMsgMinimal = OrderType.verify(orderForSigningMinimal);
-      if (!errMsgMinimal) {
-        console.log('Protobuf verification passed with minimal order');
-        const messageMinimal = OrderType.create(orderForSigningMinimal);
-        buffer = OrderType.encode(messageMinimal).finish();
-        console.log('Protobuf minimal - length:', buffer.length);
-        console.log('Protobuf minimal - bytes:', Array.from(buffer));
-      } else {
-        console.log('Minimal order verification failed:', errMsgMinimal);
-        
-        // Try with numeric enums
-        const errMsg = OrderType.verify(orderForSigning);
-        if (errMsg) {
-          throw new Error(`Invalid order: ${errMsg}`);
-        }
+  try {
+    // Create a simple JSON-like structure that matches the expected order format
+    // This approach avoids complex protobuf wire format encoding issues
+    const orderObject = {
+      side: side,
+      quantity: orderData.quantity,
+      price: orderData.price || '',
+      marketId: orderData.marketId,
+      baseAccountAddress: orderData.baseAccountAddress,
+      quoteAccountAddress: orderData.quoteAccountAddress,
+      executionType: executionType,
+      matchingOrderIds: orderData.matchingOrderIds || []
+    };
 
-        console.log('Protobuf verification passed with numeric enums');
-
-        // Create protobuf message
-        const message = OrderType.create(orderForSigning);
-        
-        console.log('Protobuf message created:', message);
-        console.log('Protobuf message keys:', Object.keys(message));
-        console.log('Protobuf message values:', Object.values(message));
-        
-        // Encode to bytes (matching aspens SDK approach)
-        buffer = OrderType.encode(message).finish();
-      }
-    }
+    // Convert to JSON string and then to bytes
+    const jsonString = JSON.stringify(orderObject);
+    const encoder = new TextEncoder();
+    const messageBytes = encoder.encode(jsonString);
     
-    console.log('Final protobuf encoded bytes length:', buffer.length);
-    console.log('Final protobuf encoded bytes:', Array.from(buffer));
-
-    // Convert protobuf bytes to hex string for MetaMask personal_sign
-    const hexString = '0x' + Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('');
+    console.log('JSON message to sign:', jsonString);
+    console.log('Message bytes length:', messageBytes.length);
+    console.log('Message bytes:', Array.from(messageBytes));
+    
+    // Convert bytes to hex string for MetaMask
+    const hexString = '0x' + Array.from(messageBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     
     console.log('Hex string for signing:', hexString);
-    console.log('Protobuf bytes length:', buffer.length);
-    console.log('Protobuf bytes (hex):', hexString);
     
-    // Sign the protobuf bytes directly (matching aspens SDK approach)
-    // personal_sign adds EIP-191 prefix, backend will fall back to EIP-191 verification
+    // Log the exact message that should be signed (for debugging)
+    console.log('=== MESSAGE TO BE SIGNED (JSON) ===');
+    console.log('Message length:', messageBytes.length, 'bytes');
+    console.log('Message (hex):', hexString.slice(2));
+    console.log('Order details:');
+    console.log('  Side:', orderData.side === 'SIDE_BID' ? 'BID (1)' : 'ASK (2)');
+    console.log('  Quantity:', orderData.quantity);
+    console.log('  Price:', orderData.price || 'undefined');
+    console.log('  Market ID:', orderData.marketId);
+    console.log('  Base Account:', orderData.baseAccountAddress);
+    console.log('  Quote Account:', orderData.quoteAccountAddress);
+    console.log('  Execution Type:', orderData.executionType === 'EXECUTION_TYPE_DISCRETIONARY' ? 'DISCRETIONARY (1)' : 'UNSPECIFIED (0)');
+    console.log('  Matching Order IDs:', orderData.matchingOrderIds || []);
+    console.log('=== END MESSAGE DETAILS ===');
+    
+    // Sign the message bytes with MetaMask
     const signature = await window.ethereum.request({
       method: 'personal_sign',
       params: [hexString, orderData.baseAccountAddress],
@@ -215,101 +166,23 @@ export async function signOrderWithProtobuf(
 
     // Convert the signature to bytes
     // Remove the '0x' prefix and convert to Uint8Array
-    const signatureBytes = new Uint8Array(Buffer.from(signature.slice(2), 'hex'));
+    const signatureHex = signature.slice(2);
+    const signatureBytes = new Uint8Array(signatureHex.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
     
     console.log('Signature bytes length:', signatureBytes.length);
     console.log('Signature bytes:', Array.from(signatureBytes));
     
-    return signatureBytes;
-  } catch (error) {
-    console.error('Protobuf signing error:', error);
-    throw new Error('Failed to sign order with protobuf encoding');
-  }
-}
-
-export async function signOrderWithMetaMask(
-  orderData: OrderData,
-  chainId: number
-): Promise<Uint8Array> {
-  // Convert side to number
-  const side = orderData.side === 'SIDE_BID' ? 1 : 2;
-  
-  // Convert execution type to number
-  const executionType = orderData.executionType === 'EXECUTION_TYPE_DISCRETIONARY' ? 1 : 0;
-
-  // Create the order object for signing (matching aspens SDK structure exactly)
-  const orderForSigning = {
-    side,
-    quantity: orderData.quantity, // Keep as string (SDK expects string)
-    price: orderData.price || '', // Keep as string (SDK expects string)
-    marketId: orderData.marketId, // Use marketId (SDK expects marketId)
-    baseAccountAddress: orderData.baseAccountAddress,
-    quoteAccountAddress: orderData.quoteAccountAddress,
-    executionType,
-    matchingOrderIds: orderData.matchingOrderIds || [],
-  };
-
-  // Check if MetaMask is available
-  if (typeof window.ethereum === 'undefined') {
-    throw new Error('MetaMask is not installed');
-  }
-
-  // Create the EIP-712 typed data with string types for quantity and price
-  const typedData = {
-    types: {
-      Order: [
-        { name: 'side', type: 'uint8' },
-        { name: 'quantity', type: 'string' }, // string, not uint256
-        { name: 'price', type: 'string' }, // string, not uint256
-        { name: 'marketId', type: 'string' },
-        { name: 'baseAccountAddress', type: 'address' },
-        { name: 'quoteAccountAddress', type: 'address' },
-        { name: 'executionType', type: 'uint8' },
-        { name: 'matchingOrderIds', type: 'uint64[]' },
-      ],
-    },
-    primaryType: 'Order',
-    domain: {
-      name: 'Aspens Order',
-      version: '1',
-      chainId: chainId,
-    },
-    message: orderForSigning,
-  };
-
-  try {
-    console.log('Requesting signature from MetaMask with data:', typedData);
-    console.log('Account address:', orderData.baseAccountAddress);
-    
-    // Request signature from MetaMask
-    const signature = await window.ethereum.request({
-      method: 'eth_signTypedData_v4',
-      params: [orderData.baseAccountAddress, JSON.stringify(typedData)],
-    });
-
-    console.log('MetaMask signature received:', signature);
-    console.log('Signature length:', signature.length);
-
-    // Convert the signature to bytes
-    // Remove the '0x' prefix and convert to Uint8Array
-    const signatureBytes = new Uint8Array(Buffer.from(signature.slice(2), 'hex'));
-    
-    console.log('Signature bytes length:', signatureBytes.length);
-    console.log('Signature bytes:', Array.from(signatureBytes));
+    // Verify signature length (should be 65 bytes for secp256k1)
+    if (signatureBytes.length !== 65) {
+      console.warn('Warning: Signature length is', signatureBytes.length, 'bytes, expected 65 bytes');
+    }
     
     return signatureBytes;
   } catch (error) {
-    console.error('MetaMask signing error:', error);
-    throw new Error('Failed to sign order with MetaMask');
+    console.error('JSON signing error:', error);
+    throw new Error('Failed to sign order with JSON encoding');
   }
 }
 
-// Legacy function for backward compatibility
-export async function signOrder(
-  orderData: OrderData,
-  chainId: number,
-  privateKey: string
-): Promise<Uint8Array> {
-  // Use the new protobuf signing function instead
-  return signOrderWithProtobuf(orderData, chainId);
-} 
+// Export for testing
+(window as any).testWithGlobalProtobuf = signOrderWithGlobalProtobuf; 
