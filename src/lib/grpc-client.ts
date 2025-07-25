@@ -120,6 +120,8 @@ class ConnectGrpcWebClient {
     if (data.order.price !== undefined && data.order.price !== '') {
       console.log('Encoding price:', data.order.price);
       orderFields.push(encodeStringField(3, data.order.price));
+    } else {
+      console.log('Skipping price field (market order or empty price)');
     }
     if (data.order.market_id !== undefined) {
       console.log('Encoding market_id:', data.order.market_id);

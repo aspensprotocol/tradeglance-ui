@@ -123,6 +123,16 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
       return;
     }
 
+    // For market orders, ensure no price is entered
+    if (activeOrderType === "market" && price && price.trim() !== "") {
+      toast({
+        title: "Price not needed for market orders",
+        description: "Market orders execute at the best available price. Please clear the price field or switch to limit orders.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -146,7 +156,7 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
       const orderQuantity = (quantity * Math.pow(10, pairDecimals)).toString();
       const orderPrice = activeOrderType === "limit" 
         ? (parseFloat(price) * Math.pow(10, pairDecimals)).toString()
-        : undefined;
+        : ""; // Use empty string for market orders instead of undefined for consistency
 
       // Create order data for signing (using pair decimals to match what we send to server)
       const orderData = {
@@ -176,10 +186,11 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         orderPrice, // Pair decimals (for both signing and transaction)
         baseTokenDecimals,
         quoteTokenDecimals,
-        pairDecimals
+        pairDecimals,
+        orderType: activeOrderType
       });
 
-      console.log('About to call signOrderWithGlobalProtobuf...');
+      console.log(`About to call signOrderWithGlobalProtobuf for ${activeOrderType} order...`);
       // Sign the order with MetaMask using global protobuf encoding (matching aspens SDK)
       const signatureHash = await signOrderWithGlobalProtobuf(orderData, currentChainId);
 
@@ -205,7 +216,7 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
 
       toast({
         title: "Order submitted successfully",
-        description: `${activeTab === "buy" ? "Buy" : "Sell"} order for ${quantity} ${tradingPair.baseSymbol} has been submitted`,
+        description: `${activeTab === "buy" ? "Buy" : "Sell"} ${activeOrderType} order for ${quantity} ${tradingPair.baseSymbol} has been submitted`,
       });
 
       // Reset form
@@ -308,17 +319,10 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-xs text-white">⚛</span>
-                </div>
-                <span className="text-sm text-gray-300">{tradingPair?.baseSymbol || "ATOM"}</span>
-              </div>
-              <div className="w-px h-4 bg-gray-600"></div>
-              <div className="flex items-center gap-1">
                 <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
                   <span className="text-xs text-white font-bold">₿</span>
                 </div>
-                <span className="text-sm text-gray-300">{tradingPair?.quoteSymbol || "UST2"}</span>
+                <span className="text-sm text-gray-300">{tradingPair?.baseSymbol || "ATOM"}</span>
               </div>
             </div>
           </div>
@@ -341,8 +345,8 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
             ))}
           </div>
 
-          {/* Price Input (for limit orders) */}
-          {activeOrderType === "limit" && (
+          {/* Price Input (for limit orders) or Market Order Info */}
+          {activeOrderType === "limit" ? (
             <div className="mb-6">
               <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
                 Price
@@ -357,6 +361,18 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
                 placeholder="0,00"
               />
             </div>
+          ) : (
+            <div className="mb-6">
+              <div className="p-3 rounded-lg bg-blue-900/20 border border-blue-500/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-blue-300 font-medium">Market Order</span>
+                </div>
+                <p className="text-xs text-blue-200 mt-1">
+                  Will execute at the best available price
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Order Summary */}
@@ -367,7 +383,14 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-gray-400">Price</span>
-              <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
+              <span className="text-white">
+                {activeOrderType === "limit" && price && !isNaN(Number(price)) 
+                  ? `${price} ${tradingPair?.quoteSymbol || "UST2"}` 
+                  : activeOrderType === "market" 
+                    ? "Market Price" 
+                    : `- ${tradingPair?.quoteSymbol || "UST2"}`
+                }
+              </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-gray-400">Estimated Fee</span>

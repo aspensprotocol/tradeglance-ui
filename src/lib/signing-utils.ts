@@ -136,8 +136,10 @@ export async function signOrderWithGlobalProtobuf(
     encodedFields.push(encodeProtobufWireFormat(2, 2, orderObject.quantity));
     
     // Field 3: price (optional, length-delimited string)
-    if (orderObject.price) {
+    if (orderObject.price && orderObject.price !== '') {
       encodedFields.push(encodeProtobufWireFormat(3, 2, orderObject.price));
+    } else {
+      console.log('Skipping price field for market order');
     }
     
     // Field 4: market_id (length-delimited string)
