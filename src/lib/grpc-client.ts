@@ -56,15 +56,27 @@ class ConnectGrpcWebClient {
 
     // Helper function to encode string field
     const encodeStringField = (fieldNumber: number, value: string): Uint8Array => {
-      const tag = (fieldNumber << 3) | 2; // wire type 2 for length-delimited
+      const tag = (fieldNumber << 3) | 2; // Wire type 2 = Length-delimited
       const tagBytes = encodeVarint(tag);
-      const encoder = new TextEncoder();
-      const stringBytes = encoder.encode(value);
-      const lengthBytes = encodeVarint(stringBytes.length);
-      const result = new Uint8Array(tagBytes.length + lengthBytes.length + stringBytes.length);
+      const valueBytes = new TextEncoder().encode(value);
+      const lengthBytes = encodeVarint(valueBytes.length);
+      
+      const result = new Uint8Array(tagBytes.length + lengthBytes.length + valueBytes.length);
       result.set(tagBytes, 0);
       result.set(lengthBytes, tagBytes.length);
-      result.set(stringBytes, tagBytes.length + lengthBytes.length);
+      result.set(valueBytes, tagBytes.length + lengthBytes.length);
+      return result;
+    };
+
+    const encodeBytesField = (fieldNumber: number, value: Uint8Array): Uint8Array => {
+      const tag = (fieldNumber << 3) | 2; // Wire type 2 = Length-delimited
+      const tagBytes = encodeVarint(tag);
+      const lengthBytes = encodeVarint(value.length);
+      
+      const result = new Uint8Array(tagBytes.length + lengthBytes.length + value.length);
+      result.set(tagBytes, 0);
+      result.set(lengthBytes, tagBytes.length);
+      result.set(value, tagBytes.length + lengthBytes.length);
       return result;
     };
 
@@ -142,7 +154,7 @@ class ConnectGrpcWebClient {
     // Add signature as field 2
     if (data.signature_hash !== undefined) {
       console.log('Encoding signature_hash:', data.signature_hash);
-      fields.push(encodeStringField(2, data.signature_hash));
+      fields.push(encodeBytesField(2, data.signature_hash));
     }
 
     // Combine all fields
@@ -436,9 +448,6 @@ export const arborterService = {
     try {
       console.log('Calling sendOrder via Connect gRPC-Web');
       
-      // Convert signature to base64 string for better compatibility
-      const signatureBase64 = btoa(String.fromCharCode(...signatureHash));
-      
       // Create the request data with CORRECT protobuf field names (snake_case)
       const request = {
         order: {
@@ -451,7 +460,7 @@ export const arborterService = {
           execution_type: order.executionType, // CORRECT: snake_case
           matching_order_ids: order.matchingOrderIds || [] // CORRECT: snake_case
         },
-        signature_hash: signatureBase64 // CORRECT: snake_case
+        signature_hash: signatureHash // Pass the Uint8Array directly
       };
       
       console.log('Sending request to gRPC:', request);

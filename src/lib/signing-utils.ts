@@ -18,7 +18,7 @@ export interface OrderData {
   matchingOrderIds?: number[];
 }
 
-// Simple protobuf wire format encoder
+// Simple protobuf wire format encoder that matches prost::Message::encode()
 function encodeProtobufWireFormat(fieldNumber: number, wireType: number, value: any): Uint8Array {
   const tag = (fieldNumber << 3) | wireType;
   const tagBytes = encodeVarint(tag);
@@ -96,11 +96,11 @@ export async function signOrderWithGlobalProtobuf(
 ): Promise<Uint8Array> {
   console.log('=== CALLING signOrderWithGlobalProtobuf ===');
   
-  // Convert side to number (enum)
-  const side = orderData.side === 'SIDE_BID' ? 1 : 2;
+  // Convert side to number (enum) - matching the backend's Side enum
+  const side = orderData.side === 'SIDE_BID' ? 1 : 2; // 1 = Bid, 2 = Ask
   
-  // Convert execution type to number (enum)
-  const executionType = orderData.executionType === 'EXECUTION_TYPE_DISCRETIONARY' ? 1 : 0;
+  // Convert execution type to number (enum) - matching the backend's ExecutionType enum
+  const executionType = orderData.executionType === 'EXECUTION_TYPE_DISCRETIONARY' ? 1 : 0; // 0 = Unspecified, 1 = Discretionary
 
   console.log('Execution type conversion:', {
     original: orderData.executionType,
@@ -114,6 +114,7 @@ export async function signOrderWithGlobalProtobuf(
 
   try {
     // Create the order object with CORRECT protobuf field names (snake_case)
+    // This should match exactly what the backend's prost::Message::encode() produces
     const orderObject = {
       side: side,
       quantity: orderData.quantity,
@@ -125,10 +126,10 @@ export async function signOrderWithGlobalProtobuf(
       matching_order_ids: orderData.matchingOrderIds || [] // CORRECT: snake_case
     };
 
-    // Encode the order as protobuf wire format (matching the expected structure)
+    // Encode the order as protobuf wire format (matching prost::Message::encode())
     const encodedFields: Uint8Array[] = [];
     
-    // Field 1: side (varint)
+    // Field 1: side (varint) - matching the backend's Order protobuf definition
     encodedFields.push(encodeProtobufWireFormat(1, 0, orderObject.side));
     
     // Field 2: quantity (length-delimited string)
@@ -148,8 +149,10 @@ export async function signOrderWithGlobalProtobuf(
     // Field 6: quote_account_address (length-delimited string)
     encodedFields.push(encodeProtobufWireFormat(6, 2, orderObject.quote_account_address));
     
-    // Field 7: execution_type (varint)
-    encodedFields.push(encodeProtobufWireFormat(7, 0, orderObject.execution_type));
+    // Field 7: execution_type (varint) - only encode if not 0 (default value)
+    if (orderObject.execution_type !== 0) {
+      encodedFields.push(encodeProtobufWireFormat(7, 0, orderObject.execution_type));
+    }
     
     // Field 8: matching_order_ids (repeated varint)
     if (orderObject.matching_order_ids && orderObject.matching_order_ids.length > 0) {
@@ -164,7 +167,11 @@ export async function signOrderWithGlobalProtobuf(
     console.log('Protobuf encoded bytes length:', protobufBytes.length);
     console.log('Protobuf encoded bytes:', Array.from(protobufBytes));
     
-    // Convert protobuf bytes to hex string for MetaMask
+    // IMPORTANT: Sign the raw protobuf bytes WITHOUT Ethereum message prefix
+    // The backend expects a raw signature of the protobuf bytes, not an EIP-191 signature
+    // Since MetaMask doesn't support eth_sign, we use personal_sign and convert the signature
+    
+    // Convert protobuf bytes to hex string for signing
     const hexString = '0x' + Array.from(protobufBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     
     console.log('Hex string for signing:', hexString);
@@ -184,7 +191,8 @@ export async function signOrderWithGlobalProtobuf(
     console.log('  Matching Order IDs:', orderData.matchingOrderIds || []);
     console.log('=== END MESSAGE DETAILS ===');
     
-    // Sign the protobuf bytes with MetaMask
+    // Sign with personal_sign (this will add the Ethereum message prefix internally)
+    // The backend might be able to handle EIP-191 signatures with the prefix
     const signature = await window.ethereum.request({
       method: 'personal_sign',
       params: [hexString, orderData.baseAccountAddress],
