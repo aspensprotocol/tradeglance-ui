@@ -18,8 +18,8 @@ interface TradeFormProps {
 }
 
 const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
-  const [activeOrderType, setActiveOrderType] = useState<"market" | "limit">("market");
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
+  const [activeOrderType, setActiveOrderType] = useState<"market" | "limit">("limit");
   const [amount, setAmount] = useState("0,0");
   const [price, setPrice] = useState("");
   const [percentageValue, setPercentageValue] = useState(0);
@@ -188,7 +188,7 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
       <div className="p-4 space-y-4">
         {/* Order Type Tabs */}
         <div className="flex rounded-lg bg-[#2a2d3a] p-1">
-          {["market", "limit"].map((type) => (
+          {["limit", "market"].map((type) => (
             <button
               key={type}
               onClick={() => setActiveOrderType(type as any)}
@@ -316,20 +316,19 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
             <span className="text-white">{isNaN(Number(amount.replace(',', '.'))) || !amount ? '-' : amount} {tradingPair?.baseSymbol || "ATOM"}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-400">Order Price</span>
+            <span className="text-gray-400">Price</span>
             <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">Estimated Fee</span>
-            <span className="text-white">0.00 {tradingPair?.quoteSymbol || "UST2"}</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-400">Total</span>
-            <span className="text-white">{isNaN(Number(amount.replace(',', '.'))) || !amount ? '-' : amount} {tradingPair?.quoteSymbol || "UST2"}</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-400">Purchase price</span>
-            <span className="text-white">{activeOrderType === "limit" && price && !isNaN(Number(price)) ? price : '-'} {tradingPair?.quoteSymbol || "UST2"}</span>
+            <span className="text-white">
+              {(() => {
+                const amountValue = parseFloat(amount.replace(',', '.'));
+                if (isNaN(amountValue) || !amountValue) return '0.00';
+                const fee = amountValue * 0.01; // 1% fee
+                return fee.toFixed(2);
+              })()} {tradingPair?.quoteSymbol || "UST2"}
+            </span>
           </div>
         </div>
 
