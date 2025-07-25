@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { configService } from '../lib/api-client';
+import { configService } from '../lib/grpc-client';
 import { configUtils } from '../lib/config-utils';
 
 // Define the actual config structure based on the protobuf definition

@@ -19,10 +19,7 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Install proxy server dependencies
-cd proxy-server && npm install && cd ..
-
-# Step 5: Start everything with the provided script
+# Step 4: Start everything with the provided script
 ./start-dev.sh
 ```
 
@@ -46,14 +43,7 @@ Frontend (Vite + React)
 Envoy Proxy (port 8811)
     ↓ (gRPC calls)
 Arborter Service (port 50051)
-
-    Alternative for non-gRPC calls:
-Frontend (Vite + React)
-    ↓ (REST API calls)
-Proxy Server (port 8083)
-    ↓ (gRPC calls)
-Arborter Service (port 50051)
-```
+``
 
 ## Setup
 
@@ -71,8 +61,7 @@ chmod +x start-dev.sh
 
 This script will:
 1. Start Envoy proxy in a Docker container (port 8811)
-2. Start the proxy server (port 8083)
-3. Start the frontend development server (port 8080)
+2. Start the frontend development server (port 8080)
 
 ### Manual Setup
 
@@ -81,20 +70,13 @@ If you prefer to start components manually:
 #### 1. Start Envoy Proxy
 ```sh
 docker run -d --name envoy-grpc-web \
-  -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml:ro \
+  -v "$(pwd)/envoy.yaml:/etc/envoy/envoy.yaml:ro" \
   -p 8811:8811 \
-  --network host \
-  envoyproxy/envoy:v1.28-latest
+  # --network host \
+  envoyproxy/envoy:distroless-v1.34-latest
 ```
 
-#### 2. Start Proxy Server
-```sh
-cd proxy-server
-npm install
-npm start
-```
-
-#### 3. Start Frontend
+#### 2. Start Frontend
 ```sh
 # In a new terminal
 npm install
