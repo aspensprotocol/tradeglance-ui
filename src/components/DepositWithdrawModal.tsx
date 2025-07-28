@@ -13,12 +13,14 @@ import { useAccount } from "wagmi";
 interface DepositWithdrawModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "deposit" | "withdraw";
+  type?: "deposit" | "withdraw"; // Make type optional since we'll handle it internally
+  onSuccess?: () => void; // Callback for successful transactions
 }
 
-const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalProps) => {
+const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", onSuccess }: DepositWithdrawModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("");
+  const [activeType, setActiveType] = useState<"deposit" | "withdraw">(initialType);
   const { deposit, withdraw, isLoading, error } = useContract();
   const { getAllChains, loading: configLoading, error: configError } = useTradeContracts();
   const { currentChainId, isSupported } = useChainMonitor();
@@ -73,7 +75,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     }
 
     try {
-      if (type === "deposit") {
+      if (activeType === "deposit") {
         await deposit(amount, selectedTokenObj.address, currentChainId);
       } else {
         await withdraw(amount, selectedTokenObj.address, currentChainId);
@@ -83,9 +85,14 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
       setAmount("");
       setSelectedToken("");
       onClose();
+      
+      // Call success callback to refresh balances
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       // Error is handled by the hook
-      console.error(`${type} failed:`, err);
+      console.error(`${activeType} failed:`, err);
     }
   };
 
@@ -100,7 +107,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="capitalize">{type} Funds</DialogTitle>
+            <DialogTitle className="capitalize">{activeType} Funds</DialogTitle>
           </DialogHeader>
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -116,7 +123,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="capitalize">{type} Funds</DialogTitle>
+            <DialogTitle className="capitalize">{activeType} Funds</DialogTitle>
           </DialogHeader>
           <div className="text-center py-4">
             <p className="text-red-600 mb-4">Failed to load configuration</p>
@@ -134,8 +141,32 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="capitalize">{type} Funds</DialogTitle>
+          <DialogTitle>Funds</DialogTitle>
         </DialogHeader>
+        
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 mb-4">
+          <button
+            className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+              activeType === "deposit"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={() => setActiveType("deposit")}
+          >
+            Deposit
+          </button>
+          <button
+            className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+              activeType === "withdraw"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={() => setActiveType("withdraw")}
+          >
+            Withdraw
+          </button>
+        </div>
         
         {!isConnected ? (
           <div className="text-center py-4">
@@ -227,7 +258,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type }: DepositWithdrawModalPro
                     Processing...
                   </>
                 ) : (
-                  `${type.charAt(0).toUpperCase() + type.slice(1)}`
+                  `${activeType.charAt(0).toUpperCase() + activeType.slice(1)}`
                 )}
               </Button>
             </div>

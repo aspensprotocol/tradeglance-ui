@@ -50,6 +50,7 @@ export interface ChainConfig {
   tradeContractAddress: string;
   serviceAddress: string;
   explorerUrl?: string; // Optional explorer URL
+  baseOrQuote: string; // Add the baseOrQuote property
   tokens: Record<string, {
     address: string;
     decimals: number;
@@ -86,6 +87,7 @@ export class ConfigUtils {
       tradeContractAddress: chain.tradeContract.address,
       serviceAddress: chain.serviceAddress,
       explorerUrl: chain.explorerUrl,
+      baseOrQuote: chain.baseOrQuote,
       tokens: chain.tokens,
     };
   }
@@ -108,6 +110,7 @@ export class ConfigUtils {
       tradeContractAddress: chain.tradeContract.address,
       serviceAddress: chain.serviceAddress,
       explorerUrl: chain.explorerUrl,
+      baseOrQuote: chain.baseOrQuote,
       tokens: chain.tokens,
     };
   }
@@ -124,6 +127,7 @@ export class ConfigUtils {
       tradeContractAddress: chain.tradeContract.address,
       serviceAddress: chain.serviceAddress,
       explorerUrl: chain.explorerUrl,
+      baseOrQuote: chain.baseOrQuote,
       tokens: chain.tokens,
     }));
   }

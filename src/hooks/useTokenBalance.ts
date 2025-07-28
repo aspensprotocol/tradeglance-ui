@@ -121,92 +121,105 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
 
-  useEffect(() => {
-    const fetchTradingBalances = async () => {
-      if (!isConnected || !address || !tokenSymbol || !chainId || !publicClient) {
-        setDepositedBalance("0");
-        setLockedBalance("0");
-        setAvailableBalance("0");
-        return;
-      }
+  const fetchTradingBalances = async () => {
+    if (!isConnected || !address || !tokenSymbol || !chainId || !publicClient) {
+      setDepositedBalance("0");
+      setLockedBalance("0");
+      setAvailableBalance("0");
+      return;
+    }
 
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      try {
-        console.log('useTradingBalance: Fetching trading balances for', tokenSymbol, 'on chain', chainId);
-        
-        // Get chain and token config
+    try {
+      console.log('useTradingBalance: Fetching trading balances for', tokenSymbol, 'on chain', chainId);
+      
+              // Get chain and token config
         const chainConfig = configUtils.getChainByChainId(chainId);
+        console.log('useTradingBalance: Chain config for chainId', chainId, ':', chainConfig);
+        
         if (!chainConfig) {
           console.error(`Chain config not found for chain ${chainId}`);
+          console.log('useTradingBalance: Available chains:', configUtils.getAllChains());
           return;
         }
 
         const tokenConfig = chainConfig.tokens[tokenSymbol];
+        console.log('useTradingBalance: Token config for', tokenSymbol, ':', tokenConfig);
+        
         if (!tokenConfig) {
           console.error(`Token config not found for ${tokenSymbol} on chain ${chainId}`);
+          console.log('useTradingBalance: Available tokens on chain', chainId, ':', Object.keys(chainConfig.tokens));
           return;
         }
 
-        const tokenAddress = tokenConfig.address;
-        const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
-        
-        if (!tradeContractAddress) {
-          console.error(`Trade contract address not found for chain ${chainId}`);
-          return;
-        }
-
-        console.log('useTradingBalance: Token address:', tokenAddress);
-        console.log('useTradingBalance: Trade contract address:', tradeContractAddress);
-
-        // Read deposited balance (getBalance)
-        const depositedResult = await publicClient.readContract({
-          address: tradeContractAddress as `0x${string}`,
-          abi: MIDRIB_V2_ABI,
-          functionName: 'getBalance',
-          args: [address as `0x${string}`, tokenAddress as `0x${string}`],
-        });
-
-        // Read locked balance (getLockedBalance)
-        const lockedResult = await publicClient.readContract({
-          address: tradeContractAddress as `0x${string}`,
-          abi: MIDRIB_V2_ABI,
-          functionName: 'getLockedBalance',
-          args: [address as `0x${string}`, tokenAddress as `0x${string}`],
-        });
-
-        console.log('useTradingBalance: Raw deposited result:', depositedResult);
-        console.log('useTradingBalance: Raw locked result:', lockedResult);
-
-        // Convert balances to human readable format using token decimals
-        const decimals = tokenConfig.decimals;
-        const depositedDecimal = Number(depositedResult);
-        const lockedDecimal = Number(lockedResult);
-        
-        const formattedDeposited = (depositedDecimal / Math.pow(10, decimals)).toFixed(6);
-        const formattedLocked = (lockedDecimal / Math.pow(10, decimals)).toFixed(6);
-        const formattedAvailable = formattedDeposited; // Use just the deposited balance
-
-        console.log(`useTradingBalance: ${tokenSymbol} deposited:`, formattedDeposited);
-        console.log(`useTradingBalance: ${tokenSymbol} locked:`, formattedLocked);
-        console.log(`useTradingBalance: ${tokenSymbol} available:`, formattedAvailable);
-
-        setDepositedBalance(formattedDeposited);
-        setLockedBalance(formattedLocked);
-        setAvailableBalance(formattedAvailable);
-
-      } catch (err: any) {
-        console.error('useTradingBalance: Error fetching trading balances:', err);
-        setError(err.message || 'Failed to fetch trading balances');
-        setDepositedBalance("0");
-        setLockedBalance("0");
-        setAvailableBalance("0");
-      } finally {
-        setLoading(false);
+      const tokenAddress = tokenConfig.address;
+      const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
+      
+      if (!tradeContractAddress) {
+        console.error(`Trade contract address not found for chain ${chainId}`);
+        return;
       }
-    };
 
+      console.log('useTradingBalance: Token address:', tokenAddress);
+      console.log('useTradingBalance: Trade contract address:', tradeContractAddress);
+      console.log('useTradingBalance: User address:', address);
+      console.log('useTradingBalance: Chain ID:', chainId);
+      console.log('useTradingBalance: Token symbol:', tokenSymbol);
+
+      // Read deposited balance (getBalance)
+      console.log('useTradingBalance: Calling getBalance with args:', [address, tokenAddress]);
+      const depositedResult = await publicClient.readContract({
+        address: tradeContractAddress as `0x${string}`,
+        abi: MIDRIB_V2_ABI,
+        functionName: 'getBalance',
+        args: [address as `0x${string}`, tokenAddress as `0x${string}`],
+      });
+
+      // Read locked balance (getLockedBalance)
+      console.log('useTradingBalance: Calling getLockedBalance with args:', [address, tokenAddress]);
+      const lockedResult = await publicClient.readContract({
+        address: tradeContractAddress as `0x${string}`,
+        abi: MIDRIB_V2_ABI,
+        functionName: 'getLockedBalance',
+        args: [address as `0x${string}`, tokenAddress as `0x${string}`],
+      });
+
+      console.log('useTradingBalance: Raw deposited result:', depositedResult);
+      console.log('useTradingBalance: Raw locked result:', lockedResult);
+      console.log('useTradingBalance: Deposited result type:', typeof depositedResult);
+      console.log('useTradingBalance: Locked result type:', typeof lockedResult);
+
+      // Convert balances to human readable format using token decimals
+      const decimals = tokenConfig.decimals;
+      const depositedDecimal = Number(depositedResult);
+      const lockedDecimal = Number(lockedResult);
+      
+      const formattedDeposited = (depositedDecimal / Math.pow(10, decimals)).toFixed(6);
+      const formattedLocked = (lockedDecimal / Math.pow(10, decimals)).toFixed(6);
+      const formattedAvailable = formattedDeposited; // Use just the deposited balance
+
+      console.log(`useTradingBalance: ${tokenSymbol} deposited:`, formattedDeposited);
+      console.log(`useTradingBalance: ${tokenSymbol} locked:`, formattedLocked);
+      console.log(`useTradingBalance: ${tokenSymbol} available:`, formattedAvailable);
+
+      setDepositedBalance(formattedDeposited);
+      setLockedBalance(formattedLocked);
+      setAvailableBalance(formattedAvailable);
+
+    } catch (err: any) {
+      console.error('useTradingBalance: Error fetching trading balances:', err);
+      setError(err.message || 'Failed to fetch trading balances');
+      setDepositedBalance("0");
+      setLockedBalance("0");
+      setAvailableBalance("0");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTradingBalances();
   }, [isConnected, address, tokenSymbol, chainId, publicClient]);
 
@@ -215,6 +228,7 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
     lockedBalance, 
     availableBalance, 
     loading, 
-    error 
+    error,
+    refresh: fetchTradingBalances
   };
 }; 

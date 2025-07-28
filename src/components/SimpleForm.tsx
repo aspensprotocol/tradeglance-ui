@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TradingPair } from "@/hooks/useTradingPairs";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount, useChainId, usePublicClient, useSwitchChain } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
 import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
@@ -34,9 +34,11 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
   const { currentChainId } = useChainMonitor();
   const { toast } = useToast();
   const { tradingPairs } = useTradingPairs();
+  const publicClient = usePublicClient();
+  const { switchChain } = useSwitchChain();
 
   // Get trading balances for the current trading pair
-  const { availableBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
+  const { availableBalance, lockedBalance, loading: balanceLoading, refresh: refreshBalance } = useTradingBalance(
     tradingPair?.baseSymbol || "ATOM", 
     currentChainId || 0
   );
@@ -51,6 +53,14 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
     receiverNetwork,
     availableChains: configUtils.getAllChains().map(c => ({ chainId: c.chainId, network: c.network }))
   });
+
+  // Force refresh balance to see what's happening
+  useEffect(() => {
+    if (isConnected && address && currentChainId && tradingPair?.baseSymbol) {
+      console.log('SimpleForm: Force refreshing balance for debugging...');
+      // This will trigger the useTradingBalance hook to run
+    }
+  }, [isConnected, address, currentChainId, tradingPair?.baseSymbol]);
 
   const handleMaxClick = () => {
     const availableBalanceNum = parseFloat(availableBalance);
@@ -86,6 +96,64 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
     const calculatedAmount = (availableBalanceNum * percentage) / 100;
     setSenderAmount(calculatedAmount.toFixed(6));
     setPercentageValue(percentage);
+  };
+
+  const handleSenderNetworkChange = async (newNetwork: string) => {
+    try {
+      // Get the chain config for the new network
+      const newChainConfig = configUtils.getChainByNetwork(newNetwork);
+      if (!newChainConfig) {
+        toast({
+          title: "Network not found",
+          description: "Selected network is not available",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Switch MetaMask to the new network
+      const chainId = typeof newChainConfig.chainId === 'string' ? parseInt(newChainConfig.chainId, 10) : newChainConfig.chainId;
+      await switchChain({ chainId });
+
+      // Update sender network
+      setSenderNetwork(newNetwork);
+
+      // Auto-update receiver network to a different network
+      const allChains = configUtils.getAllChains();
+      const otherChains = allChains.filter(chain => chain.network !== newNetwork);
+      
+      if (otherChains.length > 0) {
+        setReceiverNetwork(otherChains[0].network);
+      }
+
+      console.log('Network switched:', {
+        newSenderNetwork: newNetwork,
+        newReceiverNetwork: otherChains.length > 0 ? otherChains[0].network : 'none',
+        chainId
+      });
+
+    } catch (error: any) {
+      console.error('Error switching network:', error);
+      toast({
+        title: "Network switch failed",
+        description: error.message || "Failed to switch network in MetaMask",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReceiverNetworkChange = (newNetwork: string) => {
+    // Prevent setting receiver network to the same as sender network
+    if (newNetwork === senderNetwork) {
+      toast({
+        title: "Invalid network selection",
+        description: "Receiver network cannot be the same as sender network",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setReceiverNetwork(newNetwork);
   };
 
   const handleSwapTokens = () => {
@@ -178,15 +246,22 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
     }
 
     // Check if user has enough available balance
-    const availableBalanceNum = parseFloat(availableBalance);
+    // Convert available balance to pair decimals for comparison
+    const pairDecimals = tradingPair.pairDecimals;
+    const availableBalanceInPairDecimals = parseFloat(availableBalance) * Math.pow(10, pairDecimals);
+    const quantityInPairDecimals = quantity * Math.pow(10, pairDecimals);
+    
     console.log('Balance validation:', {
       quantity,
       availableBalance,
-      availableBalanceNum,
-      isEnough: quantity <= availableBalanceNum
+      availableBalanceNum: parseFloat(availableBalance),
+      availableBalanceInPairDecimals,
+      quantityInPairDecimals,
+      pairDecimals,
+      isEnough: quantityInPairDecimals <= availableBalanceInPairDecimals
     });
     
-    if (isNaN(availableBalanceNum) || quantity > availableBalanceNum) {
+    if (isNaN(availableBalanceInPairDecimals) || quantityInPairDecimals > availableBalanceInPairDecimals) {
       toast({
         title: "Insufficient balance",
         description: `You only have ${availableBalance} ${tradingPair.baseSymbol} available. Please deposit more funds or reduce your simple amount.`,
@@ -213,6 +288,60 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
         throw new Error('Trading pair not found');
       }
 
+      // MANUAL BALANCE CHECK - Let's see what the smart contract actually returns
+      console.log('=== MANUAL BALANCE CHECK BEFORE ORDER ===');
+      
+      // Get chain and token config
+      const chainConfig = configUtils.getChainByChainId(currentChainId);
+      console.log('Manual check - Chain config:', chainConfig);
+      
+      if (chainConfig) {
+        const tokenConfig = chainConfig.tokens[tradingPair.baseSymbol];
+        console.log('Manual check - Token config:', tokenConfig);
+        
+        if (tokenConfig) {
+          const tokenAddress = tokenConfig.address;
+          const tradeContractAddress = chainConfig.tradeContractAddress;
+          
+          console.log('Manual check - Token address:', tokenAddress);
+          console.log('Manual check - Trade contract address:', tradeContractAddress);
+          console.log('Manual check - User address:', address);
+          
+          try {
+            // Read deposited balance directly
+            const depositedResult = await publicClient.readContract({
+              address: tradeContractAddress as `0x${string}`,
+              abi: [{ 
+                "inputs": [
+                  {"name": "_depositorAddress", "type": "address"},
+                  {"name": "_tokenContract", "type": "address"}
+                ],
+                "name": "getBalance",
+                "outputs": [{"name": "_balance", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+              }],
+              functionName: 'getBalance',
+              args: [address as `0x${string}`, tokenAddress as `0x${string}`],
+            });
+            
+            console.log('Manual check - Raw deposited result:', depositedResult);
+            console.log('Manual check - Deposited result type:', typeof depositedResult);
+            
+            const decimals = tokenConfig.decimals;
+            const depositedDecimal = Number(depositedResult);
+            const formattedDeposited = (depositedDecimal / Math.pow(10, decimals)).toFixed(6);
+            
+            console.log('Manual check - Formatted deposited balance:', formattedDeposited);
+            console.log('Manual check - UI shows available balance:', availableBalance);
+            console.log('Manual check - Are they the same?', formattedDeposited === availableBalance);
+          } catch (err) {
+            console.error('Manual check - Error reading balance:', err);
+          }
+        }
+      }
+      console.log('=== END MANUAL BALANCE CHECK ===');
+
       // Get the actual market_id from the trading pair configuration
       const marketId = tradingPair.marketId;
       if (!marketId) {
@@ -226,11 +355,25 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
       // Use pair decimals for both signing and transaction (they should match)
       const orderQuantity = (quantity * Math.pow(10, pairDecimals)).toString();
-      const orderPrice = (parseFloat("0") * Math.pow(10, pairDecimals)).toString(); // Simple orders use 0 price
+      const orderPrice = (parseFloat("1") * Math.pow(10, pairDecimals)).toString(); // Simple orders use 1 price
+
+      // Determine order side based on current chain
+      // Base chain (anvil-1) = SELL, Quote chain (anvil-2) = BUY
+      const currentChain = configUtils.getChainByChainId(currentChainId);
+      const isBaseChain = currentChain?.baseOrQuote === "BASE_OR_QUOTE_BASE";
+      const orderSide = isBaseChain ? "SIDE_ASK" : "SIDE_BID"; // SELL for base chain, BUY for quote chain
+      
+      console.log('Order side determination:', {
+        currentChainId,
+        currentChainNetwork: currentChain?.network,
+        baseOrQuote: currentChain?.baseOrQuote,
+        isBaseChain,
+        orderSide
+      });
 
       // Create order data for signing (using pair decimals to match what we send to server)
       const orderData = {
-        side: "SIDE_BID" as "SIDE_BID" | "SIDE_ASK", // Simple orders are always buy side
+        side: orderSide as "SIDE_BID" | "SIDE_ASK",
         quantity: orderQuantity,
         price: orderPrice,
         marketId: tradingPair.marketId, // Use the actual marketId from the trading pair
@@ -240,13 +383,14 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
         matchingOrderIds: [], // Add missing field
       };
 
-              console.log('Signing simple order with data:', {
+      console.log('Signing simple order with data:', {
         ...orderData,
         chainId: currentChainId,
         baseTokenDecimals,
         quoteTokenDecimals,
         pairDecimals,
-        tradingPair
+        tradingPair,
+        orderSide: orderData.side
       });
 
       console.log('Decimal conversions:', {
@@ -286,6 +430,9 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
                   title: "Simple order submitted successfully",
           description: `Simple order for ${quantity} ${tradingPair.baseSymbol} from ${senderNetwork} to ${receiverNetwork} has been submitted`,
       });
+
+      // Refresh balance to show updated amounts
+      refreshBalance();
 
       // Reset form
       setSenderAmount("");
@@ -354,7 +501,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
               <div className="flex flex-col gap-2 flex-1">
                 <span className="text-xs text-gray-400">Network</span>
                 <div className="flex items-center gap-2">
-                  <Select value={senderNetwork} onValueChange={setSenderNetwork}>
+                  <Select value={senderNetwork} onValueChange={handleSenderNetworkChange}>
                     <SelectTrigger className="bg-transparent border-none text-white flex-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -472,7 +619,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
               <div className="flex flex-col gap-2 flex-1">
                 <span className="text-xs text-gray-400">Network</span>
                 <div className="flex items-center gap-2">
-                  <Select value={receiverNetwork} onValueChange={setReceiverNetwork}>
+                  <Select value={receiverNetwork} onValueChange={handleReceiverNetworkChange}>
                     <SelectTrigger className="bg-transparent border-none text-white flex-1">
                       <SelectValue />
                     </SelectTrigger>
