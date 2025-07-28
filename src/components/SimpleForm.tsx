@@ -656,18 +656,17 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
           {/* Fee Section */}
           <div className="bg-gray-800 rounded-lg p-1">
-            <Select>
-              <SelectTrigger className="bg-transparent border-none text-white">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
-                  <span>Fee: 0 ETH</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-gray-700 border-gray-600">
-                <SelectItem value="standard" className="text-white hover:bg-gray-600">Standard: 0 ETH</SelectItem>
-                <SelectItem value="fast" className="text-white hover:bg-gray-600">Fast: 0.001 ETH</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 px-3 py-2">
+              <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
+              <span className="text-white">
+                Fee: {(() => {
+                  const amountValue = parseFloat(senderAmount.replace(',', '.'));
+                  if (isNaN(amountValue) || !amountValue) return '0.00';
+                  const fee = amountValue * 0.01; // 1% fee
+                  return fee.toFixed(2);
+                })()} {tradingPair?.quoteSymbol || "TTK"}
+              </span>
+            </div>
           </div>
 
                       {/* Simple Button */}
