@@ -32,14 +32,14 @@ const Home = () => {
               <CardTitle className="text-center">Trade Glance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Link to="/trade" className="block">
+              <Link to="/pro" className="block">
                 <Button className="w-full" variant="outline">
-                  Trade
+                  Pro
                 </Button>
               </Link>
-              <Link to="/bridge" className="block">
+              <Link to="/simple" className="block">
                 <Button className="w-full" variant="outline">
-                  Bridge
+                  Simple
                 </Button>
               </Link>
               <Link to="/docs" className="block">

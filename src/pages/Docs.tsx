@@ -20,11 +20,11 @@ const Docs = () => {
       <div className="container h-full flex flex-col">
         <div className="p-4 flex justify-between items-center">
           <div className="flex gap-6">
-            <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Trade
+            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Pro
             </Link>
-            <Link to="/bridge" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Bridge
+            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Simple
             </Link>
             <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Docs

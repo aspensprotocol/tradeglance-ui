@@ -5,9 +5,9 @@ import { WalletButton } from "@/components/WalletButton";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useConfig } from "@/hooks/useConfig";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
-import BridgeForm from "@/components/BridgeForm";
+import SimpleForm from "@/components/SimpleForm";
 
-const Bridge = () => {
+const Simple = () => {
   // Get dynamic trading pairs from config
   const { tradingPairs, loading: pairsLoading, getTradingPairById } = useTradingPairs();
   
@@ -39,7 +39,7 @@ const Bridge = () => {
   useEffect(() => {
     if (currentChainId && config) {
       const network = getChainNetwork(currentChainId);
-      console.log('Bridge Network analysis:', {
+      console.log('Simple Network analysis:', {
         chainId: currentChainId,
         chainNetwork: network,
         isSupported
@@ -52,11 +52,11 @@ const Bridge = () => {
       <div className="container h-full flex flex-col">
         <div className="p-4 flex justify-between items-center">
           <div className="flex gap-6">
-            <Link to="/trade" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Trade
+            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Pro
             </Link>
-            <Link to="/bridge" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Bridge
+            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Simple
             </Link>
             <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
               Docs
@@ -88,7 +88,7 @@ const Bridge = () => {
               </div>
             </div>
           ) : (
-            <BridgeForm selectedPair={selectedPair} tradingPair={currentTradingPair} />
+            <SimpleForm selectedPair={selectedPair} tradingPair={currentTradingPair} />
           )}
         </div>
       </div>
@@ -117,4 +117,4 @@ const Bridge = () => {
   );
 };
 
-export default Bridge;
+export default Simple;

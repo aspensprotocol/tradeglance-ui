@@ -14,12 +14,12 @@ import { configUtils } from "@/lib/config-utils";
 import { useTradingBalance } from "@/hooks/useTokenBalance";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
 
-interface BridgeFormProps {
+interface SimpleFormProps {
   selectedPair?: string;
   tradingPair?: TradingPair;
 }
 
-const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
+const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
   const [senderToken, setSenderToken] = useState("");
   const [senderNetwork, setSenderNetwork] = useState("");
   const [senderAmount, setSenderAmount] = useState("");
@@ -42,7 +42,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
   );
 
   // Debug logging
-  console.log('BridgeForm balances:', {
+  console.log('SimpleForm balances:', {
     availableBalance,
     lockedBalance,
     tradingPair: tradingPair?.baseSymbol,
@@ -57,7 +57,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     if (isNaN(availableBalanceNum) || availableBalanceNum <= 0) {
       toast({
         title: "No available balance",
-        description: "Please deposit funds to bridge",
+        description: "Please deposit funds to simple",
         variant: "destructive",
       });
       return;
@@ -77,7 +77,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     if (isNaN(availableBalanceNum) || availableBalanceNum <= 0) {
       toast({
         title: "No available balance",
-        description: "Please deposit funds to bridge",
+        description: "Please deposit funds to simple",
         variant: "destructive",
       });
       return;
@@ -126,7 +126,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
           setReceiverNetwork(currentChain.network);
         }
         
-        console.log('BridgeForm: Auto-detected networks:', {
+        console.log('SimpleForm: Auto-detected networks:', {
           currentChainId,
           currentNetwork: currentChain.network,
           senderNetwork: currentChain.network,
@@ -137,7 +137,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     }
   }, [currentChainId]);
 
-  // Update receiver amount when sender amount changes (simulate bridge conversion)
+      // Update receiver amount when sender amount changes (simulate simple conversion)
   useEffect(() => {
     if (senderAmount && !isNaN(parseFloat(senderAmount))) {
       const amount = parseFloat(senderAmount);
@@ -148,11 +148,11 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     }
   }, [senderAmount]);
 
-  const handleSubmitBridge = async () => {
+  const handleSubmitSimple = async () => {
     if (!isConnected || !address || !currentChainId) {
       toast({
         title: "Wallet not connected",
-        description: "Please connect your wallet to bridge",
+        description: "Please connect your wallet to simple",
         variant: "destructive",
       });
       return;
@@ -189,7 +189,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     if (isNaN(availableBalanceNum) || quantity > availableBalanceNum) {
       toast({
         title: "Insufficient balance",
-        description: `You only have ${availableBalance} ${tradingPair.baseSymbol} available. Please deposit more funds or reduce your bridge amount.`,
+        description: `You only have ${availableBalance} ${tradingPair.baseSymbol} available. Please deposit more funds or reduce your simple amount.`,
         variant: "destructive",
       });
       return;
@@ -198,7 +198,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     // Validate that sender and receiver networks are different
     if (senderNetwork === receiverNetwork) {
       toast({
-        title: "Invalid bridge configuration",
+        title: "Invalid simple configuration",
         description: "Sender and receiver networks must be different for bridging.",
         variant: "destructive",
       });
@@ -226,11 +226,11 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
 
       // Use pair decimals for both signing and transaction (they should match)
       const orderQuantity = (quantity * Math.pow(10, pairDecimals)).toString();
-      const orderPrice = (parseFloat("0") * Math.pow(10, pairDecimals)).toString(); // Bridge orders use 0 price
+      const orderPrice = (parseFloat("0") * Math.pow(10, pairDecimals)).toString(); // Simple orders use 0 price
 
       // Create order data for signing (using pair decimals to match what we send to server)
       const orderData = {
-        side: "SIDE_BID" as "SIDE_BID" | "SIDE_ASK", // Bridge orders are always buy side
+        side: "SIDE_BID" as "SIDE_BID" | "SIDE_ASK", // Simple orders are always buy side
         quantity: orderQuantity,
         price: orderPrice,
         marketId: tradingPair.marketId, // Use the actual marketId from the trading pair
@@ -240,7 +240,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
         matchingOrderIds: [], // Add missing field
       };
 
-      console.log('Signing bridge order with data:', {
+              console.log('Signing simple order with data:', {
         ...orderData,
         chainId: currentChainId,
         baseTokenDecimals,
@@ -275,16 +275,16 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
         matchingOrderIds: [],
       };
 
-      console.log('Sending bridge order to gRPC:', orderForGrpc);
+              console.log('Sending simple order to gRPC:', orderForGrpc);
 
       // Send the order
       const response = await arborterService.sendOrder(orderForGrpc, signatureHash);
 
-      console.log('Bridge order sent successfully:', response);
+              console.log('Simple order sent successfully:', response);
 
       toast({
-        title: "Bridge order submitted successfully",
-        description: `Bridge order for ${quantity} ${tradingPair.baseSymbol} from ${senderNetwork} to ${receiverNetwork} has been submitted`,
+                  title: "Simple order submitted successfully",
+          description: `Simple order for ${quantity} ${tradingPair.baseSymbol} from ${senderNetwork} to ${receiverNetwork} has been submitted`,
       });
 
       // Reset form
@@ -293,11 +293,11 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
       setPercentageValue(null);
 
     } catch (error: any) {
-      console.error('Error submitting bridge order:', error);
+              console.error('Error submitting simple order:', error);
       
       toast({
-        title: "Bridge order submission failed",
-        description: error.message || "Failed to submit bridge order. Please try again.",
+                  title: "Simple order submission failed",
+          description: error.message || "Failed to submit simple order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -309,7 +309,7 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-gray-900 text-white border-gray-700 rounded-lg shadow-lg">
         <div className="flex flex-row items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-medium text-white">Bridge</h2>
+          <h2 className="text-xl font-medium text-white">Simple</h2>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-blue-400 hover:bg-gray-800">
               <Settings className="h-4 w-4" />
@@ -523,21 +523,21 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
             </Select>
           </div>
 
-          {/* Bridge Button */}
+                      {/* Simple Button */}
           <Button 
-            onClick={handleSubmitBridge}
+                            onClick={handleSubmitSimple}
             disabled={isSubmitting || !isConnected || !currentChainId || !senderAmount}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Processing Bridge...
+                                    Processing Simple...
               </div>
             ) : !isConnected ? (
               "Connect Wallet"
             ) : (
-              "Bridge Tokens"
+                                "Simple Tokens"
             )}
           </Button>
         </div>
@@ -546,4 +546,4 @@ const BridgeForm = ({ selectedPair, tradingPair }: BridgeFormProps) => {
   );
 };
 
-export default BridgeForm; 
+export default SimpleForm; 

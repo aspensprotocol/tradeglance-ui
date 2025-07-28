@@ -1,40 +1,46 @@
 // Define the actual config structure based on the protobuf definition
+interface Token {
+  name: string;
+  symbol: string;
+  address: string;
+  decimals: number;
+  tradePrecision: number;
+}
+
+interface TradeContract {
+  address: string;
+}
+
+interface Chain {
+  architecture: string;
+  canonicalName: string;
+  network: string;
+  chainId: number;
+  contractOwnerAddress: string;
+  explorerUrl?: string;
+  rpcUrl: string;
+  serviceAddress: string;
+  tradeContract: TradeContract;
+  tokens: Record<string, Token>;
+  baseOrQuote: string;
+}
+
+interface Market {
+  slug: string;
+  name: string;
+  baseChainNetwork: string;
+  quoteChainNetwork: string;
+  baseChainTokenSymbol: string;
+  quoteChainTokenSymbol: string;
+  baseChainTokenDecimals: number;
+  quoteChainTokenDecimals: number;
+  pairDecimals: number;
+  marketId: string;
+}
+
 interface ConfigData {
-  chains?: Array<{
-    architecture: string;
-    canonicalName: string;
-    network: string;
-    chainId: number;
-    contractOwnerAddress: string;
-    explorerUrl?: string;
-    rpcUrl: string;
-    serviceAddress: string;
-    tradeContract: {
-      contractId?: string;
-      address: string;
-    };
-    tokens: Record<string, {
-      name: string;
-      symbol: string;
-      address: string;
-      tokenId?: string;
-      decimals: number;
-      tradePrecision: number;
-    }>;
-    baseOrQuote: string;
-  }>;
-  markets?: Array<{
-    slug: string;
-    name: string;
-    baseChainNetwork: string;
-    quoteChainNetwork: string;
-    baseChainTokenSymbol: string;
-    quoteChainTokenSymbol: string;
-    baseChainTokenDecimals: number;
-    quoteChainTokenDecimals: number;
-    pairDecimals: number;
-    marketId?: string;
-  }>;
+  chains: Chain[];
+  markets: Market[];
 }
 
 export interface ChainConfig {
@@ -77,10 +83,10 @@ export class ConfigUtils {
       chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
       network: chain.network,
       rpcUrl: chain.rpcUrl,
-      tradeContractAddress: chain.tradeContract?.address || '',
+      tradeContractAddress: chain.tradeContract.address,
       serviceAddress: chain.serviceAddress,
       explorerUrl: chain.explorerUrl,
-      tokens: chain.tokens || {},
+      tokens: chain.tokens,
     };
   }
 
@@ -99,10 +105,10 @@ export class ConfigUtils {
       chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
       network: chain.network,
       rpcUrl: chain.rpcUrl,
-      tradeContractAddress: chain.tradeContract?.address || '',
+      tradeContractAddress: chain.tradeContract.address,
       serviceAddress: chain.serviceAddress,
       explorerUrl: chain.explorerUrl,
-      tokens: chain.tokens || {},
+      tokens: chain.tokens,
     };
   }
 
@@ -115,10 +121,10 @@ export class ConfigUtils {
       chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
       network: chain.network,
       rpcUrl: chain.rpcUrl,
-      tradeContractAddress: chain.tradeContract?.address || '',
+      tradeContractAddress: chain.tradeContract.address,
       serviceAddress: chain.serviceAddress,
       explorerUrl: chain.explorerUrl,
-      tokens: chain.tokens || {},
+      tokens: chain.tokens,
     }));
   }
 

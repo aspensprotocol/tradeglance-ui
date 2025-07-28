@@ -11,7 +11,52 @@ const transport = createGrpcWebTransport({
   useBinaryFormat: true, // Use binary format for gRPC-Web
 });
 
+// TypeScript types matching the exact gRPC response structure
+interface Token {
+  name: string;
+  symbol: string;
+  address: string;
+  decimals: number;
+  tradePrecision: number;
+}
 
+interface TradeContract {
+  address: string;
+}
+
+interface Chain {
+  architecture: string;
+  canonicalName: string;
+  network: string;
+  chainId: number;
+  contractOwnerAddress: string;
+  explorerUrl?: string;
+  rpcUrl: string;
+  serviceAddress: string;
+  tradeContract: TradeContract;
+  tokens: Record<string, Token>;
+  baseOrQuote: string;
+}
+
+interface Market {
+  slug: string;
+  name: string;
+  baseChainNetwork: string;
+  quoteChainNetwork: string;
+  baseChainTokenSymbol: string;
+  quoteChainTokenSymbol: string;
+  baseChainTokenDecimals: number;
+  quoteChainTokenDecimals: number;
+  pairDecimals: number;
+  marketId: string;
+}
+
+interface ConfigResponse {
+  config: {
+    chains: Chain[];
+    markets: Market[];
+  };
+}
 
 // Simple gRPC-Web client using Connect-Web transport
 class ConnectGrpcWebClient {
@@ -281,7 +326,7 @@ class ConnectGrpcWebClient {
   }
 
   // Parse GetConfig response using protobuf classes
-  parseGetConfigResponse(messageBytes: Uint8Array): any {
+  parseGetConfigResponse(messageBytes: Uint8Array): ConfigResponse {
     try {
       console.log('Parsing protobuf config response, bytes length:', messageBytes.length);
       
@@ -289,31 +334,23 @@ class ConnectGrpcWebClient {
       const config = this.parseProtobufConfigWithLibrary(messageBytes);
       
       console.log('Successfully parsed protobuf config:', config);
-      return { success: true, config: config };
+      return config;
       
     } catch (error) {
       console.error('Failed to parse protobuf response:', error);
-      return { 
-        success: false, 
-        error: 'Failed to parse protobuf config response',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      };
+      throw error;
     }
   }
 
-  // Parse protobuf binary data using protobufjs library
-  parseProtobufConfigWithLibrary(bytes: Uint8Array): any {
+  // Parse protobuf binary data using manual protobuf parsing
+  parseProtobufConfigWithLibrary(bytes: Uint8Array): ConfigResponse {
     try {
       console.log('parseProtobufConfigWithLibrary: Starting to parse', bytes.length, 'bytes');
       
-      // For now, use the fallback string extraction method
-      // TODO: Implement proper protobuf parsing when we have time
-      const dataString = new TextDecoder().decode(bytes);
-      console.log('parseProtobufConfigWithLibrary: Data as string (first 200 chars):', dataString.substring(0, 200));
+      // Use manual protobuf parsing to extract real data from gRPC response
+      const config = this.parseProtobufManually(bytes);
       
-      const config = this.extractConfigFromBinaryString(dataString);
-      
-      console.log('parseProtobufConfigWithLibrary: Extracted config:', config);
+      console.log('parseProtobufConfigWithLibrary: Parsed config:', config);
       return config;
       
     } catch (error) {
@@ -328,85 +365,25 @@ class ConnectGrpcWebClient {
     throw new Error('Not implemented');
   }
 
-  // Extract config from binary string using simple pattern matching
-  extractConfigFromBinaryString(dataString: string): any {
-    const config: any = { chains: [], markets: [] };
+  // Extract config from binary string using manual protobuf parsing
+  extractConfigFromBinaryString(dataString: string): ConfigResponse {
+    console.log('extractConfigFromBinaryString: Raw data string length:', dataString.length);
+    console.log('extractConfigFromBinaryString: Raw data string (first 500 chars):', dataString.substring(0, 500));
     
-    // Look for chain information
-    const chainPatterns = [
-      { name: 'anvil-1', chainId: 114 },
-      { name: 'anvil-2', chainId: 11155111 }
-    ];
-    
-    chainPatterns.forEach(pattern => {
-      if (dataString.includes(pattern.name)) {
-        const chain: any = {
-          architecture: 'evm',
-          canonicalName: pattern.name === 'anvil-1' ? 'Anvil 1 - 8545' : 'Anvil 2 - 8546',
-          network: pattern.name,
-          chainId: pattern.chainId,
-          contractOwnerAddress: '0x9bDBB2d6fb90A54F90e8BFEE32157A081B0a907F',
-          rpcUrl: pattern.name === 'anvil-1' 
-            ? 'https://coston2-api.flare.network/ext/C/rpc'
-            : 'https://ethereum-sepolia-rpc.publicnode.com',
-          serviceAddress: pattern.name === 'anvil-1'
-            ? '0x6473640ED5E90360C3722A4051406D3F6Dc3546a'
-            : '0x29C02683361dfFA07249100f1a1939466d4D70cd',
-          tradeContract: {
-            address: pattern.name === 'anvil-1'
-              ? '0xC97f0Fc582654120A1c6E1ec297Af35f79Be9BFc'
-              : '0x21C38d715FC16581E2AC84aA33Fc4F99b3526b30'
-          },
-          tokens: {
-            'TTK': {
-              name: 'TTK Token',
-              symbol: 'TTK',
-              address: pattern.name === 'anvil-1'
-                ? '0x46bd5d16603ac1E29fA548dDcF39344945Dbc883'
-                : '0x6A90C002CF7cF11bd3FB4AC91aF3e806509f203c',
-              decimals: pattern.name === 'anvil-1' ? 8 : 18,
-              tradePrecision: pattern.name === 'anvil-1' ? 8 : 18
-            }
-          },
-          baseOrQuote: pattern.name === 'anvil-1' ? 'BASE_OR_QUOTE_BASE' : 'BASE_OR_QUOTE_QUOTE'
-        };
-        
-        // Add explorer URL if found
-        if (pattern.name === 'anvil-1') {
-          chain.explorerUrl = 'https://sepolia.basescan.org';
-        } else {
-          chain.explorerUrl = 'https://sepolia-optimistic.etherscan.io';
-        }
-        
-        config.chains.push(chain);
-      }
-    });
-    
-    // Look for market information
-    if (dataString.includes('anvil-1-TTK--anvil-2-TTK') || 
-        dataString.includes('anvil-1 TTK - anvil-2 TTK')) {
-      config.markets.push({
-        slug: 'anvil-1-TTK--anvil-2-TTK',
-        name: 'anvil-1 TTK - anvil-2 TTK',
-        baseChainNetwork: 'anvil-1',
-        quoteChainNetwork: 'anvil-2',
-        baseChainTokenSymbol: 'TTK',
-        quoteChainTokenSymbol: 'TTK',
-        baseChainTokenDecimals: 8,
-        quoteChainTokenDecimals: 18,
-        pairDecimals: 18,
-        marketId: '114::0x46bd5d16603ac1E29fA548dDcF39344945Dbc883::11155111::0x6A90C002CF7cF11bd3FB4AC91aF3e806509f203c'
-      });
+    // Convert string back to Uint8Array for proper protobuf parsing
+    const bytes = new Uint8Array(dataString.length);
+    for (let i = 0; i < dataString.length; i++) {
+      bytes[i] = dataString.charCodeAt(i);
     }
     
-    console.log('extractConfigFromBinaryString: Extracted config:', config);
-    return config;
+    // Use manual protobuf parsing to extract real data from gRPC response
+    return this.parseProtobufManually(bytes);
   }
 
   // Manual protobuf parsing with better field detection
-  parseProtobufManually(bytes: Uint8Array): any {
+  parseProtobufManually(bytes: Uint8Array): ConfigResponse {
     let offset = 0;
-    const config: any = { chains: [], markets: [] };
+    const config: ConfigResponse = { config: { chains: [], markets: [] } };
 
     console.log('parseProtobufManually: Starting to parse', bytes.length, 'bytes');
 
@@ -415,14 +392,12 @@ class ConnectGrpcWebClient {
       console.log('parseProtobufManually: Field', fieldNumber, 'wireType', wireType, 'value length', value instanceof Uint8Array ? value.length : 'not array');
       offset = newOffset;
 
-      if (fieldNumber === 1) { // chains field
-        console.log('parseProtobufManually: Parsing chain message, value length:', value.length);
-        const chain = this.parseChainMessage(value);
-        if (chain) config.chains.push(chain);
-      } else if (fieldNumber === 2) { // markets field
-        console.log('parseProtobufManually: Parsing market message, value length:', value.length);
-        const market = this.parseMarketMessage(value);
-        if (market) config.markets.push(market);
+      if (fieldNumber === 1) { // config field
+        console.log('parseProtobufManually: Parsing config message, value length:', value.length);
+        const configData = this.parseConfigMessage(value);
+        if (configData) {
+          config.config = configData;
+        }
       }
     }
 
@@ -466,8 +441,35 @@ class ConnectGrpcWebClient {
     return { fieldNumber, wireType, value, newOffset: offset };
   }
 
+  // Parse Config message (contains chains and markets)
+  parseConfigMessage(bytes: Uint8Array): { chains: Chain[]; markets: Market[] } {
+    let offset = 0;
+    const configData: { chains: Chain[]; markets: Market[] } = { chains: [], markets: [] };
+
+    console.log('parseConfigMessage: Starting to parse config, bytes length:', bytes.length);
+
+    while (offset < bytes.length) {
+      const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+      console.log('parseConfigMessage: Field', fieldNumber, 'wireType', wireType, 'value length', value instanceof Uint8Array ? value.length : 'not array');
+      offset = newOffset;
+
+      if (fieldNumber === 1) { // chains field
+        console.log('parseConfigMessage: Parsing chain message, value length:', value.length);
+        const chain = this.parseChainMessage(value);
+        if (chain) configData.chains.push(chain);
+      } else if (fieldNumber === 2) { // markets field
+        console.log('parseConfigMessage: Parsing market message, value length:', value.length);
+        const market = this.parseMarketMessage(value);
+        if (market) configData.markets.push(market);
+      }
+    }
+
+    console.log('parseConfigMessage: Final config data:', configData);
+    return configData;
+  }
+
   // Parse Chain message
-  parseChainMessage(bytes: Uint8Array): any {
+  parseChainMessage(bytes: Uint8Array): Chain | null {
     let offset = 0;
     const chain: any = { tokens: {} };
 
@@ -534,7 +536,7 @@ class ConnectGrpcWebClient {
   }
 
   // Parse Market message
-  parseMarketMessage(bytes: Uint8Array): any {
+  parseMarketMessage(bytes: Uint8Array): Market | null {
     let offset = 0;
     const market: any = {};
 
@@ -580,7 +582,7 @@ class ConnectGrpcWebClient {
   }
 
   // Parse TradeContract message
-  parseTradeContractMessage(bytes: Uint8Array): any {
+  parseTradeContractMessage(bytes: Uint8Array): TradeContract | null {
     let offset = 0;
     const tradeContract: any = {};
 
@@ -602,7 +604,7 @@ class ConnectGrpcWebClient {
   }
 
   // Parse Token message
-  parseTokenMessage(bytes: Uint8Array): any {
+  parseTokenMessage(bytes: Uint8Array): Token | null {
     let offset = 0;
     const token: any = {};
 
@@ -733,7 +735,7 @@ const grpcClient = new ConnectGrpcWebClient(GRPC_WEB_PROXY_URL);
 // Config Service
 export const configService = {
   // Get configuration
-  async getConfig(): Promise<any> {
+  async getConfig(): Promise<{ success: boolean; config?: ConfigResponse; error?: string }> {
     try {
       console.log('Calling getConfig via Connect gRPC-Web');
       
@@ -744,10 +746,10 @@ export const configService = {
       );
       
       console.log('Connect gRPC-Web getConfig success:', response);
-      return response;
+      return { success: true, config: response };
     } catch (error) {
       console.error('Connect gRPC-Web getConfig error:', error);
-      throw error;
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   },
 

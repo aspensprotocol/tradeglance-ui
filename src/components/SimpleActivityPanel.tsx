@@ -6,9 +6,9 @@ import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
 
-interface BridgeTransaction {
+interface SimpleTransaction {
   id: number;
-  type: "bridge" | "deposit" | "withdraw";
+  type: "simple" | "deposit" | "withdraw";
   fromNetwork: string;
   toNetwork: string;
   fromToken: string;
@@ -18,13 +18,13 @@ interface BridgeTransaction {
   time: string;
 }
 
-interface BridgeActivityPanelProps {
+interface SimpleActivityPanelProps {
   tradingPair?: any;
 }
 
-const mockBridgeTransactions: BridgeTransaction[] = Array(3).fill(null).map((_, i) => ({
+const mockSimpleTransactions: SimpleTransaction[] = Array(3).fill(null).map((_, i) => ({
   id: i,
-  type: "bridge",
+  type: "simple",
   fromNetwork: "ethereum",
   toNetwork: "polygon",
   fromToken: "ETH",
@@ -34,10 +34,10 @@ const mockBridgeTransactions: BridgeTransaction[] = Array(3).fill(null).map((_, 
   time: new Date(Date.now() - i * 3600000).toLocaleTimeString()
 }));
 
-const BridgeActivityPanel = ({ tradingPair }: BridgeActivityPanelProps) => {
+const SimpleActivityPanel = ({ tradingPair }: SimpleActivityPanelProps) => {
   const { currentChainId } = useChainMonitor();
-  const [activeTab, setActiveTab] = useState<"bridges" | "balances" | "deposits">("bridges");
-  const [transactions] = useState<BridgeTransaction[]>(mockBridgeTransactions);
+  const [activeTab, setActiveTab] = useState<"simples" | "balances" | "deposits">("simples");
+  const [transactions] = useState<SimpleTransaction[]>(mockSimpleTransactions);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
   const { tradingPairs } = useTradingPairs();
@@ -106,16 +106,16 @@ const BridgeActivityPanel = ({ tradingPair }: BridgeActivityPanelProps) => {
       <div className="p-4 h-full flex flex-col">
         <div className="flex space-x-4 border-b mb-4">
           <button
-            onClick={() => setActiveTab("bridges")}
+                            onClick={() => setActiveTab("simples")}
             className={cn(
               "pb-2 text-sm font-medium transition-colors relative",
-              activeTab === "bridges"
+                              activeTab === "simples"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
             )}
           >
-            Bridge History
-            {activeTab === "bridges" && (
+            Simple History
+            {activeTab === "simples" && (
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
           </button>
@@ -150,7 +150,7 @@ const BridgeActivityPanel = ({ tradingPair }: BridgeActivityPanelProps) => {
         </div>
 
         <div className="animate-fade-in flex-1 overflow-auto">
-          {activeTab === "bridges" ? (
+          {activeTab === "simples" ? (
             <div className="space-y-2">
               {/* Header row */}
               <div className="grid grid-cols-5 text-xs text-gray-500 py-2 border-b">
@@ -233,4 +233,4 @@ const BridgeActivityPanel = ({ tradingPair }: BridgeActivityPanelProps) => {
   );
 };
 
-export default BridgeActivityPanel; 
+export default SimpleActivityPanel; 

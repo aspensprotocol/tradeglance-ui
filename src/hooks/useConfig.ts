@@ -2,43 +2,49 @@ import { useState, useEffect } from 'react';
 import { configService } from '../lib/grpc-client';
 import { configUtils } from '../lib/config-utils';
 
-// Define the actual config structure based on the protobuf definition
+// Import types from grpc-client
+interface Token {
+  name: string;
+  symbol: string;
+  address: string;
+  decimals: number;
+  tradePrecision: number;
+}
+
+interface TradeContract {
+  address: string;
+}
+
+interface Chain {
+  architecture: string;
+  canonicalName: string;
+  network: string;
+  chainId: number;
+  contractOwnerAddress: string;
+  explorerUrl?: string;
+  rpcUrl: string;
+  serviceAddress: string;
+  tradeContract: TradeContract;
+  tokens: Record<string, Token>;
+  baseOrQuote: string;
+}
+
+interface Market {
+  slug: string;
+  name: string;
+  baseChainNetwork: string;
+  quoteChainNetwork: string;
+  baseChainTokenSymbol: string;
+  quoteChainTokenSymbol: string;
+  baseChainTokenDecimals: number;
+  quoteChainTokenDecimals: number;
+  pairDecimals: number;
+  marketId: string;
+}
+
 interface ConfigData {
-  chains?: Array<{
-    architecture: string;
-    canonicalName: string;
-    network: string;
-    chainId: number;
-    contractOwnerAddress: string;
-    explorerUrl?: string;
-    rpcUrl: string;
-    serviceAddress: string;
-    tradeContract: {
-      contractId?: string;
-      address: string;
-    };
-    tokens: Record<string, {
-      name: string;
-      symbol: string;
-      address: string;
-      tokenId?: string;
-      decimals: number;
-      tradePrecision: number;
-    }>;
-    baseOrQuote: string;
-  }>;
-  markets?: Array<{
-    slug: string;
-    name: string;
-    baseChainNetwork: string;
-    quoteChainNetwork: string;
-    baseChainTokenSymbol: string;
-    quoteChainTokenSymbol: string;
-    baseChainTokenDecimals: number;
-    quoteChainTokenDecimals: number;
-    pairDecimals: number;
-    marketId?: string;
-  }>;
+  chains: Chain[];
+  markets: Market[];
 }
 
 interface UseConfigReturn {
@@ -61,11 +67,13 @@ export const useConfig = (): UseConfigReturn => {
       const response = await configService.getConfig();
       
       if (response.success && response.config) {
-        setConfig(response.config);
+        // Extract the actual config data from the nested structure
+        const configData = response.config.config;
+        setConfig(configData);
         // Set the config in our utils for easy access
-        configUtils.setConfig(response.config);
+        configUtils.setConfig(configData);
       } else {
-        setError(response.message || 'Failed to fetch configuration');
+        setError(response.error || 'Failed to fetch configuration');
         setConfig(null);
       }
     } catch (err) {
