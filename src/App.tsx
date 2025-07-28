@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Simple from "./pages/Simple";
 import Docs from "./pages/Docs";
+import Mint from "./pages/Mint";
 import NotFound from "./pages/NotFound";
 import { ConfigTest } from "./components/ConfigTest";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/pro" element={<Index />} />
             <Route path="/simple" element={<Simple />} />
             <Route path="/docs" element={<Docs />} />
+            <Route path="/mint" element={<Mint />} />
             <Route path="/config" element={<ConfigTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -47,6 +47,16 @@ const Home = () => {
                   Docs
                 </Button>
               </Link>
+              <Link to="/mint" className="block">
+                <Button className="w-full" variant="outline">
+                  Mint Test Tokens
+                </Button>
+              </Link>
+              <Link to="/config" className="block">
+                <Button className="w-full" variant="outline">
+                  Config
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

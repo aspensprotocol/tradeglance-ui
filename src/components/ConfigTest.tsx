@@ -1,8 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useConfig } from '../hooks/useConfig';
+import { useChainMonitor } from '../hooks/useChainMonitor';
+import { WalletButton } from './WalletButton';
 
 export const ConfigTest: React.FC = () => {
   const { config, loading, error, refetch } = useConfig();
+  const { currentChainId } = useChainMonitor();
 
   if (loading) {
     return <div>Loading config...</div>;
@@ -41,8 +45,33 @@ export const ConfigTest: React.FC = () => {
   console.log('Config markets length:', config.markets?.length);
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Arborter Config</h2>
+    <div className="min-h-screen bg-neutral-soft/30">
+      <div className="container mx-auto">
+        <div className="p-4 flex justify-between items-center">
+          <div className="flex gap-6">
+            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Pro
+            </Link>
+            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Simple
+            </Link>
+            <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Docs
+            </Link>
+          </div>
+          
+          <div className="flex gap-3 items-center">
+            {currentChainId && (
+              <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                ✅ {currentChainId}
+              </div>
+            )}
+            <WalletButton />
+          </div>
+        </div>
+        
+        <div className="p-4">
+          <h2 className="text-xl font-bold mb-4">Arborter Config</h2>
       
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Chains ({config.chains.length})</h3>
@@ -84,6 +113,8 @@ export const ConfigTest: React.FC = () => {
       >
         Refresh Config
       </button>
+        </div>
+      </div>
     </div>
   );
 }; 
