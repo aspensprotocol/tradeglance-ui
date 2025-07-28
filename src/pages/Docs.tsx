@@ -3,6 +3,7 @@ import { WalletButton } from "@/components/WalletButton";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useConfig } from "@/hooks/useConfig";
 import { Button } from "@/components/ui/button";
+import { getShortGitCommitHash } from "@/lib/version";
 
 const Docs = () => {
   const { currentChainId, isSupported } = useChainMonitor();
@@ -62,7 +63,7 @@ const Docs = () => {
             >
               online
             </Button>
-            <span className="text-gray-400 text-xs">version 1.0.0</span>
+            <span className="text-gray-400 text-xs">version {getShortGitCommitHash()}</span>
           </div>
           <div className="flex gap-6 text-[#8E9196]">
             <a href="#" className="hover:text-[#1EAEDB]">Terms</a>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { getShortGitCommitHash } from "@/lib/version";
 
 const attestationData = {
   "tee_tcb_svn": "06010300000000000000000000000000",
@@ -72,7 +73,7 @@ const Home = () => {
             >
               online
             </Button>
-            <span className="text-gray-400 text-xs">version 1.0.0</span>
+            <span className="text-gray-400 text-xs">version {getShortGitCommitHash()}</span>
             <Dialog>
               <DialogTrigger asChild>
                 <button className="text-gray-400 text-xs hover:text-[#1EAEDB] ml-2">

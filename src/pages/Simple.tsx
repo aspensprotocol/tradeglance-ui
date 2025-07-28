@@ -6,6 +6,7 @@ import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useConfig } from "@/hooks/useConfig";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
 import SimpleForm from "@/components/SimpleForm";
+import { getShortGitCommitHash } from "@/lib/version";
 
 const Simple = () => {
   // Get dynamic trading pairs from config
@@ -103,7 +104,7 @@ const Simple = () => {
             >
               online
             </Button>
-            <span className="text-gray-400 text-xs">version 1.0.0</span>
+            <span className="text-gray-400 text-xs">version {getShortGitCommitHash()}</span>
           </div>
           <div className="flex gap-6 text-[#8E9196]">
             <a href="#" className="hover:text-[#1EAEDB]">Terms</a>
