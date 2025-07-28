@@ -4,35 +4,43 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useTradingBalance } from "@/hooks/useTokenBalance";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTradingPairs } from "@/hooks/useTradingPairs";
 
-interface Trade {
+interface SimpleTransaction {
   id: number;
-  type: "buy" | "sell";
-  price: number;
+  type: "simple" | "deposit" | "withdraw";
+  fromNetwork: string;
+  toNetwork: string;
+  fromToken: string;
+  toToken: string;
   amount: number;
-  total: number;
+  status: "pending" | "completed" | "failed";
   time: string;
 }
 
-interface ActivityPanelProps {
+interface SimpleActivityPanelProps {
   tradingPair?: any;
 }
 
-const mockTrades: Trade[] = Array(5).fill(null).map((_, i) => ({
+const mockSimpleTransactions: SimpleTransaction[] = Array(3).fill(null).map((_, i) => ({
   id: i,
-  type: Math.random() > 0.5 ? "buy" : "sell",
-  price: 50000 - Math.random() * 1000,
-  amount: Math.random() * 2,
-  total: Math.random() * 100000,
-  time: new Date(Date.now() - i * 60000).toLocaleTimeString()
+  type: "simple",
+  fromNetwork: "ethereum",
+  toNetwork: "polygon",
+  fromToken: "ETH",
+  toToken: "USDT",
+  amount: Math.random() * 10,
+  status: Math.random() > 0.3 ? "completed" : "pending",
+  time: new Date(Date.now() - i * 3600000).toLocaleTimeString()
 }));
 
-const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
+const SimpleActivityPanel = ({ tradingPair }: SimpleActivityPanelProps) => {
   const { currentChainId } = useChainMonitor();
-  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
-  const [trades] = useState<Trade[]>(mockTrades);
+  const [activeTab, setActiveTab] = useState<"simples" | "balances" | "deposits">("simples");
+  const [transactions] = useState<SimpleTransaction[]>(mockSimpleTransactions);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
+  const { tradingPairs } = useTradingPairs();
 
   // Get trading balances for the current trading pair
   const { depositedBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
@@ -67,35 +75,47 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     </div>
   );
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "text-green-600";
+      case "pending":
+        return "text-yellow-600";
+      case "failed":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "✅";
+      case "pending":
+        return "⏳";
+      case "failed":
+        return "❌";
+      default:
+        return "⏳";
+    }
+  };
+
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
       <div className="p-4 h-full flex flex-col">
         <div className="flex space-x-4 border-b mb-4">
           <button
-            onClick={() => setActiveTab("trades")}
+                            onClick={() => setActiveTab("simples")}
             className={cn(
               "pb-2 text-sm font-medium transition-colors relative",
-              activeTab === "trades"
+                              activeTab === "simples"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
             )}
           >
-            Recent Trades
-            {activeTab === "trades" && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("orders")}
-            className={cn(
-              "pb-2 text-sm font-medium transition-colors relative",
-              activeTab === "orders"
-                ? "text-neutral-dark"
-                : "text-neutral hover:text-neutral-dark"
-            )}
-          >
-            Open Orders
-            {activeTab === "orders" && (
+            Simple History
+            {activeTab === "simples" && (
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
           </button>
@@ -130,55 +150,37 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
         </div>
 
         <div className="animate-fade-in flex-1 overflow-auto">
-          {activeTab === "trades" ? (
+          {activeTab === "simples" ? (
             <div className="space-y-2">
               {/* Header row */}
-              <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b">
+              <div className="grid grid-cols-5 text-xs text-gray-500 py-2 border-b">
                 <span>Type</span>
-                <span className="text-right">Price</span>
+                <span>From</span>
+                <span>To</span>
                 <span className="text-right">Amount</span>
-                <span className="text-right">Time</span>
+                <span className="text-right">Status</span>
               </div>
               
-              {trades.map((trade) => (
+              {transactions.map((tx) => (
                 <div
-                  key={trade.id}
-                  className="grid grid-cols-4 text-sm py-2 border-b last:border-0"
+                  key={tx.id}
+                  className="grid grid-cols-5 text-sm py-2 border-b last:border-0"
                 >
-                  <span className={cn(
-                    trade.type === "buy" ? "text-bid-dark" : "text-ask-dark"
-                  )}>
-                    {trade.type.toUpperCase()}
+                  <span className="text-blue-600 font-medium">
+                    {tx.type.toUpperCase()}
                   </span>
-                  <span className="text-right">{trade.price.toLocaleString()}</span>
-                  <span className="text-right">{trade.amount.toFixed(4)}</span>
-                  <span className="text-right text-neutral">{trade.time}</span>
+                  <span className="text-gray-700">
+                    {tx.fromToken} ({tx.fromNetwork})
+                  </span>
+                  <span className="text-gray-700">
+                    {tx.toToken} ({tx.toNetwork})
+                  </span>
+                  <span className="text-right">{tx.amount.toFixed(4)}</span>
+                  <span className={cn("text-right", getStatusColor(tx.status))}>
+                    {getStatusIcon(tx.status)} {tx.status}
+                  </span>
                 </div>
               ))}
-            </div>
-          ) : activeTab === "orders" ? (
-            <div className="space-y-4">
-              {/* Locked Balance */}
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-xs text-gray-600 mb-2">In Order Book</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {balanceLoading ? (
-                    <span className="text-blue-500">Loading...</span>
-                  ) : (
-                    <span className="text-orange-600">
-                      {lockedBalance} {tradingPair?.baseSymbol || "ATOM"}
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Funds in active orders
-                </div>
-              </div>
-
-              {/* Open Orders List */}
-              <div className="text-center py-8 text-neutral">
-                No open orders
-              </div>
             </div>
           ) : activeTab === "deposits" ? (
             <div className="space-y-4">
@@ -231,4 +233,4 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   );
 };
 
-export default ActivityPanel;
+export default SimpleActivityPanel; 

@@ -1,109 +1,169 @@
-import { useState } from 'react';
-import { useMetaMask } from './useMetaMask';
-import { useTradeContract } from './useTradeContract';
+import { useState, useEffect } from 'react';
+import { useAccount, useChainId, useWalletClient } from 'wagmi';
+import { createPublicClient, http, parseUnits } from 'viem';
+import { mainnet, sepolia, baseSepolia } from 'viem/chains';
 import MidribV2ABI from '@/lib/abi/MidribV2.json';
+import { configUtils } from '../lib/config-utils';
 
 export const useContract = () => {
-  const { account, isConnected } = useMetaMask();
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const { data: walletClient } = useWalletClient();
+  const [contract, setContract] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const switchToNetwork = async (chainId: number) => {
-    if (!window.ethereum) return false;
-    
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${chainId.toString(16)}` }],
-      });
-      return true;
-    } catch (error: any) {
-      // If network doesn't exist, add it
-      if (error.code === 4902) {
-        return await addNetwork(chainId);
+  // Helper function to get the correct chain based on chain ID from config
+  const getChainById = (id: number) => {
+    // First try to get chain config from gRPC config
+    const chainConfig = configUtils.getChainByChainId(id);
+    if (chainConfig) {
+      const chainObj: any = {
+        id: typeof chainConfig.chainId === 'string' ? parseInt(chainConfig.chainId, 10) : chainConfig.chainId,
+        name: chainConfig.network,
+        network: chainConfig.network,
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        rpcUrls: {
+          default: { http: [chainConfig.rpcUrl] },
+          public: { http: [chainConfig.rpcUrl] },
+        },
+      };
+
+      // Add block explorer if available
+      if (chainConfig.explorerUrl) {
+        chainObj.blockExplorers = {
+          default: { name: 'Explorer', url: chainConfig.explorerUrl },
+        };
       }
-      console.error('Failed to switch network:', error);
-      return false;
+
+      return chainObj;
     }
-  };
 
-  const addNetwork = async (chainId: number) => {
-    if (!window.ethereum) return false;
-    
-    // Get network info from config
-    const { chainConfig } = useTradeContract(chainId);
-    if (!chainConfig) return false;
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [{
-          chainId: `0x${chainId.toString(16)}`,
-          chainName: chainConfig.network,
+    // Fallback to known chains
+    switch (id) {
+      case 1:
+        return mainnet;
+      case 11155111:
+        return sepolia;
+      case 84532:
+        return baseSepolia;
+      default:
+        // For unknown chains, create a custom chain object
+        return {
+          id,
+          name: `Chain ${id}`,
+          network: `chain-${id}`,
           nativeCurrency: {
-            name: 'ETH',
-            symbol: 'ETH',
             decimals: 18,
+            name: 'Ether',
+            symbol: 'ETH',
           },
-          rpcUrls: [chainConfig.rpcUrl],
-          blockExplorerUrls: [], // Add if available in config
-        }],
-      });
-      return true;
-    } catch (error) {
-      console.error('Failed to add network:', error);
-      return false;
+          rpcUrls: {
+            default: { http: [] },
+            public: { http: [] },
+          },
+        };
     }
   };
 
-  const getContract = (chainId: number) => {
-    if (!window.ethereum || !isConnected) {
-      throw new Error('MetaMask not connected');
+  useEffect(() => {
+    if (isConnected && address) {
+      // Contract operations are handled dynamically based on config
+      // No need to create a static contract instance
+      setContract({ isConnected: true });
+    } else {
+      setContract(null);
     }
-
-    const { tradeContractAddress } = useTradeContract(chainId);
-    if (!tradeContractAddress) {
-      throw new Error(`No trade contract found for chain ID ${chainId}`);
-    }
-
-    const provider = new (window as any).ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    return new (window as any).ethers.Contract(tradeContractAddress, MidribV2ABI, signer);
-  };
+  }, [isConnected, address]);
 
   const deposit = async (amount: string, token: string, targetChainId: number) => {
-    if (!isConnected) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
-    // Switch to target network
-    const switched = await switchToNetwork(targetChainId);
-    if (!switched) {
-      setError('Failed to switch to required network');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
-      const contract = getContract(targetChainId);
+      if (!isConnected || !address || !walletClient) {
+        throw new Error('Wallet not connected or wallet client not available');
+      }
+
+      const tradeContractAddress = configUtils.getTradeContractAddress(targetChainId);
+      if (!tradeContractAddress) {
+        throw new Error(`No trade contract found for chain ID ${targetChainId}`);
+      }
+
+      // Get token decimals from config
+      const chainConfig = configUtils.getChainByChainId(targetChainId);
+      const tokenSymbol = Object.keys(chainConfig?.tokens || {}).find(symbol => 
+        chainConfig?.tokens[symbol].address.toLowerCase() === token.toLowerCase()
+      );
+      const decimals = tokenSymbol ? chainConfig?.tokens[tokenSymbol].decimals : 18;
       
-      // Convert amount to wei (assuming 18 decimals)
-      const amountWei = (window as any).ethers.utils.parseEther(amount);
-      
-      // Call deposit function with gas settings
-      const tx = await contract.deposit(token, amountWei, {
-        gasLimit: 500000, // Adjust as needed
-        gasPrice: (window as any).ethers.utils.parseUnits('20', 'gwei'), // Adjust as needed
+      // Convert amount using correct decimals
+      const amountWei = parseUnits(amount, decimals);
+
+      console.log(`Converting ${amount} with ${decimals} decimals to: ${amountWei}`);
+      console.log(`Current wallet chain ID: ${chainId}, Target chain ID: ${targetChainId}`);
+
+      // Check if wallet is on the correct chain
+      if (chainId !== targetChainId) {
+        throw new Error(`Wallet is on chain ${chainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`);
+      }
+
+      // First, approve the contract to spend our tokens
+      console.log('Approving token spending...');
+      const tokenContract = {
+        address: token as `0x${string}`,
+        abi: [
+          {
+            "inputs": [
+              {"name": "spender", "type": "address"},
+              {"name": "amount", "type": "uint256"}
+            ],
+            "name": "approve",
+            "outputs": [{"name": "", "type": "bool"}],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
+        ] as any,
+      };
+
+      const approveHash = await walletClient.writeContract({
+        address: token as `0x${string}`,
+        abi: tokenContract.abi,
+        functionName: 'approve',
+        args: [tradeContractAddress, amountWei],
+        account: address as `0x${string}`,
+        chain: getChainById(targetChainId),
+      });
+
+      console.log('Approval successful:', approveHash);
+
+      // Wait a moment for the approval to be processed
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Now attempt the deposit
+      console.log('Attempting deposit with:', {
+        contractAddress: tradeContractAddress,
+        tokenAddress: token,
+        amountWei: amountWei.toString(),
+        account: address,
+        chain: getChainById(targetChainId)
       });
       
-      // Wait for transaction confirmation
-      await tx.wait();
-      
-      console.log('Deposit successful:', tx.hash);
-      return tx;
+      const hash = await walletClient.writeContract({
+        address: tradeContractAddress as `0x${string}`,
+        abi: MidribV2ABI.abi as any,
+        functionName: 'deposit',
+        args: [token, amountWei],
+        account: address as `0x${string}`,
+        chain: getChainById(targetChainId),
+      });
+
+      console.log('Deposit successful:', hash);
+      return hash;
     } catch (err: any) {
       console.error('Deposit failed:', err);
       setError(err.message || 'Deposit failed');
@@ -114,38 +174,57 @@ export const useContract = () => {
   };
 
   const withdraw = async (amount: string, token: string, targetChainId: number) => {
-    if (!isConnected) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
-    // Switch to target network
-    const switched = await switchToNetwork(targetChainId);
-    if (!switched) {
-      setError('Failed to switch to required network');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
-      const contract = getContract(targetChainId);
+      if (!isConnected || !address || !walletClient) {
+        throw new Error('Wallet not connected or wallet client not available');
+      }
+
+      const tradeContractAddress = configUtils.getTradeContractAddress(targetChainId);
+      if (!tradeContractAddress) {
+        throw new Error(`No trade contract found for chain ID ${targetChainId}`);
+      }
+
+      // Get token decimals from config
+      const chainConfig = configUtils.getChainByChainId(targetChainId);
+      const tokenSymbol = Object.keys(chainConfig?.tokens || {}).find(symbol => 
+        chainConfig?.tokens[symbol].address.toLowerCase() === token.toLowerCase()
+      );
+      const decimals = tokenSymbol ? chainConfig?.tokens[tokenSymbol].decimals : 18;
       
-      // Convert amount to wei (assuming 18 decimals)
-      const amountWei = (window as any).ethers.utils.parseEther(amount);
-      
-      // Call withdraw function with gas settings
-      const tx = await contract.withdraw(token, amountWei, {
-        gasLimit: 500000, // Adjust as needed
-        gasPrice: (window as any).ethers.utils.parseUnits('20', 'gwei'), // Adjust as needed
+      // Convert amount using correct decimals
+      const amountWei = parseUnits(amount, decimals);
+
+      console.log(`Converting ${amount} with ${decimals} decimals to: ${amountWei}`);
+      console.log(`Current wallet chain ID: ${chainId}, Target chain ID: ${targetChainId}`);
+
+      // Check if wallet is on the correct chain
+      if (chainId !== targetChainId) {
+        throw new Error(`Wallet is on chain ${chainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`);
+      }
+
+      // Attempt the withdrawal
+      console.log('Attempting withdrawal with:', {
+        contractAddress: tradeContractAddress,
+        tokenAddress: token,
+        amountWei: amountWei.toString(),
+        account: address,
+        chain: getChainById(targetChainId)
       });
       
-      // Wait for transaction confirmation
-      await tx.wait();
-      
-      console.log('Withdrawal successful:', tx.hash);
-      return tx;
+      const hash = await walletClient.writeContract({
+        address: tradeContractAddress as `0x${string}`,
+        abi: MidribV2ABI.abi as any,
+        functionName: 'withdraw',
+        args: [token, amountWei],
+        account: address as `0x${string}`,
+        chain: getChainById(targetChainId),
+      });
+
+      console.log('Withdrawal successful:', hash);
+      return hash;
     } catch (err: any) {
       console.error('Withdrawal failed:', err);
       setError(err.message || 'Withdrawal failed');
@@ -155,14 +234,13 @@ export const useContract = () => {
     }
   };
 
-  return {
-    deposit,
-    withdraw,
-    switchToNetwork,
-    addNetwork,
-    isLoading,
-    error,
-    isConnected,
-    account,
+  return { 
+    contract, 
+    isConnected, 
+    account: address, 
+    deposit, 
+    withdraw, 
+    isLoading, 
+    error 
   };
 };

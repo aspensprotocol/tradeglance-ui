@@ -1,69 +1,261 @@
-# Welcome to your Lovable project
+# TradeGlance UI
 
-## Project info
+A modern React-based frontend application for the TradeGlance trading platform, built with TypeScript, Vite, and gRPC-Web communication via Envoy proxy.
 
-**URL**: https://lovable.dev/projects/45da1917-8c1a-405c-a59a-a6373336f81d
+## 🚀 Quick Start
 
-## How can I edit this code?
+### Prerequisites
 
-There are several ways of editing your application.
+- **Node.js** (v18 or higher) - [Install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Docker** - [Install Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- **Git** - [Install Git](https://git-scm.com/downloads)
 
-**Use Lovable**
+### Installation & Setup
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/45da1917-8c1a-405c-a59a-a6373336f81d) and start prompting.
+1. **Clone the repository**
+   ```bash
+   git clone <YOUR_GIT_URL>
+   cd tradeglance-ui
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Use your preferred IDE**
+3. **Set up environment variables** (optional)
+   ```bash
+   cp env.example .env
+   ```
+   Edit `.env` if you need to customize the gRPC proxy URL.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+4. **Start the application**
+   ```bash
+   ./start-dev.sh
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+5. **Access the application**
+   - Open your browser and navigate to: **http://localhost:8080**
+   - The application will be available on your local network at: **http://192.168.50.253:8080**
 
-Follow these steps:
+## 🏗️ Architecture
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+This project uses a modern microservices architecture with gRPC-Web communication:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```
+┌─────────────────┐    gRPC-Web    ┌──────────────┐    gRPC     ┌─────────────────┐
+│   Frontend      │ ──────────────► │   Envoy      │ ──────────► │   Backend       │
+│   (React/Vite)  │                 │   Proxy      │             │   Service       │
+│   Port 8080     │                 │   Port 8811  │             │   Port 50051    │
+└─────────────────┘                 └──────────────┘             └─────────────────┘
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🛠️ Technology Stack
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+- **Frontend Framework**: React 18 with TypeScript
+- **Build Tool**: Vite 5
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **gRPC Communication**: Connect-Web library
+- **Web3 Integration**: Viem + Wagmi + Web3Modal
+- **Proxy**: Envoy (Docker container)
+- **Package Manager**: npm
+
+## 📁 Project Structure
+
+```
+tradeglance-ui/
+├── src/
+│   ├── components/          # React components
+│   │   ├── ui/             # shadcn/ui components
+│   │   ├── TradeForm.tsx   # Pro trading interface
+│   │   ├── WalletButton.tsx # Web3 wallet integration
+│   │   └── ...
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utilities and configurations
+│   │   ├── grpc-client.ts  # gRPC communication
+│   │   ├── config.ts       # Environment configuration
+│   │   └── ...
+│   └── pages/              # Page components
+├── envoy.yaml              # Envoy proxy configuration
+├── start-dev.sh            # Development startup script
+└── package.json            # Dependencies and scripts
+```
+
+## 🔧 Development
+
+### Using the Start Script (Recommended)
+
+The `start-dev.sh` script automates the entire startup process:
+
+```bash
+./start-dev.sh
+```
+
+This script will:
+1. Stop and remove any existing Envoy containers
+2. Start Envoy proxy in a Docker container (port 8811)
+3. Start the Vite development server (port 8080)
+4. Clean up containers when you stop the script
+
+### Manual Setup
+
+If you prefer to start components manually:
+
+#### 1. Start Envoy Proxy
+```bash
+# Stop any existing containers
+docker stop envoy-grpc-web 2>/dev/null
+docker rm envoy-grpc-web 2>/dev/null
+
+# Start Envoy
+docker run -d --name envoy-grpc-web \
+  -v "$(pwd)/envoy.yaml:/etc/envoy/envoy.yaml:ro" \
+  -p 8811:8811 \
+  envoyproxy/envoy:distroless-v1.34-latest
+```
+
+#### 2. Start Frontend (in a new terminal)
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Available Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run build:dev    # Build for development
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+```
 
-**Use GitHub Codespaces**
+## ⚙️ Configuration
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Environment Variables
 
-## What technologies are used for this project?
+Create a `.env` file in the root directory:
 
-This project is built with .
+```env
+# gRPC-Web Proxy Configuration
+VITE_GRPC_WEB_PROXY_URL=http://localhost:8811
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Blockchain Configuration (optional)
+VITE_MIDRIB_CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
+VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_KEY
+VITE_POLYGON_RPC_URL=https://polygon-rpc.com
+VITE_ARBITRUM_RPC_URL=https://arb1.arbitrum.io/rpc
+VITE_FLARE_RPC_URL=https://flare-api.flare.network/ext/C/rpc
+```
 
-## How can I deploy this project?
+### Envoy Configuration
 
-Simply open [Lovable](https://lovable.dev/projects/45da1917-8c1a-405c-a59a-a6373336f81d) and click on Share -> Publish.
+The `envoy.yaml` file configures the proxy to:
+- Route gRPC-Web requests from the frontend to the backend
+- Handle CORS for cross-origin requests
+- Support multiple gRPC services (ConfigService, ArborterService)
 
-## I want to use a custom domain - is that possible?
+## 🔍 Troubleshooting
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+### Common Issues
+
+#### 1. Envoy Container Won't Start
+```bash
+# Check if Docker is running
+docker --version
+
+# Check Envoy logs
+docker logs envoy-grpc-web
+
+# Restart Envoy manually
+docker stop envoy-grpc-web
+docker rm envoy-grpc-web
+docker run -d --name envoy-grpc-web \
+  -v "$(pwd)/envoy.yaml:/etc/envoy/envoy.yaml:ro" \
+  -p 8811:8811 \
+  envoyproxy/envoy:distroless-v1.34-latest
+```
+
+#### 2. Frontend Can't Connect to Backend
+```bash
+# Check if Envoy is running
+docker ps | grep envoy
+
+# Check if backend service is accessible
+telnet localhost 50051
+
+# Check Envoy logs for routing issues
+docker logs envoy-grpc-web
+```
+
+#### 3. Port Already in Use
+```bash
+# Check what's using port 8080
+lsof -i :8080
+
+# Check what's using port 8811
+lsof -i :8811
+
+# Kill processes if needed
+kill -9 <PID>
+```
+
+#### 4. CORS Issues
+- Verify Envoy configuration in `envoy.yaml`
+- Check browser console for CORS errors
+- Ensure backend service is running on port 50051
+
+### Clean Restart
+
+To completely restart all services:
+
+```bash
+# Stop all containers
+docker stop $(docker ps -q)
+
+# Remove Envoy container
+docker rm envoy-grpc-web
+
+# Kill any running Node processes
+pkill -f "vite"
+
+# Restart everything
+./start-dev.sh
+```
+
+### Debug Mode
+
+To run with verbose logging:
+
+```bash
+# Check Envoy logs in real-time
+docker logs -f envoy-grpc-web
+
+# Run frontend with debug logging
+DEBUG=vite:* npm run dev
+```
+
+## 🌐 Network Access
+
+The application is accessible on:
+- **Local**: http://localhost:8080
+- **Network**: http://192.168.50.253:8080 (or your local IP)
+
+## 📚 Additional Resources
+
+- [Vite Documentation](https://vitejs.dev/)
+- [React Documentation](https://react.dev/)
+- [Connect-Web Documentation](https://connectrpc.com/docs/web/)
+- [Envoy Proxy Documentation](https://www.envoyproxy.io/docs/)
+- [shadcn/ui Documentation](https://ui.shadcn.com/)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+[Add your license information here]

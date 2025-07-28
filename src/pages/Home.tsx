@@ -32,19 +32,29 @@ const Home = () => {
               <CardTitle className="text-center">Trade Glance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Link to="/portfolio" className="block">
+              <Link to="/pro" className="block">
                 <Button className="w-full" variant="outline">
-                  Portfolio
+                  Pro
                 </Button>
               </Link>
-              <Link to="/trade" className="block">
+              <Link to="/simple" className="block">
                 <Button className="w-full" variant="outline">
-                  Trade
+                  Simple
                 </Button>
               </Link>
-              <Link to="/bridge" className="block">
+              <Link to="/docs" className="block">
                 <Button className="w-full" variant="outline">
-                  Bridge
+                  Docs
+                </Button>
+              </Link>
+              <Link to="/mint" className="block">
+                <Button className="w-full" variant="outline">
+                  Mint Test Tokens
+                </Button>
+              </Link>
+              <Link to="/config" className="block">
+                <Button className="w-full" variant="outline">
+                  Config
                 </Button>
               </Link>
             </CardContent>
@@ -58,7 +68,7 @@ const Home = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="bg-[#0FA0CE] text-white hover:bg-[#1EAEDB] border-none text-xs px-3 py-1 h-auto"
+              className="bg-green-500 text-white hover:bg-green-600 border-none text-xs px-3 py-1 h-auto"
             >
               online
             </Button>

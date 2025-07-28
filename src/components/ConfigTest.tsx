@@ -1,8 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useConfig } from '../hooks/useConfig';
+import { useChainMonitor } from '../hooks/useChainMonitor';
+import { WalletButton } from './WalletButton';
 
 export const ConfigTest: React.FC = () => {
   const { config, loading, error, refetch } = useConfig();
+  const { currentChainId } = useChainMonitor();
 
   if (loading) {
     return <div>Loading config...</div>;
@@ -21,23 +25,65 @@ export const ConfigTest: React.FC = () => {
     return <div>No config data</div>;
   }
 
+  if (!config.chains || !config.markets) {
+    return (
+      <div>
+        <div>Config structure is incomplete</div>
+        <div>Chains: {config.chains ? 'present' : 'missing'}</div>
+        <div>Markets: {config.markets ? 'present' : 'missing'}</div>
+        <button onClick={refetch}>Retry</button>
+      </div>
+    );
+  }
+
+  // Debug: Log the config structure
+  console.log('Config structure:', JSON.stringify(config, null, 2));
+  console.log('Config type:', typeof config);
+  console.log('Config chains:', config.chains);
+  console.log('Config markets:', config.markets);
+  console.log('Config chains length:', config.chains?.length);
+  console.log('Config markets length:', config.markets?.length);
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Arborter Config</h2>
+    <div className="min-h-screen bg-neutral-soft/30">
+      <div className="container mx-auto">
+        <div className="p-4 flex justify-between items-center">
+          <div className="flex gap-6">
+            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Pro
+            </Link>
+            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Simple
+            </Link>
+            <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              Docs
+            </Link>
+          </div>
+          
+          <div className="flex gap-3 items-center">
+            {currentChainId && (
+              <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                ✅ {currentChainId}
+              </div>
+            )}
+            <WalletButton />
+          </div>
+        </div>
+        
+        <div className="p-4">
+          <h2 className="text-xl font-bold mb-4">Arborter Config</h2>
       
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Chains ({config.chains?.length || 0})</h3>
-        {config.chains?.map((chain, index) => (
+        <h3 className="text-lg font-semibold mb-2">Chains ({config.chains.length})</h3>
+        {config.chains.map((chain, index) => (
           <div key={index} className="border p-3 mb-2 rounded">
             <div><strong>Network:</strong> {chain.network}</div>
             <div><strong>Chain ID:</strong> {chain.chainId}</div>
             <div><strong>RPC URL:</strong> {chain.rpcUrl}</div>
             <div><strong>Service Address:</strong> {chain.serviceAddress}</div>
-            {chain.tradeContract && (
-              <div><strong>Trade Contract:</strong> {chain.tradeContract.address}</div>
-            )}
-            <div><strong>Tokens:</strong> {Object.keys(chain.tokens || {}).length}</div>
-            {chain.tokens && Object.entries(chain.tokens).map(([symbol, token]) => (
+            <div><strong>Trade Contract:</strong> {chain.tradeContract.address}</div>
+            <div><strong>Tokens:</strong> {Object.keys(chain.tokens).length}</div>
+            {Object.entries(chain.tokens).map(([symbol, token]) => (
               <div key={symbol} className="ml-4 mt-1">
                 <div><strong>{symbol}:</strong> {token.address} (decimals: {token.decimals})</div>
               </div>
@@ -47,8 +93,8 @@ export const ConfigTest: React.FC = () => {
       </div>
 
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Markets ({config.markets?.length || 0})</h3>
-        {config.markets?.map((market, index) => (
+        <h3 className="text-lg font-semibold mb-2">Markets ({config.markets.length})</h3>
+        {config.markets.map((market, index) => (
           <div key={index} className="border p-3 mb-2 rounded">
             <div><strong>Name:</strong> {market.name}</div>
             <div><strong>Slug:</strong> {market.slug}</div>
@@ -67,6 +113,8 @@ export const ConfigTest: React.FC = () => {
       >
         Refresh Config
       </button>
+        </div>
+      </div>
     </div>
   );
 }; 

@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -11,8 +10,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development',
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -21,10 +19,21 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['google-protobuf', 'grpc-web'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
   },
   build: {
     rollupOptions: {
       external: ['google-protobuf/google-protobuf.js'],
     },
+  },
+  define: {
+    global: 'globalThis',
+  },
+  ssr: {
+    noExternal: ['google-protobuf', 'grpc-web']
   },
 }));

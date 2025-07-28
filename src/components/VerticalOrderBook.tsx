@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface Order {
   price: number;
@@ -8,7 +9,14 @@ interface Order {
   total: number;
 }
 
-const VerticalOrderBook = () => {
+interface VerticalOrderBookProps {
+  tradingPair?: any;
+  selectedPair: string;
+  onPairChange: (pair: string) => void;
+  tradingPairs: TradingPair[];
+}
+
+const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPairs }: VerticalOrderBookProps) => {
   // Mock data based on the screenshot
   const [asks] = useState<Order[]>([
     { price: 109.172, amount: 73348, total: 3080740 },
@@ -36,28 +44,33 @@ const VerticalOrderBook = () => {
     { price: 109.151, amount: 12, total: 263383 },
   ]);
 
-  // Calculate actual spread
-  const lowestAsk = Math.min(...asks.map(ask => ask.price));
-  const highestBid = Math.max(...bids.map(bid => bid.price));
-  const spreadValue = lowestAsk - highestBid;
-  const spreadPercentage = (spreadValue / lowestAsk) * 100;
-
   const formatNumber = (num: number) => {
-    return num.toLocaleString();
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toFixed(0);
   };
+
+  const spreadValue = asks[0]?.price - bids[0]?.price || 0;
+  const spreadPercentage = ((spreadValue / asks[0]?.price) * 100) || 0;
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border">
-      <div className="flex border-b">
-        <div className="px-4 py-3 border-r border-gray-200 bg-white text-sm font-medium text-gray-900">
-          Order Book
-        </div>
-        <div className="px-4 py-3 text-sm text-gray-500">
-          Trades
-        </div>
+      <div className="p-4 border-b">
+        <select
+          value={selectedPair}
+          onChange={(e) => onPairChange(e.target.value)}
+          className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
+        >
+          <option value="">Select a trading pair</option>
+          {tradingPairs.map((pair) => (
+            <option key={pair.id} value={pair.id}>
+              {pair.displayName}
+            </option>
+          ))}
+        </select>
       </div>
       
-      <div className="p-4">
+      <div className="p-4 h-full overflow-auto">
         {/* Header */}
         <div className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
           <span className="text-left">Price</span>
