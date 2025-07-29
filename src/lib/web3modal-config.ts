@@ -7,70 +7,38 @@ import { defineChain } from 'viem'
 // Your WalletConnect project ID
 const projectId = 'c3690594c774dccbd4a0272ae38f1953'
 
-// Define custom chains for our application
-const anvil1 = defineChain({
-  id: 114,
-  name: 'Anvil 1 - 8545',
-  network: 'anvil-1',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Ether',
-    symbol: 'ETH',
-  },
-  rpcUrls: {
-    default: { http: ['https://coston2-api.flare.network/ext/C/rpc'] },
-    public: { http: ['https://coston2-api.flare.network/ext/C/rpc'] },
-  },
-  blockExplorers: {
-    default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
-  },
-})
+// Start with default chains that are always available
+const defaultChains = [mainnet, sepolia, polygon, base, baseSepolia] as const
 
-const anvil2 = defineChain({
-  id: 11155111,
-  name: 'Anvil 2 - 8546',
-  network: 'anvil-2',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Ether',
-    symbol: 'ETH',
-  },
-  rpcUrls: {
-    default: { http: ['https://ethereum-sepolia-rpc.publicnode.com'] },
-    public: { http: ['https://ethereum-sepolia-rpc.publicnode.com'] },
-  },
-  blockExplorers: {
-    default: { name: 'Etherscan', url: 'https://sepolia-optimistic.etherscan.io' },
-  },
-})
+// Create initial wagmi config with default chains only
+const createWagmiConfig = (customChains: any[] = []) => {
+  const allChains = [...defaultChains, ...customChains] as const;
+  
+  // Create transports object dynamically
+  const transports: any = {};
+  allChains.forEach(chain => {
+    transports[chain.id] = http();
+  });
 
-// Configure chains - include both default and custom chains
-const chains = [mainnet, sepolia, polygon, base, baseSepolia, anvil1, anvil2] as const
+  return createConfig({
+    chains: allChains,
+    transports,
+    connectors: [
+      // Injected wallets (MetaMask, Rabby, etc.) - FIRST
+      injected({ shimDisconnect: true }),
+      // WalletConnect - SECOND
+      walletConnect({ projectId, showQrModal: true }),
+      // Coinbase Wallet - THIRD
+      coinbaseWallet({ appName: 'TradeGlance' })
+    ]
+  });
+};
 
-// Create wagmi config with proper connectors
-const wagmiConfig = createConfig({
-  chains,
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [polygon.id]: http(),
-    [base.id]: http(),
-    [baseSepolia.id]: http(),
-    [anvil1.id]: http(),
-    [anvil2.id]: http(),
-  },
-  connectors: [
-    // Injected wallets (MetaMask, Rabby, etc.) - FIRST
-    injected({ shimDisconnect: true }),
-    // WalletConnect - SECOND
-    walletConnect({ projectId, showQrModal: true }),
-    // Coinbase Wallet - THIRD
-    coinbaseWallet({ appName: 'TradeGlance' })
-  ]
-})
+// Create initial config with default chains
+let wagmiConfig = createWagmiConfig();
 
 // Create Web3Modal with injected wallet support
-createWeb3Modal({
+let web3Modal = createWeb3Modal({
   wagmiConfig,
   projectId,
   // Theme
@@ -80,4 +48,48 @@ createWeb3Modal({
   }
 })
 
-export { wagmiConfig } 
+export { wagmiConfig, createWagmiConfig }
+
+// Utility function to create dynamic chains from gRPC config
+export const createDynamicChains = (grpcChains: any[]) => {
+  return grpcChains.map(chain => defineChain({
+    id: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
+    name: chain.network,
+    network: chain.network,
+    nativeCurrency: {
+      decimals: 18,
+      name: 'Ether',
+      symbol: 'ETH',
+    },
+    rpcUrls: {
+      default: { http: [chain.rpcUrl] },
+      public: { http: [chain.rpcUrl] },
+    },
+    blockExplorers: chain.explorerUrl ? {
+      default: { name: 'Explorer', url: chain.explorerUrl },
+    } : undefined,
+  }));
+};
+
+// Function to update the wagmi config with chains from gRPC config
+export const updateWagmiConfig = (grpcChains: any[]) => {
+  const dynamicChains = createDynamicChains(grpcChains);
+  const newConfig = createWagmiConfig(dynamicChains);
+  
+  // Update the global wagmi config
+  wagmiConfig = newConfig;
+  
+  // Recreate Web3Modal with the new config
+  web3Modal = createWeb3Modal({
+    wagmiConfig: newConfig,
+    projectId,
+    themeMode: 'dark',
+    themeVariables: {
+      '--w3m-z-index': 9999
+    }
+  });
+  
+  console.log('Updated wagmi config with chains:', dynamicChains.map(c => ({ id: c.id, name: c.name })));
+  
+  return newConfig;
+}; 

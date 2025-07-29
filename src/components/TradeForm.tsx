@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { cn } from "@/lib/utils";
+import { cn, getEtherscanLink, shortenTxHash, triggerBalanceRefresh } from "@/lib/utils";
 import { Info, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
 import { useTradingBalance } from "@/hooks/useTokenBalance";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 
 interface TradeFormProps {
   selectedPair: string;
@@ -30,19 +31,134 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   const chainId = useChainId();
   const { currentChainId } = useChainMonitor();
   const { toast } = useToast();
+  const { switchToNetwork } = useNetworkSwitch();
 
   // Get trading balances for the current trading pair
-  const { availableBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
+  const { availableBalance, lockedBalance, loading: balanceLoading, refresh: refreshBalance } = useTradingBalance(
     tradingPair?.baseSymbol || "ATOM", 
     currentChainId || 0
   );
+
+  // Helper function to determine the correct side based on current chain
+  const getCorrectSideForChain = (chainId: number): "buy" | "sell" => {
+    const chainConfig = configUtils.getChainByChainId(chainId);
+    if (!chainConfig) return "buy";
+    
+    // Base chain = Sell, Quote chain = Buy
+    return chainConfig.baseOrQuote === "BASE_OR_QUOTE_BASE" ? "sell" : "buy";
+  };
+
+  // Helper function to get the target chain for a given side
+  const getTargetChainForSide = (side: "buy" | "sell"): number | null => {
+    const allChains = configUtils.getAllChains();
+    const targetBaseOrQuote = side === "sell" ? "BASE_OR_QUOTE_BASE" : "BASE_OR_QUOTE_QUOTE";
+    
+    const targetChain = allChains.find(chain => chain.baseOrQuote === targetBaseOrQuote);
+    return targetChain ? (typeof targetChain.chainId === 'string' ? parseInt(targetChain.chainId, 10) : targetChain.chainId) : null;
+  };
+
+  // Auto-update active tab based on current chain
+  useEffect(() => {
+    if (currentChainId) {
+      const correctSide = getCorrectSideForChain(currentChainId);
+      console.log('TradeForm: Auto-update effect:', {
+        currentChainId,
+        currentSide: activeTab,
+        correctSide,
+        chainConfig: configUtils.getChainByChainId(currentChainId)
+      });
+      
+      if (activeTab !== correctSide) {
+        console.log(`TradeForm: Auto-updating side from ${activeTab} to ${correctSide} based on chain ${currentChainId}`);
+        setActiveTab(correctSide);
+      }
+    }
+  }, [currentChainId, activeTab]);
+
+  // Handle side change with network switching
+  const handleSideChange = async (newSide: "buy" | "sell") => {
+    console.log('TradeForm: handleSideChange called:', {
+      newSide,
+      currentSide: activeTab,
+      currentChainId,
+      currentChainConfig: configUtils.getChainByChainId(currentChainId || 0)
+    });
+    
+    if (newSide === activeTab) return; // No change needed
+    
+    const targetChainId = getTargetChainForSide(newSide);
+    console.log('TradeForm: Target chain for side:', {
+      newSide,
+      targetChainId,
+      targetChainConfig: targetChainId ? configUtils.getChainByChainId(targetChainId) : null
+    });
+    
+    if (!targetChainId) {
+      toast({
+        title: "Chain not available",
+        description: `No chain configured for ${newSide} side`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (targetChainId === currentChainId) {
+      // Same chain, just update the side
+      console.log('TradeForm: Same chain, just updating side');
+      setActiveTab(newSide);
+      return;
+    }
+
+    // Different chain, need to switch
+    console.log('TradeForm: Different chain, switching networks');
+    try {
+      const chainConfig = configUtils.getChainByChainId(targetChainId);
+      if (!chainConfig) {
+        toast({
+          title: "Chain not supported",
+          description: `Chain ID ${targetChainId} is not configured`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Switching network",
+        description: `Switching to ${chainConfig.network} for ${newSide}...`,
+      });
+
+      const success = await switchToNetwork(chainConfig);
+      if (success) {
+        setActiveTab(newSide);
+        toast({
+          title: "Network switched",
+          description: `Successfully switched to ${chainConfig.network}`,
+        });
+      } else {
+        toast({
+          title: "Network switch failed",
+          description: "Failed to switch to the required network",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error switching network:', error);
+      toast({
+        title: "Network switch failed",
+        description: error.message || "Failed to switch network",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Debug logging
   console.log('TradeForm balances:', {
     availableBalance,
     lockedBalance,
     tradingPair: tradingPair?.baseSymbol,
-    currentChainId
+    currentChainId,
+    activeTab,
+    currentChainConfig: configUtils.getChainByChainId(currentChainId || 0)
   });
 
   const handlePercentageClick = (percentage: number) => {
@@ -214,15 +330,46 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
 
       console.log('Order sent successfully:', response);
 
-      toast({
-        title: "Order submitted successfully",
-        description: `${activeTab === "buy" ? "Buy" : "Sell"} ${activeOrderType} order for ${quantity} ${tradingPair.baseSymbol} has been submitted`,
-      });
+      // Check if response contains transaction hash
+      const txHash = response?.data?.txHash || response?.txHash || response?.transactionHash;
+      
+      if (txHash) {
+        const etherscanLink = getEtherscanLink(txHash, currentChainId);
+        const shortHash = shortenTxHash(txHash);
+        
+        toast({
+          title: "Order submitted successfully",
+          description: (
+            <div>
+              <p>{`${activeTab === "buy" ? "Buy" : "Sell"} ${activeOrderType} order for ${quantity} ${tradingPair.baseSymbol} has been submitted`}</p>
+              <a 
+                href={etherscanLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline mt-1 inline-block"
+              >
+                View transaction: {shortHash}
+              </a>
+            </div>
+          ),
+        });
+      } else {
+        toast({
+          title: "Order submitted successfully",
+          description: `${activeTab === "buy" ? "Buy" : "Sell"} ${activeOrderType} order for ${quantity} ${tradingPair.baseSymbol} has been submitted`,
+        });
+      }
 
       // Reset form
       setAmount("0,0");
       setPrice("");
       setPercentageValue(0);
+      
+      // Refresh local balance
+      refreshBalance();
+      
+      // Trigger global balance refresh for all components
+      triggerBalanceRefresh();
 
     } catch (error: any) {
       console.error('Error submitting order:', error);
@@ -232,6 +379,12 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         description: error.message || "Failed to submit order. Please try again.",
         variant: "destructive",
       });
+      
+      // Trigger global balance refresh even on error to ensure UI is up to date
+      triggerBalanceRefresh();
+      
+      // Refresh local balance even on error
+      refreshBalance();
     } finally {
       setIsSubmitting(false);
     }
@@ -263,7 +416,7 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
           {["buy", "sell"].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as "buy" | "sell")}
+              onClick={() => handleSideChange(tab as "buy" | "sell")}
               className={cn(
                 "flex-1 py-3 text-sm font-bold rounded-md transition-colors",
                 activeTab === tab

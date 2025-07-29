@@ -1,5 +1,31 @@
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 
+// Arborter gRPC Types
+export interface OrderbookRequest {
+  continue_stream: boolean;
+  market_id: string;
+  historical_open_orders?: boolean;
+  filter_by_trader?: string;
+}
+
+export interface OrderbookEntry {
+  timestamp: number;
+  order_id: number;
+  price: string;
+  quantity: string;
+  side: number; // 1 = BID, 2 = ASK
+  maker_base_address: string;
+  maker_quote_address: string;
+  status: number; // 1 = ADDED, 2 = UPDATED, 3 = REMOVED
+  market_id: string;
+}
+
+export interface OrderbookResponse {
+  success: boolean;
+  data: OrderbookEntry[];
+  error?: string;
+}
+
 // Environment variable for gRPC-Web proxy URL
 const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://localhost:8811';
 console.log('Environment variable VITE_GRPC_WEB_PROXY_URL:', import.meta.env.VITE_GRPC_WEB_PROXY_URL);
@@ -11,7 +37,7 @@ const transport = createGrpcWebTransport({
   useBinaryFormat: true, // Use binary format for gRPC-Web
 });
 
-// TypeScript types matching the exact gRPC response structure
+// Legacy types for backward compatibility
 interface Token {
   name: string;
   symbol: string;
@@ -219,6 +245,52 @@ class ConnectGrpcWebClient {
     return result;
   }
 
+  // Encode OrderbookRequest as protobuf
+  private encodeOrderbookRequest(data: OrderbookRequest): Uint8Array {
+    const encodeVarint = (value: number): Uint8Array => {
+      const bytes: number[] = [];
+      while (value >= 0x80) {
+        bytes.push((value & 0x7F) | 0x80);
+        value >>>= 7;
+      }
+      bytes.push(value & 0x7F);
+      return new Uint8Array(bytes);
+    };
+
+    const encodeStringField = (fieldNumber: number, value: string): Uint8Array => {
+      const stringBytes = new TextEncoder().encode(value);
+      const fieldHeader = encodeVarint((fieldNumber << 3) | 2); // Wire type 2 = length-delimited
+      const lengthBytes = encodeVarint(stringBytes.length);
+      return this.concatenateUint8Arrays([fieldHeader, lengthBytes, stringBytes]);
+    };
+
+    const encodeBoolField = (fieldNumber: number, value: boolean): Uint8Array => {
+      const fieldHeader = encodeVarint((fieldNumber << 3) | 0); // Wire type 0 = varint
+      const valueBytes = encodeVarint(value ? 1 : 0);
+      return this.concatenateUint8Arrays([fieldHeader, valueBytes]);
+    };
+
+    const parts: Uint8Array[] = [];
+
+    // Field 1: continue_stream (bool)
+    parts.push(encodeBoolField(1, data.continue_stream));
+
+    // Field 2: market_id (string)
+    parts.push(encodeStringField(2, data.market_id));
+
+    // Field 3: historical_open_orders (optional bool)
+    if (data.historical_open_orders !== undefined) {
+      parts.push(encodeBoolField(3, data.historical_open_orders));
+    }
+
+    // Field 4: filter_by_trader (optional string)
+    if (data.filter_by_trader !== undefined) {
+      parts.push(encodeStringField(4, data.filter_by_trader));
+    }
+
+    return this.concatenateUint8Arrays(parts);
+  }
+
   async call(service: string, method: string, data: any = {}) {
     console.log(`Connect gRPC-Web client making request to: ${service}/${method}`);
     
@@ -240,9 +312,11 @@ class ConnectGrpcWebClient {
         // For non-empty requests, create proper protobuf frame
         let messageBytes: Uint8Array;
         
-        // Use protobuf encoding for SendOrder, JSON for others
+        // Use protobuf encoding for SendOrder and Orderbook, JSON for others
         if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'SendOrder') {
           messageBytes = this.encodeOrderProtobuf(data);
+        } else if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Orderbook') {
+          messageBytes = this.encodeOrderbookRequest(data);
         } else {
           messageBytes = new TextEncoder().encode(JSON.stringify(data));
         }
@@ -282,6 +356,12 @@ class ConnectGrpcWebClient {
       
       // Check if gRPC call failed
       if (grpcStatus && grpcStatus !== '0') {
+        // For Orderbook method, try to provide a more graceful error
+        if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Orderbook') {
+          console.warn(`Orderbook gRPC call failed with status ${grpcStatus}: ${grpcMessage}`);
+          console.log('Returning empty orderbook as fallback');
+          return []; // Return empty array for orderbook
+        }
         throw new Error(`gRPC call failed: ${grpcStatus} - ${grpcMessage || 'Unknown error'}`);
       }
       
@@ -294,6 +374,11 @@ class ConnectGrpcWebClient {
       if (responseBytes.length === 0) {
         console.log('Empty response received');
         return {}; // Return empty object for empty responses
+      }
+      
+      // Handle streaming responses (like Orderbook)
+      if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Orderbook') {
+        return this.parseOrderbookStreamResponse(responseBytes);
       }
       
       // Parse gRPC-Web response frame
@@ -727,6 +812,410 @@ class ConnectGrpcWebClient {
       };
     }
   }
+
+  // Parse Orderbook stream response
+  parseOrderbookStreamResponse(responseBytes: Uint8Array): any {
+    console.log('Parsing Orderbook stream response, bytes length:', responseBytes.length);
+    
+    // If response is empty, return empty array
+    if (responseBytes.length === 0) {
+      console.log('Empty response received, returning empty array');
+      return [];
+    }
+    
+    // For gRPC-Web streaming responses, the proxy might return the data in a different format
+    // Let's try multiple approaches to parse it correctly
+    
+    // Approach 1: Try to parse as JSON first (most likely for gRPC-Web proxy)
+    try {
+      const decoder = new TextDecoder();
+      const text = decoder.decode(responseBytes);
+      console.log('Orderbook stream response text:', text);
+      
+      // Try to parse as JSON
+      const parsed = JSON.parse(text);
+      console.log('Parsed orderbook response as JSON:', parsed);
+      
+      // If it's an array, return it directly
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      
+      // If it has a data property, return that
+      if (parsed && parsed.data) {
+        return Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+      }
+      
+      // If it's a single object, wrap it in an array
+      return [parsed];
+      
+    } catch (error) {
+      console.error('Failed to parse Orderbook stream response as JSON:', error);
+    }
+    
+    // Approach 2: Try to parse as gRPC-Web streaming format
+    try {
+      const entries = this.parseOrderbookProtobufResponse(responseBytes);
+      if (entries.length > 0) {
+        console.log('Successfully parsed orderbook entries from protobuf:', entries);
+        return entries;
+      }
+    } catch (error) {
+      console.error('Failed to parse Orderbook stream response as protobuf:', error);
+    }
+    
+    // Approach 3: Try to parse as simple text with newlines (fallback)
+    try {
+      const decoder = new TextDecoder();
+      const text = decoder.decode(responseBytes);
+      console.log('Trying to parse as text:', text);
+      
+      // If the text contains JSON-like structures, try to extract them
+      const jsonMatches = text.match(/\{[^}]*\}/g);
+      if (jsonMatches && jsonMatches.length > 0) {
+        const entries = jsonMatches.map(match => {
+          try {
+            return JSON.parse(match);
+          } catch {
+            return null;
+          }
+        }).filter(entry => entry !== null);
+        
+        if (entries.length > 0) {
+          console.log('Extracted orderbook entries from text:', entries);
+          return entries;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse Orderbook stream response as text:', error);
+    }
+    
+    // Approach 4: Return empty array as last resort
+    console.log('All parsing approaches failed, returning empty array');
+    return [];
+  }
+
+  // Parse Orderbook protobuf response
+  parseOrderbookProtobufResponse(responseBytes: Uint8Array): any {
+    console.log('Parsing Orderbook protobuf response, bytes length:', responseBytes.length);
+    
+    const entries: any[] = [];
+    let offset = 0;
+    
+    // Parse multiple protobuf messages from the stream
+    while (offset < responseBytes.length) {
+      if (offset + 5 > responseBytes.length) {
+        break; // Not enough bytes for a complete frame
+      }
+      
+      // Parse gRPC-Web frame header
+      const flag = responseBytes[offset];
+      const length = (responseBytes[offset + 1] << 24) | 
+                     (responseBytes[offset + 2] << 16) | 
+                     (responseBytes[offset + 3] << 8) | 
+                     responseBytes[offset + 4];
+      
+      console.log(`Frame flag: ${flag}, length: ${length}, offset: ${offset}`);
+      
+      if (length === 0) {
+        offset += 5;
+        continue; // Empty frame
+      }
+      
+      if (offset + 5 + length > responseBytes.length) {
+        console.log('Not enough bytes for complete message, stopping');
+        break; // Not enough bytes for complete message
+      }
+      
+      // Extract message bytes
+      const messageBytes = responseBytes.slice(offset + 5, offset + 5 + length);
+      
+      // Parse OrderbookEntry protobuf message
+      try {
+        const entry = this.parseOrderbookEntryProtobuf(messageBytes);
+        if (entry && Object.keys(entry).length > 0) {
+          entries.push(entry);
+          console.log('Parsed orderbook entry:', entry);
+        }
+      } catch (error) {
+        console.error('Failed to parse OrderbookEntry:', error);
+      }
+      
+      offset += 5 + length;
+    }
+    
+    console.log('Parsed orderbook entries from protobuf:', entries);
+    return entries;
+  }
+
+  // Parse single OrderbookEntry protobuf message
+  parseOrderbookEntryProtobuf(bytes: Uint8Array): any {
+    let offset = 0;
+    const entry: any = {};
+    
+    console.log('Parsing OrderbookEntry protobuf, bytes length:', bytes.length);
+    
+    while (offset < bytes.length) {
+      try {
+        const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(bytes, offset);
+        offset = newOffset;
+        
+        console.log(`Field ${fieldNumber}, wireType ${wireType}, value:`, value);
+        
+        switch (fieldNumber) {
+          case 1: // timestamp
+            entry.timestamp = value;
+            break;
+          case 2: // order_id
+            entry.order_id = value;
+            break;
+          case 3: // price
+            entry.price = this.decodeString(value);
+            break;
+          case 4: // quantity
+            entry.quantity = this.decodeString(value);
+            break;
+          case 5: // side
+            entry.side = value;
+            break;
+          case 6: // maker_base_address
+            entry.maker_base_address = this.decodeString(value);
+            break;
+          case 7: // maker_quote_address
+            entry.maker_quote_address = this.decodeString(value);
+            break;
+          case 8: // status
+            entry.status = value;
+            break;
+          case 9: // market_id
+            entry.market_id = this.decodeString(value);
+            break;
+          default:
+            console.log(`Unknown field number: ${fieldNumber}`);
+        }
+      } catch (error) {
+        console.error('Error parsing protobuf field:', error);
+        break; // Stop parsing if we encounter an error
+      }
+    }
+    
+    console.log('Final parsed entry:', entry);
+    return entry;
+  }
+
+  // Parse raw orderbook entry into proper OrderbookEntry type
+  parseOrderbookEntry(rawEntry: any): OrderbookEntry {
+    return {
+      timestamp: Number(rawEntry.timestamp) || 0,
+      order_id: Number(rawEntry.order_id) || 0,
+      price: String(rawEntry.price || '0'),
+      quantity: String(rawEntry.quantity || '0'),
+      side: Number(rawEntry.side) || 0,
+      maker_base_address: String(rawEntry.maker_base_address || ''),
+      maker_quote_address: String(rawEntry.maker_quote_address || ''),
+      status: Number(rawEntry.status) || 0,
+      market_id: String(rawEntry.market_id || '')
+    };
+  }
+
+  // Get orderbook snapshot (non-streaming)
+  async getOrderbookSnapshot(marketId: string): Promise<OrderbookResponse> {
+    try {
+      console.log('Calling getOrderbookSnapshot via Connect gRPC-Web for market:', marketId);
+      
+      const request: OrderbookRequest = {
+        continue_stream: false,
+        historical_open_orders: true,
+        market_id: marketId
+      };
+      
+      console.log('Sending orderbook snapshot request:', request);
+      
+      const response = await this.call(
+        'xyz.aspens.arborter.v1.ArborterService',
+        'Orderbook',
+        request
+      );
+      
+      console.log('Raw orderbook response:', response);
+      
+      // Parse the response into OrderbookEntry objects
+      let entries: OrderbookEntry[] = [];
+      
+      if (Array.isArray(response)) {
+        entries = response.map(entry => this.parseOrderbookEntry(entry));
+      } else if (response && typeof response === 'object') {
+        // If it's a single object, wrap it in an array
+        entries = [this.parseOrderbookEntry(response)];
+      } else if (response && response.data) {
+        // If it has a data property, use that
+        const data = Array.isArray(response.data) ? response.data : [response.data];
+        entries = data.map(entry => this.parseOrderbookEntry(entry));
+      }
+      
+      console.log('Parsed orderbook entries:', entries);
+      
+      return { 
+        success: true, 
+        data: entries 
+      };
+    } catch (error) {
+      console.error('Connect gRPC-Web getOrderbookSnapshot error:', error);
+      
+      // Return empty orderbook on error
+      return { 
+        success: true, 
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  // Get orderbook snapshot with fallback to JSON encoding
+  async getOrderbookSnapshotWithFallback(marketId: string): Promise<OrderbookResponse> {
+    try {
+      console.log('Calling getOrderbookSnapshotWithFallback for market:', marketId);
+      
+      const request: OrderbookRequest = {
+        continue_stream: false,
+        historical_open_orders: true,
+        market_id: marketId
+      };
+      
+      // First try with protobuf encoding
+      try {
+        console.log('Trying with protobuf encoding...');
+        const response = await this.call(
+          'xyz.aspens.arborter.v1.ArborterService',
+          'Orderbook',
+          request
+        );
+        
+        console.log('Protobuf encoding succeeded:', response);
+        
+        // Parse the response into OrderbookEntry objects
+        let entries: OrderbookEntry[] = [];
+        
+        if (Array.isArray(response)) {
+          entries = response.map(entry => this.parseOrderbookEntry(entry));
+        } else if (response && typeof response === 'object') {
+          entries = [this.parseOrderbookEntry(response)];
+        } else if (response && response.data) {
+          const data = Array.isArray(response.data) ? response.data : [response.data];
+          entries = data.map(entry => this.parseOrderbookEntry(entry));
+        }
+        
+        return { 
+          success: true, 
+          data: entries 
+        };
+      } catch (protobufError) {
+        console.warn('Protobuf encoding failed, trying JSON fallback:', protobufError);
+        
+        // Fallback to JSON encoding
+        const jsonRequest = {
+          continue_stream: false,
+          historical_open_orders: true,
+          market_id: marketId
+        };
+        
+        const response = await this.call(
+          'xyz.aspens.arborter.v1.ArborterService',
+          'Orderbook',
+          jsonRequest
+        );
+        
+        console.log('JSON encoding succeeded:', response);
+        
+        // Parse the response into OrderbookEntry objects
+        let entries: OrderbookEntry[] = [];
+        
+        if (Array.isArray(response)) {
+          entries = response.map(entry => this.parseOrderbookEntry(entry));
+        } else if (response && typeof response === 'object') {
+          entries = [this.parseOrderbookEntry(response)];
+        } else if (response && response.data) {
+          const data = Array.isArray(response.data) ? response.data : [response.data];
+          entries = data.map(entry => this.parseOrderbookEntry(entry));
+        }
+        
+        return { 
+          success: true, 
+          data: entries 
+        };
+      }
+    } catch (error) {
+      console.error('Both protobuf and JSON encoding failed:', error);
+      
+      // Return empty orderbook on error
+      return { 
+        success: true, 
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  // Test method to debug orderbook response format
+  async testOrderbookResponse(marketId: string): Promise<any> {
+    try {
+      console.log('Testing orderbook response format for market:', marketId);
+      
+      const request = {
+        continue_stream: false,
+        historical_open_orders: true,
+        market_id: marketId
+      };
+      
+      const url = `${this.baseUrl}/xyz.aspens.arborter.v1.ArborterService/Orderbook`;
+      
+      // Create request body
+      const messageBytes = new TextEncoder().encode(JSON.stringify(request));
+      const messageLength = messageBytes.length;
+      
+      const requestBody = new Uint8Array(5 + messageLength);
+      requestBody[0] = 0; // No compression flag
+      requestBody[1] = (messageLength >>> 24) & 0xFF;
+      requestBody[2] = (messageLength >>> 16) & 0xFF;
+      requestBody[3] = (messageLength >>> 8) & 0xFF;
+      requestBody[4] = messageLength & 0xFF;
+      requestBody.set(messageBytes, 5);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/grpc-web+proto',
+          'X-Grpc-Web': '1',
+        },
+        body: requestBody
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const arrayBuffer = await response.arrayBuffer();
+      const responseBytes = new Uint8Array(arrayBuffer);
+      
+      console.log('Response bytes length:', responseBytes.length);
+      console.log('Response bytes (first 100):', Array.from(responseBytes.slice(0, 100)));
+      
+      // Try to decode as text
+      const decoder = new TextDecoder();
+      const text = decoder.decode(responseBytes);
+      console.log('Response as text:', text);
+      
+      return {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+        bytesLength: responseBytes.length,
+        text: text,
+        bytes: Array.from(responseBytes)
+      };
+    } catch (error) {
+      console.error('Test orderbook response error:', error);
+      throw error;
+    }
+  }
 }
 
 // Create client using Connect-Web transport base URL
@@ -832,6 +1321,99 @@ export const arborterService = {
       return { success: true, data: response };
     } catch (error) {
       console.error('Connect gRPC-Web cancelOrder error:', error);
+      throw error;
+    }
+  },
+
+  // Get orderbook snapshot (non-streaming)
+  async getOrderbookSnapshot(marketId: string): Promise<OrderbookResponse> {
+    try {
+      console.log('Calling getOrderbookSnapshot via arborterService for market:', marketId);
+      return await grpcClient.getOrderbookSnapshotWithFallback(marketId);
+    } catch (error) {
+      console.error('arborterService getOrderbookSnapshot error:', error);
+      throw error;
+    }
+  },
+
+  // Test orderbook response format
+  async testOrderbookResponse(marketId: string): Promise<any> {
+    try {
+      console.log('Testing orderbook response format for market:', marketId);
+      return await grpcClient.testOrderbookResponse(marketId);
+    } catch (error) {
+      console.error('Test orderbook response error:', error);
+      throw error;
+    }
+  },
+
+  // Get orderbook stream (streaming with Server-Sent Events)
+  async getOrderbookStream(marketId: string, onUpdate: (entries: OrderbookEntry[]) => void): Promise<{ success: boolean; cleanup: () => void }> {
+    try {
+      console.log('Starting orderbook stream for market:', marketId);
+      
+      const request: OrderbookRequest = {
+        continue_stream: true,
+        historical_open_orders: true,
+        market_id: marketId
+      };
+      
+      // For now, we'll use polling as a fallback since true streaming is complex
+      // In a real implementation, this would use Server-Sent Events or WebSocket
+      const pollOrderbook = async () => {
+        try {
+          const response = await grpcClient.getOrderbookSnapshot(marketId);
+          if (response.success && response.data) {
+            onUpdate(response.data);
+          }
+        } catch (error) {
+          console.error('Orderbook polling error:', error);
+        }
+      };
+      
+      // Initial poll
+      await pollOrderbook();
+      
+      // Set up polling interval
+      const intervalId = setInterval(pollOrderbook, 2000); // Poll every 2 seconds for real-time feel
+      
+      // Return cleanup function
+      return {
+        success: true,
+        cleanup: () => {
+          console.log('Cleaning up orderbook stream');
+          clearInterval(intervalId);
+        }
+      };
+    } catch (error) {
+      console.error('Connect gRPC-Web getOrderbookStream error:', error);
+      throw error;
+    }
+  },
+
+  // Legacy method for backward compatibility
+  async getOrderbook(marketId: string, continueStream: boolean = true, historicalOpenOrders: boolean = true): Promise<any> {
+    try {
+      console.log('Calling getOrderbook via Connect gRPC-Web (legacy method)');
+      
+      const request = {
+        continue_stream: continueStream,
+        historical_open_orders: historicalOpenOrders,
+        market_id: marketId
+      };
+      
+      console.log('Sending orderbook request to gRPC:', request);
+      
+      const response = await grpcClient.call(
+        'xyz.aspens.arborter.v1.ArborterService',
+        'Orderbook',
+        request
+      );
+      
+      console.log('Connect gRPC-Web getOrderbook success:', response);
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Connect gRPC-Web getOrderbook error:', error);
       throw error;
     }
   }

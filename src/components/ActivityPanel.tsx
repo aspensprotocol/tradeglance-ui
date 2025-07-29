@@ -4,35 +4,23 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useTradingBalance } from "@/hooks/useTokenBalance";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
-
-interface Trade {
-  id: number;
-  type: "buy" | "sell";
-  price: number;
-  amount: number;
-  total: number;
-  time: string;
-}
+import { useRecentTrades, RecentTrade } from "@/hooks/useRecentTrades";
 
 interface ActivityPanelProps {
   tradingPair?: any;
 }
 
-const mockTrades: Trade[] = Array(5).fill(null).map((_, i) => ({
-  id: i,
-  type: Math.random() > 0.5 ? "buy" : "sell",
-  price: 50000 - Math.random() * 1000,
-  amount: Math.random() * 2,
-  total: Math.random() * 100000,
-  time: new Date(Date.now() - i * 60000).toLocaleTimeString()
-}));
-
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   const { currentChainId } = useChainMonitor();
   const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
-  const [trades] = useState<Trade[]>(mockTrades);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
+
+  // Get the market ID from the trading pair
+  const marketId = tradingPair?.marketId;
+  
+  // Use real recent trades data
+  const { trades, loading: tradesLoading, error: tradesError } = useRecentTrades(marketId);
 
   // Get trading balances for the current trading pair
   const { depositedBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
@@ -67,14 +55,18 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     </div>
   );
 
+  const formatTime = (timestamp: Date) => {
+    return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
-      <div className="p-4 h-full flex flex-col">
-        <div className="flex space-x-4 border-b mb-4">
+      <div className="p-4 h-full flex flex-col min-w-0">
+        <div className="flex space-x-2 border-b mb-4 overflow-x-auto">
           <button
             onClick={() => setActiveTab("trades")}
             className={cn(
-              "pb-2 text-sm font-medium transition-colors relative",
+              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
               activeTab === "trades"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
@@ -88,7 +80,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => setActiveTab("orders")}
             className={cn(
-              "pb-2 text-sm font-medium transition-colors relative",
+              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
               activeTab === "orders"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
@@ -102,7 +94,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => setActiveTab("balances")}
             className={cn(
-              "pb-2 text-sm font-medium transition-colors relative",
+              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
               activeTab === "balances"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
@@ -116,45 +108,69 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => setActiveTab("deposits")}
             className={cn(
-              "pb-2 text-sm font-medium transition-colors relative",
+              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
               activeTab === "deposits"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
             )}
           >
-            Deposits & Withdrawals
+            Deposits
             {activeTab === "deposits" && (
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
           </button>
         </div>
 
-        <div className="animate-fade-in flex-1 overflow-auto">
+        <div className="animate-fade-in flex-1 overflow-auto min-w-0">
           {activeTab === "trades" ? (
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               {/* Header row */}
-              <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b">
-                <span>Type</span>
-                <span className="text-right">Price</span>
-                <span className="text-right">Amount</span>
-                <span className="text-right">Time</span>
+              <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b gap-2">
+                <span className="truncate">Type</span>
+                <span className="text-right truncate">Price</span>
+                <span className="text-right truncate">Amount</span>
+                <span className="text-right truncate">Time</span>
               </div>
               
-              {trades.map((trade) => (
-                <div
-                  key={trade.id}
-                  className="grid grid-cols-4 text-sm py-2 border-b last:border-0"
-                >
-                  <span className={cn(
-                    trade.type === "buy" ? "text-bid-dark" : "text-ask-dark"
-                  )}>
-                    {trade.type.toUpperCase()}
-                  </span>
-                  <span className="text-right">{trade.price.toLocaleString()}</span>
-                  <span className="text-right">{trade.amount.toFixed(4)}</span>
-                  <span className="text-right text-neutral">{trade.time}</span>
+              {tradesLoading ? (
+                <div className="text-center py-8 text-neutral">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  Loading recent trades...
                 </div>
-              ))}
+              ) : tradesError ? (
+                <div className="text-center py-8 text-red-500">
+                  Error loading recent trades: {tradesError}
+                </div>
+              ) : trades.length === 0 ? (
+                <div className="text-center py-8 text-neutral">
+                  No recent trades
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {trades.map((trade) => (
+                    <div
+                      key={trade.id}
+                      className="grid grid-cols-4 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
+                    >
+                      <span className={cn(
+                        trade.side === "buy" ? "text-bid-dark" : "text-ask-dark",
+                        "truncate font-medium"
+                      )}>
+                        {trade.side.toUpperCase()}
+                      </span>
+                      <span className="text-right truncate font-mono">
+                        {parseFloat(trade.price).toLocaleString()}
+                      </span>
+                      <span className="text-right truncate font-mono">
+                        {parseFloat(trade.quantity).toFixed(4)}
+                      </span>
+                      <span className="text-right text-neutral truncate text-xs">
+                        {formatTime(trade.timestamp)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : activeTab === "orders" ? (
             <div className="space-y-4">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, usePublicClient } from 'wagmi';
 import { readContract } from 'viem/actions';
+import { createPublicClient, http } from 'viem';
 import { configUtils } from '../lib/config-utils';
 
 // ERC-20 Token ABI for balanceOf function
@@ -38,6 +39,13 @@ const MIDRIB_V2_ABI = [
   }
 ] as const;
 
+// Helper function to create a custom public client with the correct RPC URL
+const createCustomPublicClient = (rpcUrl: string) => {
+  return createPublicClient({
+    transport: http(rpcUrl),
+  });
+};
+
 export const useTokenBalance = (tokenSymbol: string, chainId: number) => {
   const [balance, setBalance] = useState<string>("0");
   const [loading, setLoading] = useState(false);
@@ -48,7 +56,7 @@ export const useTokenBalance = (tokenSymbol: string, chainId: number) => {
 
   useEffect(() => {
     const fetchBalance = async () => {
-      if (!isConnected || !address || !tokenSymbol || !chainId || !publicClient) {
+      if (!isConnected || !address || !tokenSymbol || !chainId) {
         setBalance("0");
         return;
       }
@@ -77,8 +85,12 @@ export const useTokenBalance = (tokenSymbol: string, chainId: number) => {
         const tokenAddress = tokenConfig.address;
         console.log('useTokenBalance: Token address:', tokenAddress);
 
-        // Read token balance using publicClient
-        const balanceResult = await publicClient.readContract({
+        // Create custom public client with the correct RPC URL from config
+        const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
+        console.log('useTokenBalance: Using custom public client with RPC URL:', chainConfig.rpcUrl);
+
+        // Read token balance using custom publicClient
+        const balanceResult = await customPublicClient.readContract({
           address: tokenAddress as `0x${string}`,
           abi: ERC20_ABI,
           functionName: 'balanceOf',
@@ -105,7 +117,7 @@ export const useTokenBalance = (tokenSymbol: string, chainId: number) => {
     };
 
     fetchBalance();
-  }, [isConnected, address, tokenSymbol, chainId, publicClient]);
+  }, [isConnected, address, tokenSymbol, chainId]);
 
   return { balance, loading, error };
 };
@@ -119,10 +131,9 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
   const [error, setError] = useState<string | null>(null);
   
   const { address, isConnected } = useAccount();
-  const publicClient = usePublicClient();
 
   const fetchTradingBalances = async () => {
-    if (!isConnected || !address || !tokenSymbol || !chainId || !publicClient) {
+    if (!isConnected || !address || !tokenSymbol || !chainId) {
       setDepositedBalance("0");
       setLockedBalance("0");
       setAvailableBalance("0");
@@ -135,24 +146,24 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
     try {
       console.log('useTradingBalance: Fetching trading balances for', tokenSymbol, 'on chain', chainId);
       
-              // Get chain and token config
-        const chainConfig = configUtils.getChainByChainId(chainId);
-        console.log('useTradingBalance: Chain config for chainId', chainId, ':', chainConfig);
-        
-        if (!chainConfig) {
-          console.error(`Chain config not found for chain ${chainId}`);
-          console.log('useTradingBalance: Available chains:', configUtils.getAllChains());
-          return;
-        }
+      // Get chain and token config
+      const chainConfig = configUtils.getChainByChainId(chainId);
+      console.log('useTradingBalance: Chain config for chainId', chainId, ':', chainConfig);
+      
+      if (!chainConfig) {
+        console.error(`Chain config not found for chain ${chainId}`);
+        console.log('useTradingBalance: Available chains:', configUtils.getAllChains());
+        return;
+      }
 
-        const tokenConfig = chainConfig.tokens[tokenSymbol];
-        console.log('useTradingBalance: Token config for', tokenSymbol, ':', tokenConfig);
-        
-        if (!tokenConfig) {
-          console.error(`Token config not found for ${tokenSymbol} on chain ${chainId}`);
-          console.log('useTradingBalance: Available tokens on chain', chainId, ':', Object.keys(chainConfig.tokens));
-          return;
-        }
+      const tokenConfig = chainConfig.tokens[tokenSymbol];
+      console.log('useTradingBalance: Token config for', tokenSymbol, ':', tokenConfig);
+      
+      if (!tokenConfig) {
+        console.error(`Token config not found for ${tokenSymbol} on chain ${chainId}`);
+        console.log('useTradingBalance: Available tokens on chain', chainId, ':', Object.keys(chainConfig.tokens));
+        return;
+      }
 
       const tokenAddress = tokenConfig.address;
       const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
@@ -168,9 +179,13 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
       console.log('useTradingBalance: Chain ID:', chainId);
       console.log('useTradingBalance: Token symbol:', tokenSymbol);
 
+      // Create custom public client with the correct RPC URL from config
+      const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
+      console.log('useTradingBalance: Using custom public client with RPC URL:', chainConfig.rpcUrl);
+
       // Read deposited balance (getBalance)
       console.log('useTradingBalance: Calling getBalance with args:', [address, tokenAddress]);
-      const depositedResult = await publicClient.readContract({
+      const depositedResult = await customPublicClient.readContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MIDRIB_V2_ABI,
         functionName: 'getBalance',
@@ -179,7 +194,7 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
 
       // Read locked balance (getLockedBalance)
       console.log('useTradingBalance: Calling getLockedBalance with args:', [address, tokenAddress]);
-      const lockedResult = await publicClient.readContract({
+      const lockedResult = await customPublicClient.readContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MIDRIB_V2_ABI,
         functionName: 'getLockedBalance',
@@ -221,7 +236,19 @@ export const useTradingBalance = (tokenSymbol: string, chainId: number) => {
 
   useEffect(() => {
     fetchTradingBalances();
-  }, [isConnected, address, tokenSymbol, chainId, publicClient]);
+    
+    // Listen for balance refresh events
+    const handleBalanceRefresh = () => {
+      console.log('useTradingBalance: Received balance refresh event');
+      fetchTradingBalances();
+    };
+    
+    window.addEventListener('balance-refresh', handleBalanceRefresh);
+    
+    return () => {
+      window.removeEventListener('balance-refresh', handleBalanceRefresh);
+    };
+  }, [isConnected, address, tokenSymbol, chainId]);
 
   return { 
     depositedBalance, 

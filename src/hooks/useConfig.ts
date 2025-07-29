@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { configService } from '../lib/grpc-client';
 import { configUtils } from '../lib/config-utils';
+import { updateWagmiConfig } from '../lib/web3modal-config';
 
 // Import types from grpc-client
 interface Token {
@@ -72,6 +73,18 @@ export const useConfig = (): UseConfigReturn => {
         setConfig(configData);
         // Set the config in our utils for easy access
         configUtils.setConfig(configData);
+        
+        // Update wagmi configuration with chains from gRPC config
+        if (configData.chains && configData.chains.length > 0) {
+          console.log('Updating wagmi config with chains from gRPC config:', configData.chains);
+          try {
+            updateWagmiConfig(configData.chains);
+            console.log('Successfully updated wagmi config with gRPC chains');
+          } catch (updateError) {
+            console.warn('Failed to update wagmi config:', updateError);
+            // Don't fail the entire config load if wagmi update fails
+          }
+        }
       } else {
         setError(response.error || 'Failed to fetch configuration');
         setConfig(null);

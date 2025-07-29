@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TradingPair } from "@/hooks/useTradingPairs";
-import { useAccount, useChainId, usePublicClient, useSwitchChain } from "wagmi";
+import { useAccount, useChainId, usePublicClient } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
 import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,8 @@ import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
 import { useTradingBalance } from "@/hooks/useTokenBalance";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { triggerBalanceRefresh } from "@/lib/utils";
 
 interface SimpleFormProps {
   selectedPair?: string;
@@ -35,7 +37,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
   const { toast } = useToast();
   const { tradingPairs } = useTradingPairs();
   const publicClient = usePublicClient();
-  const { switchChain } = useSwitchChain();
+  const { switchToNetwork } = useNetworkSwitch();
 
   // Get trading balances for the current trading pair
   const { availableBalance, lockedBalance, loading: balanceLoading, refresh: refreshBalance } = useTradingBalance(
@@ -113,7 +115,16 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
       // Switch MetaMask to the new network
       const chainId = typeof newChainConfig.chainId === 'string' ? parseInt(newChainConfig.chainId, 10) : newChainConfig.chainId;
-      await switchChain({ chainId });
+      const success = await switchToNetwork(newChainConfig);
+      
+      if (!success) {
+        toast({
+          title: "Network switch failed",
+          description: "Failed to switch to the selected network",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Update sender network
       setSenderNetwork(newNetwork);
@@ -433,6 +444,9 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
       // Refresh balance to show updated amounts
       refreshBalance();
+      
+      // Trigger global balance refresh for all components
+      triggerBalanceRefresh();
 
       // Reset form
       setSenderAmount("");
@@ -447,6 +461,9 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
           description: error.message || "Failed to submit simple order. Please try again.",
         variant: "destructive",
       });
+      
+      // Trigger global balance refresh even on error to ensure UI is up to date
+      triggerBalanceRefresh();
     } finally {
       setIsSubmitting(false);
     }

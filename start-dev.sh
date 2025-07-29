@@ -9,7 +9,6 @@ docker rm envoy-grpc-web 2>/dev/null
 docker run -d --name envoy-grpc-web \
   -v "$(pwd)/envoy.yaml:/etc/envoy/envoy.yaml:ro" \
   -p 8811:8811 \
-  # --network host \
   envoyproxy/envoy:distroless-v1.34-latest
 
 # Start the frontend development server
