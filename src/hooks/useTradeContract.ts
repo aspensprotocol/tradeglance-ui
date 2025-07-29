@@ -1,21 +1,6 @@
 import { useConfig } from './useConfig';
 import { configUtils } from '../lib/config-utils';
 
-export const useTradeContract = (chainId: number) => {
-  const { config, loading, error } = useConfig();
-  
-  const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
-  const chainConfig = configUtils.getChainByChainId(chainId);
-  
-  return {
-    tradeContractAddress,
-    chainConfig,
-    loading,
-    error,
-    isSupported: !!tradeContractAddress,
-  };
-};
-
 export const useTradeContracts = () => {
   const { config, loading, error } = useConfig();
   
@@ -26,9 +11,9 @@ export const useTradeContracts = () => {
   };
   
   const getTradingPairs = () => {
-    const pairs = configUtils.getTradingPairs();
-    console.log('useTradeContracts: getTradingPairs returned:', pairs);
-    return pairs;
+    // This function doesn't exist in configUtils, so we'll return an empty array
+    console.log('useTradeContracts: getTradingPairs not implemented');
+    return [];
   };
   
   return {

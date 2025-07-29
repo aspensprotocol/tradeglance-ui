@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { configUtils } from '@/lib/config-utils';
 import { useChainMonitor } from '@/hooks/useChainMonitor';
 import { useNetworkSwitch } from '@/hooks/useNetworkSwitch';
-import { WalletButton } from '@/components/WalletButton';
+import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 import { getEtherscanLink, shortenTxHash } from '@/lib/utils';
 
 // Standard ERC20 ABI with mint function
@@ -225,27 +225,8 @@ const Mint = () => {
     <div className="min-h-screen bg-neutral-soft/30">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="p-4 flex justify-between items-center">
-          <div className="flex gap-6">
-            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Pro
-            </Link>
-            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Simple
-            </Link>
-            <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Docs
-            </Link>
-          </div>
-          
-          <div className="flex gap-3 items-center">
-            {currentChainId && (
-              <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                ✅ {currentChainId}
-              </div>
-            )}
-            <WalletButton />
-          </div>
+        <div className="p-4">
+          <Navigation />
         </div>
         
         <div className="p-8 max-w-4xl mx-auto">

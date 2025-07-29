@@ -1,12 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useConfig } from '../hooks/useConfig';
-import { useChainMonitor } from '../hooks/useChainMonitor';
-import { WalletButton } from './WalletButton';
+import { Navigation } from './Navigation';
 
 export const ConfigTest: React.FC = () => {
   const { config, loading, error, refetch } = useConfig();
-  const { currentChainId } = useChainMonitor();
 
   if (loading) {
     return <div>Loading config...</div>;
@@ -47,27 +44,8 @@ export const ConfigTest: React.FC = () => {
   return (
     <div className="min-h-screen bg-neutral-soft/30">
       <div className="container mx-auto">
-        <div className="p-4 flex justify-between items-center">
-          <div className="flex gap-6">
-            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Pro
-            </Link>
-            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Simple
-            </Link>
-            <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Docs
-            </Link>
-          </div>
-          
-          <div className="flex gap-3 items-center">
-            {currentChainId && (
-              <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                ✅ {currentChainId}
-              </div>
-            )}
-            <WalletButton />
-          </div>
+        <div className="p-4">
+          <Navigation />
         </div>
         
         <div className="p-4">

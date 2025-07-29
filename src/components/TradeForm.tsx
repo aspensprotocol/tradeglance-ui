@@ -1,17 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { cn, getEtherscanLink, shortenTxHash, triggerBalanceRefresh } from "@/lib/utils";
-import { Info, Loader2 } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
+
 import { Button } from "@/components/ui/button";
 import { TradingPair } from "@/hooks/useTradingPairs";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
 import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
-import { useTradingBalance } from "@/hooks/useTokenBalance";
+import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 
 interface TradeFormProps {
@@ -28,16 +27,12 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
   const { currentChainId } = useChainMonitor();
   const { toast } = useToast();
   const { switchToNetwork } = useNetworkSwitch();
 
   // Get trading balances for the current trading pair
-  const { availableBalance, lockedBalance, loading: balanceLoading, refresh: refreshBalance } = useTradingBalance(
-    tradingPair?.baseSymbol || "ATOM", 
-    currentChainId || 0
-  );
+  const { availableBalance, lockedBalance, balanceLoading, refreshBalance } = useBalanceManager(tradingPair);
 
   // Helper function to determine the correct side based on current chain
   const getCorrectSideForChain = (chainId: number): "buy" | "sell" => {

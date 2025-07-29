@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
-import { useTradingBalance } from "@/hooks/useTokenBalance";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades, RecentTrade } from "@/hooks/useRecentTrades";
 
@@ -11,7 +10,6 @@ interface ActivityPanelProps {
 }
 
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
-  const { currentChainId } = useChainMonitor();
   const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
@@ -23,15 +21,16 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   const { trades, loading: tradesLoading, error: tradesError } = useRecentTrades(marketId);
 
   // Get trading balances for the current trading pair
-  const { depositedBalance, lockedBalance, loading: balanceLoading } = useTradingBalance(
-    tradingPair?.baseSymbol || "ATOM", 
-    currentChainId || 0
-  );
+  const { 
+    availableBalance: depositedBalance, 
+    lockedBalance, 
+    balanceLoading 
+  } = useBalanceManager(tradingPair);
 
   // Get wallet token balance (balanceOf)
   const { balance: walletBalance, loading: walletLoading } = useTokenBalance(
     tradingPair?.baseSymbol || "ATOM",
-    currentChainId || 0
+    tradingPair?.baseChainId || 0
   );
 
   const handleDepositClick = () => {
