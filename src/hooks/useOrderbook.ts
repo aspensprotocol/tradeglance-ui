@@ -36,6 +36,8 @@ export function useOrderbook(marketId: string) {
 
     try {
       console.log('Fetching orderbook for market:', marketId);
+      console.log('Market ID length:', marketId.length);
+      console.log('Market ID contains special chars:', marketId.includes('::'));
       
       const response: OrderbookResponse = await arborterService.getOrderbookSnapshot(marketId);
       

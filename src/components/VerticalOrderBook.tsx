@@ -16,7 +16,7 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
   const marketId = selectedTradingPair?.marketId;
   
   // Use the orderbook hook to fetch real data
-  const { orderbook, loading, error, refresh } = useOrderbook(marketId);
+  const { orderbook, loading, error } = useOrderbook(marketId);
 
   // Fallback to mock data if no real data is available
   const asks = orderbook?.asks || [];
