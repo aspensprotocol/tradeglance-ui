@@ -298,47 +298,48 @@ class ConnectGrpcWebClient {
     return result;
   }
 
+  // Common protobuf encoding utilities
+  private encodeVarint(value: number): Uint8Array {
+    const bytes: number[] = [];
+    while (value >= 0x80) {
+      bytes.push((value & 0x7F) | 0x80);
+      value >>>= 7;
+    }
+    bytes.push(value & 0x7F);
+    return new Uint8Array(bytes);
+  }
+
+  private encodeStringField(fieldNumber: number, value: string): Uint8Array {
+    const stringBytes = new TextEncoder().encode(value);
+    const fieldHeader = this.encodeVarint((fieldNumber << 3) | 2); // Wire type 2 = length-delimited
+    const lengthBytes = this.encodeVarint(stringBytes.length);
+    return this.concatenateUint8Arrays([fieldHeader, lengthBytes, stringBytes]);
+  }
+
+  private encodeBoolField(fieldNumber: number, value: boolean): Uint8Array {
+    const fieldHeader = this.encodeVarint((fieldNumber << 3) | 0); // Wire type 0 = varint
+    const valueBytes = this.encodeVarint(value ? 1 : 0);
+    return this.concatenateUint8Arrays([fieldHeader, valueBytes]);
+  }
+
   // Encode OrderbookRequest as protobuf
   private encodeOrderbookRequest(data: OrderbookRequest): Uint8Array {
-    const encodeVarint = (value: number): Uint8Array => {
-      const bytes: number[] = [];
-      while (value >= 0x80) {
-        bytes.push((value & 0x7F) | 0x80);
-        value >>>= 7;
-      }
-      bytes.push(value & 0x7F);
-      return new Uint8Array(bytes);
-    };
-
-    const encodeStringField = (fieldNumber: number, value: string): Uint8Array => {
-      const stringBytes = new TextEncoder().encode(value);
-      const fieldHeader = encodeVarint((fieldNumber << 3) | 2); // Wire type 2 = length-delimited
-      const lengthBytes = encodeVarint(stringBytes.length);
-      return this.concatenateUint8Arrays([fieldHeader, lengthBytes, stringBytes]);
-    };
-
-    const encodeBoolField = (fieldNumber: number, value: boolean): Uint8Array => {
-      const fieldHeader = encodeVarint((fieldNumber << 3) | 0); // Wire type 0 = varint
-      const valueBytes = encodeVarint(value ? 1 : 0);
-      return this.concatenateUint8Arrays([fieldHeader, valueBytes]);
-    };
-
     const parts: Uint8Array[] = [];
 
     // Field 1: continue_stream (bool)
-    parts.push(encodeBoolField(1, data.continue_stream));
+    parts.push(this.encodeBoolField(1, data.continue_stream));
 
     // Field 2: market_id (string)
-    parts.push(encodeStringField(2, data.market_id));
+    parts.push(this.encodeStringField(2, data.market_id));
 
     // Field 3: historical_open_orders (optional bool)
     if (data.historical_open_orders !== undefined) {
-      parts.push(encodeBoolField(3, data.historical_open_orders));
+      parts.push(this.encodeBoolField(3, data.historical_open_orders));
     }
 
     // Field 4: filter_by_trader (optional string)
     if (data.filter_by_trader !== undefined) {
-      parts.push(encodeStringField(4, data.filter_by_trader));
+      parts.push(this.encodeStringField(4, data.filter_by_trader));
     }
 
     return this.concatenateUint8Arrays(parts);
@@ -346,45 +347,22 @@ class ConnectGrpcWebClient {
 
   // Encode TradeRequest as protobuf
   private encodeTradeRequest(data: TradeRequest): Uint8Array {
-    const encodeVarint = (value: number): Uint8Array => {
-      const bytes: number[] = [];
-      while (value >= 0x80) {
-        bytes.push((value & 0x7F) | 0x80);
-        value >>>= 7;
-      }
-      bytes.push(value & 0x7F);
-      return new Uint8Array(bytes);
-    };
-
-    const encodeStringField = (fieldNumber: number, value: string): Uint8Array => {
-      const stringBytes = new TextEncoder().encode(value);
-      const fieldHeader = encodeVarint((fieldNumber << 3) | 2); // Wire type 2 = length-delimited
-      const lengthBytes = encodeVarint(stringBytes.length);
-      return this.concatenateUint8Arrays([fieldHeader, lengthBytes, stringBytes]);
-    };
-
-    const encodeBoolField = (fieldNumber: number, value: boolean): Uint8Array => {
-      const fieldHeader = encodeVarint((fieldNumber << 3) | 0); // Wire type 0 = varint
-      const valueBytes = encodeVarint(value ? 1 : 0);
-      return this.concatenateUint8Arrays([fieldHeader, valueBytes]);
-    };
-
     const parts: Uint8Array[] = [];
 
     // Field 1: continue_stream (bool)
-    parts.push(encodeBoolField(1, data.continue_stream));
+    parts.push(this.encodeBoolField(1, data.continue_stream));
 
     // Field 2: market_id (string)
-    parts.push(encodeStringField(2, data.market_id));
+    parts.push(this.encodeStringField(2, data.market_id));
 
     // Field 3: historical_closed_trades (optional bool)
     if (data.historical_closed_trades !== undefined) {
-      parts.push(encodeBoolField(3, data.historical_closed_trades));
+      parts.push(this.encodeBoolField(3, data.historical_closed_trades));
     }
 
     // Field 4: filter_by_trader (optional string)
     if (data.filter_by_trader !== undefined) {
-      parts.push(encodeStringField(4, data.filter_by_trader));
+      parts.push(this.encodeStringField(4, data.filter_by_trader));
     }
 
     return this.concatenateUint8Arrays(parts);
@@ -679,8 +657,8 @@ class ConnectGrpcWebClient {
     try {
       console.log('Parsing protobuf config response, bytes length:', messageBytes.length);
       
-      // Use protobufjs to parse the response
-      const config = this.parseProtobufConfigWithLibrary(messageBytes);
+      // Use manual protobuf parsing to parse the response
+      const config = this.parseProtobufManually(messageBytes);
       
       console.log('Successfully parsed protobuf config:', config);
       return config;
@@ -691,43 +669,7 @@ class ConnectGrpcWebClient {
     }
   }
 
-  // Parse protobuf binary data using manual protobuf parsing
-  parseProtobufConfigWithLibrary(bytes: Uint8Array): ConfigResponse {
-    try {
-      console.log('parseProtobufConfigWithLibrary: Starting to parse', bytes.length, 'bytes');
-      
-      // Use manual protobuf parsing to extract real data from gRPC response
-      const config = this.parseProtobufManually(bytes);
-      
-      console.log('parseProtobufConfigWithLibrary: Parsed config:', config);
-      return config;
-      
-    } catch (error) {
-      console.error('Failed to parse config:', error);
-      throw error;
-    }
-  }
 
-  // Simple protobufjs parsing
-  parseWithSimpleProtobufjs(bytes: Uint8Array): any {
-    // This method is not being used - removed to fix TypeScript errors
-    throw new Error('Not implemented');
-  }
-
-  // Extract config from binary string using manual protobuf parsing
-  extractConfigFromBinaryString(dataString: string): ConfigResponse {
-    console.log('extractConfigFromBinaryString: Raw data string length:', dataString.length);
-    console.log('extractConfigFromBinaryString: Raw data string (first 500 chars):', dataString.substring(0, 500));
-    
-    // Convert string back to Uint8Array for proper protobuf parsing
-    const bytes = new Uint8Array(dataString.length);
-    for (let i = 0; i < dataString.length; i++) {
-      bytes[i] = dataString.charCodeAt(i);
-    }
-    
-    // Use manual protobuf parsing to extract real data from gRPC response
-    return this.parseProtobufManually(bytes);
-  }
 
   // Manual protobuf parsing with better field detection
   parseProtobufManually(bytes: Uint8Array): ConfigResponse {
@@ -1099,7 +1041,7 @@ class ConnectGrpcWebClient {
         bytes[i] = text.charCodeAt(i);
       }
       
-      return this.parseProtobufConfigWithLibrary(bytes);
+      return this.parseProtobufManually(bytes);
       
     } catch (error) {
       console.error('Failed to parse protobuf binary data:', error);
@@ -1613,24 +1555,7 @@ export const configService = {
     }
   },
 
-  // Get version
-  async getVersion(): Promise<any> {
-    try {
-      console.log('Calling getVersion via Connect gRPC-Web');
-      
-      const response = await grpcClient.call(
-        'xyz.aspens.arborter_config.v1.ConfigService',
-        'GetVersion',
-        {}
-      );
-      
-      console.log('Connect gRPC-Web getVersion success:', response);
-      return { success: true, version: response.data || 'unknown' };
-    } catch (error) {
-      console.error('Connect gRPC-Web getVersion error:', error);
-      throw error;
-    }
-  }
+
 };
 
 // Arborter Service
@@ -1817,115 +1742,6 @@ export const arborterService = {
     }
   },
 
-  // Get orderbook stream (streaming with Server-Sent Events)
-  async getOrderbookStream(marketId: string, onUpdate: (entries: OrderbookEntry[]) => void): Promise<{ success: boolean; cleanup: () => void }> {
-    try {
-      console.log('Starting orderbook stream for market:', marketId);
-      
-      const request: OrderbookRequest = {
-        continue_stream: true,
-        historical_open_orders: true,
-        market_id: marketId
-      };
-      
-      // For now, we'll use polling as a fallback since true streaming is complex
-      // In a real implementation, this would use Server-Sent Events or WebSocket
-      const pollOrderbook = async () => {
-        try {
-          const response = await this.getOrderbookSnapshot(marketId);
-          if (response.success && response.data) {
-            onUpdate(response.data);
-          }
-        } catch (error) {
-          console.error('Orderbook polling error:', error);
-        }
-      };
-      
-      // Initial poll
-      await pollOrderbook();
-      
-      // Set up polling interval
-      const intervalId = setInterval(pollOrderbook, 2000); // Poll every 2 seconds for real-time feel
-      
-      // Return cleanup function
-      return {
-        success: true,
-        cleanup: () => {
-          console.log('Cleaning up orderbook stream');
-          clearInterval(intervalId);
-        }
-      };
-    } catch (error) {
-      console.error('Connect gRPC-Web getOrderbookStream error:', error);
-      throw error;
-    }
-  },
-
-  // Proper streaming implementation using gRPC-Web streaming
-  async getOrderbookStreamReal(marketId: string, onUpdate: (entries: OrderbookEntry[]) => void): Promise<{ success: boolean; cleanup: () => void }> {
-    try {
-      console.log('Starting real orderbook stream for market:', marketId);
-      
-      const request: OrderbookRequest = {
-        continue_stream: true,
-        historical_open_orders: true,
-        market_id: marketId
-      };
-      
-      // For now, just use the snapshot method since true streaming is complex
-      // In a real implementation, this would handle the streaming properly
-      const snapshotResponse = await this.getOrderbookSnapshot(marketId);
-      if (snapshotResponse.success && snapshotResponse.data) {
-        onUpdate(snapshotResponse.data);
-      }
-      
-      // Return cleanup function (for now, just a no-op since we're not actually streaming)
-      return {
-        success: true,
-        cleanup: () => {
-          console.log('Cleaning up real orderbook stream (no-op for now)');
-        }
-      };
-    } catch (error) {
-      console.error('Connect gRPC-Web getOrderbookStreamReal error:', error);
-      throw error;
-    }
-  },
-
-  // Legacy method for backward compatibility
-  async getOrderbook(marketId: string, continueStream: boolean = true, historicalOpenOrders: boolean = true): Promise<any> {
-    try {
-      console.log('Calling getOrderbook via Connect gRPC-Web (legacy method)');
-      
-      const request = {
-        continue_stream: continueStream,
-        historical_open_orders: historicalOpenOrders,
-        market_id: marketId
-      };
-      
-      console.log('Sending orderbook request to gRPC:', request);
-      
-      // If this is a streaming request, we need to handle it differently
-      if (continueStream) {
-        console.warn('Streaming orderbook requests are not yet implemented. Use getOrderbookSnapshot for snapshots.');
-        // For now, fall back to snapshot
-        return this.getOrderbookSnapshot(marketId);
-      }
-      
-      const response = await grpcClient.call(
-        'xyz.aspens.arborter.v1.ArborterService',
-        'Orderbook',
-        request
-      );
-      
-      console.log('Connect gRPC-Web getOrderbook success:', response);
-      return { success: true, data: response };
-    } catch (error) {
-      console.error('Connect gRPC-Web getOrderbook error:', error);
-      throw error;
-    }
-  },
-
   // Get trades snapshot (non-streaming)
   async getTradesSnapshot(marketId: string, filterByTrader?: string): Promise<TradeResponse> {
     try {
@@ -1964,44 +1780,7 @@ export const arborterService = {
     }
   },
 
-  // Get trades stream (streaming)
-  async getTradesStream(marketId: string, onUpdate: (trades: Trade[]) => void): Promise<{ success: boolean; cleanup: () => void }> {
-    try {
-      console.log('Starting trades stream for market:', marketId);
-      
-      const request = {
-        continue_stream: true,
-        historical_closed_trades: true,
-        market_id: marketId
-      };
-      
-      console.log('Sending trades stream request to gRPC:', request);
-      
-      const response = await grpcClient.call(
-        'xyz.aspens.arborter.v1.ArborterService',
-        'Trades',
-        request
-      );
-      
-      console.log('Trades stream response:', response);
-      
-      if (Array.isArray(response)) {
-        onUpdate(response);
-      }
-      
-      // For now, return a simple cleanup function
-      // In a real implementation, you'd want to maintain the stream connection
-      return {
-        success: true,
-        cleanup: () => {
-          console.log('Trades stream cleanup called');
-        }
-      };
-    } catch (error) {
-      console.error('Trades stream error:', error);
-      return { success: false, cleanup: () => {} };
-    }
-  }
+
 };
 
 // Utility functions for orderbook data
@@ -2053,19 +1832,4 @@ export function getOrderbookStatusString(status: number): 'added' | 'updated' | 
   }
 }
 
-// Test gRPC connection
-export async function testGrpcConnection(): Promise<boolean> {
-  try {
-    console.log('Testing Connect gRPC-Web connection...');
-    await grpcClient.call(
-      'xyz.aspens.arborter_config.v1.ConfigService',
-      'GetConfig',
-      {}
-    );
-    console.log('Connect gRPC-Web connection successful');
-    return true;
-  } catch (error) {
-    console.error('Connect gRPC-Web connection failed:', error);
-    return false;
-  }
-}
+
