@@ -1,21 +1,63 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useChainId, useWalletClient } from 'wagmi';
-import { createPublicClient, http, parseUnits } from 'viem';
-import { mainnet, sepolia, baseSepolia } from 'viem/chains';
-import MidribV2ABI from '@/lib/abi/MidribV2.json';
+import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { parseUnits } from 'viem';
 import { configUtils } from '../lib/config-utils';
+import MidribV2ABI from '../lib/abi/MidribV2.json';
+import { createPublicClient, http } from 'viem';
 
 export const useContract = () => {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const { data: walletClient } = useWalletClient();
-  const [contract, setContract] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentChainId, setCurrentChainId] = useState<number | null>(null);
+  const { isConnected, address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+
+  // Helper function to create a custom public client with the correct RPC URL
+  const createCustomPublicClient = (rpcUrl: string) => {
+    return createPublicClient({ transport: http(rpcUrl) });
+  };
+
+  // Get current chain ID directly from MetaMask (same as useChainMonitor)
+  const getCurrentChainId = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const chainIdNumber = parseInt(chainId, 16);
+        console.log('useContract: Current chain ID from MetaMask:', chainIdNumber);
+        setCurrentChainId(chainIdNumber);
+      } catch (error) {
+        console.error('useContract: Error getting chain ID:', error);
+        setCurrentChainId(null);
+      }
+    }
+  };
+
+  // Listen for chain changes
+  const handleChainChanged = (chainId: string) => {
+    const chainIdNumber = parseInt(chainId, 16);
+    console.log('useContract: Chain changed to:', chainIdNumber);
+    setCurrentChainId(chainIdNumber);
+  };
+
+  useEffect(() => {
+    getCurrentChainId();
+
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', handleChainChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, []);
 
   // Helper function to get the correct chain based on chain ID from config
   const getChainById = (id: number) => {
-    // First try to get chain config from gRPC config
+    // Get chain config from gRPC config
     const chainConfig = configUtils.getChainByChainId(id);
     if (chainConfig) {
       const chainObj: any = {
@@ -43,42 +85,72 @@ export const useContract = () => {
       return chainObj;
     }
 
-    // Fallback to known chains
-    switch (id) {
-      case 1:
-        return mainnet;
-      case 11155111:
-        return sepolia;
-      case 84532:
-        return baseSepolia;
-      default:
-        // For unknown chains, create a custom chain object
-        return {
-          id,
-          name: `Chain ${id}`,
-          network: `chain-${id}`,
-          nativeCurrency: {
-            decimals: 18,
-            name: 'Ether',
-            symbol: 'ETH',
-          },
-          rpcUrls: {
-            default: { http: [] },
-            public: { http: [] },
-          },
-        };
-    }
+    // If no chain config found, throw an error
+    throw new Error(`Chain configuration not found for chain ID ${id}. Please ensure the chain is configured in the backend.`);
   };
 
   useEffect(() => {
     if (isConnected && address) {
       // Contract operations are handled dynamically based on config
       // No need to create a static contract instance
-      setContract({ isConnected: true });
+      // setContract({ isConnected: true }); // This state is removed, so this line is removed
     } else {
-      setContract(null);
+      // setContract(null); // This state is removed, so this line is removed
     }
   }, [isConnected, address]);
+
+  // Helper function to check if a token contract supports approve
+  const checkTokenApprovalSupport = async (tokenAddress: string, chainId: number): Promise<boolean> => {
+    try {
+      const chainConfig = configUtils.getChainByChainId(chainId);
+      if (!chainConfig) {
+        console.log('checkTokenApprovalSupport: No chain config found for chain', chainId);
+        return false;
+      }
+      
+      const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
+      if (!tradeContractAddress) {
+        console.warn('No trade contract address found for chain', chainId);
+        return false;
+      }
+      
+      console.log('checkTokenApprovalSupport: Testing allowance for:', {
+        tokenAddress,
+        userAddress: address,
+        tradeContractAddress,
+        chainId,
+        rpcUrl: chainConfig.rpcUrl
+      });
+      
+      // Create custom public client with the correct RPC URL
+      const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
+      
+      // Try to read the allowance to see if the contract responds
+      const allowanceResult = await customPublicClient.readContract({
+        address: tokenAddress as `0x${string}`,
+        abi: [
+          {
+            "inputs": [
+              {"name": "owner", "type": "address"},
+              {"name": "spender", "type": "address"}
+            ],
+            "name": "allowance",
+            "outputs": [{"name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+          }
+        ],
+        functionName: 'allowance',
+        args: [address as `0x${string}`, tradeContractAddress as `0x${string}`],
+      });
+      
+      console.log('checkTokenApprovalSupport: Allowance test successful, result:', allowanceResult);
+      return true;
+    } catch (error) {
+      console.warn('Token contract does not support standard ERC20 allowance:', error);
+      return false;
+    }
+  };
 
   const deposit = async (amount: string, token: string, targetChainId: number) => {
     setIsLoading(true);
@@ -105,44 +177,53 @@ export const useContract = () => {
       const amountWei = parseUnits(amount, decimals);
 
       console.log(`Converting ${amount} with ${decimals} decimals to: ${amountWei}`);
-      console.log(`Current wallet chain ID: ${chainId}, Target chain ID: ${targetChainId}`);
+      console.log(`Current wallet chain ID: ${currentChainId}, Target chain ID: ${targetChainId}`);
 
       // Check if wallet is on the correct chain
-      if (chainId !== targetChainId) {
-        throw new Error(`Wallet is on chain ${chainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`);
+      if (currentChainId !== targetChainId) {
+        throw new Error(`Wallet is on chain ${currentChainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`);
       }
 
-      // First, approve the contract to spend our tokens
-      console.log('Approving token spending...');
-      const tokenContract = {
-        address: token as `0x${string}`,
-        abi: [
-          {
-            "inputs": [
-              {"name": "spender", "type": "address"},
-              {"name": "amount", "type": "uint256"}
-            ],
-            "name": "approve",
-            "outputs": [{"name": "", "type": "bool"}],
-            "stateMutability": "nonpayable",
-            "type": "function"
-          }
-        ] as any,
-      };
+      // Check if the token contract supports approval
+      console.log('Checking if token supports approval...');
+      const supportsApproval = await checkTokenApprovalSupport(token, targetChainId);
+      console.log('Token approval support result:', supportsApproval);
+      
+      if (supportsApproval) {
+        // First, approve the contract to spend our tokens
+        console.log('Approving token spending...');
+        const tokenContract = {
+          address: token as `0x${string}`,
+          abi: [
+            {
+              "inputs": [
+                {"name": "spender", "type": "address"},
+                {"name": "amount", "type": "uint256"}
+              ],
+              "name": "approve",
+              "outputs": [{"name": "", "type": "bool"}],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            }
+          ] as any,
+        };
 
-      const approveHash = await walletClient.writeContract({
-        address: token as `0x${string}`,
-        abi: tokenContract.abi,
-        functionName: 'approve',
-        args: [tradeContractAddress, amountWei],
-        account: address as `0x${string}`,
-        chain: getChainById(targetChainId),
-      });
+        const approveHash = await walletClient.writeContract({
+          address: token as `0x${string}`,
+          abi: tokenContract.abi,
+          functionName: 'approve',
+          args: [tradeContractAddress, amountWei],
+          account: address as `0x${string}`,
+          chain: getChainById(targetChainId),
+        });
 
-      console.log('Approval successful:', approveHash);
+        console.log('Approval successful:', approveHash);
 
-      // Wait a moment for the approval to be processed
-      await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait a moment for the approval to be processed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        console.log('Token contract does not support standard ERC20 approval, skipping approval step');
+      }
 
       // Now attempt the deposit
       console.log('Attempting deposit with:', {
@@ -162,12 +243,54 @@ export const useContract = () => {
         chain: getChainById(targetChainId),
       });
 
-      console.log('Deposit successful:', hash);
+      console.log('Deposit transaction submitted:', hash);
+      
+      // Wait for transaction confirmation using custom public client
+      console.log('Waiting for transaction confirmation...');
+      setIsConfirming(true);
+      const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
+      
+      const receipt = await customPublicClient.waitForTransactionReceipt({ 
+        hash,
+        timeout: 30000, // 30 second timeout
+        confirmations: 1 // Only wait for 1 confirmation
+      });
+      
+      setIsConfirming(false);
+      console.log('Transaction confirmed in block:', receipt.blockNumber);
+      
+      // Check if transaction was successful
+      if (receipt.status === 'reverted') {
+        throw new Error('Transaction was reverted on the blockchain');
+      }
+      
+      // Additional check: if the transaction has no logs, it might have failed
+      if (receipt.logs && receipt.logs.length === 0) {
+        console.warn('Transaction has no logs, which might indicate a failure');
+      }
+      
+      console.log('Deposit transaction successful');
       return hash;
     } catch (err: any) {
       console.error('Deposit failed:', err);
-      setError(err.message || 'Deposit failed');
-      throw err;
+      
+      // Provide more helpful error messages
+      let errorMessage = 'Deposit failed';
+      
+      if (err.message?.includes('Internal JSON-RPC error')) {
+        errorMessage = 'RPC connection error. Please check your network connection and try again.';
+      } else if (err.message?.includes('approve')) {
+        errorMessage = 'Token approval failed. The token contract may not support standard ERC20 approval.';
+      } else if (err.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds for transaction. Please check your balance.';
+      } else if (err.message?.includes('user rejected')) {
+        errorMessage = 'Transaction was rejected by user.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -198,11 +321,11 @@ export const useContract = () => {
       const amountWei = parseUnits(amount, decimals);
 
       console.log(`Converting ${amount} with ${decimals} decimals to: ${amountWei}`);
-      console.log(`Current wallet chain ID: ${chainId}, Target chain ID: ${targetChainId}`);
+      console.log(`Current wallet chain ID: ${currentChainId}, Target chain ID: ${targetChainId}`);
 
       // Check if wallet is on the correct chain
-      if (chainId !== targetChainId) {
-        throw new Error(`Wallet is on chain ${chainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`);
+      if (currentChainId !== targetChainId) {
+        throw new Error(`Wallet is on chain ${currentChainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`);
       }
 
       // Attempt the withdrawal
@@ -223,24 +346,65 @@ export const useContract = () => {
         chain: getChainById(targetChainId),
       });
 
-      console.log('Withdrawal successful:', hash);
+      console.log('Withdrawal transaction submitted:', hash);
+      
+      // Wait for transaction confirmation using custom public client
+      console.log('Waiting for transaction confirmation...');
+      setIsConfirming(true);
+      const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
+      
+      const receipt = await customPublicClient.waitForTransactionReceipt({ 
+        hash,
+        timeout: 30000, // 30 second timeout
+        confirmations: 1 // Only wait for 1 confirmation
+      });
+      
+      setIsConfirming(false);
+      console.log('Transaction confirmed in block:', receipt.blockNumber);
+      
+      // Check if transaction was successful
+      if (receipt.status === 'reverted') {
+        throw new Error('Transaction was reverted on the blockchain');
+      }
+      
+      // Additional check: if the transaction has no logs, it might have failed
+      if (receipt.logs && receipt.logs.length === 0) {
+        console.warn('Transaction has no logs, which might indicate a failure');
+      }
+      
+      console.log('Withdrawal transaction successful');
       return hash;
     } catch (err: any) {
       console.error('Withdrawal failed:', err);
-      setError(err.message || 'Withdrawal failed');
-      throw err;
+      
+      // Provide more helpful error messages
+      let errorMessage = 'Withdrawal failed';
+      
+      if (err.message?.includes('Internal JSON-RPC error')) {
+        errorMessage = 'RPC connection error. Please check your network connection and try again.';
+      } else if (err.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds for withdrawal. Please check your balance.';
+      } else if (err.message?.includes('user rejected')) {
+        errorMessage = 'Transaction was rejected by user.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return { 
-    contract, 
+    // contract, // This state is removed, so this line is removed
     isConnected, 
     account: address, 
     deposit, 
     withdraw, 
     isLoading, 
+    isConfirming,
     error 
   };
 };

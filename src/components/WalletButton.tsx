@@ -3,8 +3,7 @@ import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from './ui/button'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 import DepositWithdrawModal from './DepositWithdrawModal'
-import { useTradingBalance } from '@/hooks/useTokenBalance'
-import { useChainMonitor } from '@/hooks/useChainMonitor'
+import { useBalanceManager } from '@/hooks/useBalanceManager'
 import { useTradingPairs } from '@/hooks/useTradingPairs'
 
 export const WalletButton: React.FC = () => {
@@ -12,21 +11,16 @@ export const WalletButton: React.FC = () => {
   const { disconnect } = useDisconnect()
   const [modalOpen, setModalOpen] = useState(false)
   
-  const { currentChainId } = useChainMonitor()
   const { tradingPairs } = useTradingPairs()
   
   // Get the first available trading pair for balance display
   const firstTradingPair = tradingPairs.length > 0 ? tradingPairs[0] : null
   
   // Get trading balances for the first available trading pair
-  const { depositedBalance, loading: balanceLoading, refresh: refreshBalance } = useTradingBalance(
-    firstTradingPair?.baseSymbol || "TTK", 
-    currentChainId || 0
-  )
+  const { availableBalance: depositedBalance, balanceLoading, refreshBalance } = useBalanceManager(firstTradingPair)
 
   // Debug logging
   console.log('WalletButton Debug:', {
-    currentChainId,
     firstTradingPair,
     baseSymbol: firstTradingPair?.baseSymbol || "TTK",
     depositedBalance,

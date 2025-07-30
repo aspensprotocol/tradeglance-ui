@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { useAccount, usePublicClient, useSwitchChain, useWriteContract, useSimulateContract } from 'wagmi';
-import { Link } from 'react-router-dom';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { configUtils } from '@/lib/config-utils';
 import { useChainMonitor } from '@/hooks/useChainMonitor';
-import { WalletButton } from '@/components/WalletButton';
+import { useNetworkSwitch } from '@/hooks/useNetworkSwitch';
+import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
+import { getEtherscanLink, shortenTxHash } from '@/lib/utils';
 
 // Standard ERC20 ABI with mint function
 const ERC20_ABI = [
@@ -35,8 +37,42 @@ const Mint = () => {
   const { currentChainId } = useChainMonitor();
   const { toast } = useToast();
   const publicClient = usePublicClient();
-  const { switchChain } = useSwitchChain();
-  const { writeContract } = useWriteContract();
+  const { switchToNetwork } = useNetworkSwitch();
+  const { data: walletClient } = useWalletClient();
+
+  // Helper function to get the correct chain based on chain ID from config
+  const getChainById = (id: number) => {
+    // Get chain config from gRPC config
+    const chainConfig = configUtils.getChainByChainId(id);
+    if (chainConfig) {
+      const chainObj: any = {
+        id: typeof chainConfig.chainId === 'string' ? parseInt(chainConfig.chainId, 10) : chainConfig.chainId,
+        name: chainConfig.network,
+        network: chainConfig.network,
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        rpcUrls: {
+          default: { http: [chainConfig.rpcUrl] },
+          public: { http: [chainConfig.rpcUrl] },
+        },
+      };
+
+      // Add block explorer if available
+      if (chainConfig.explorerUrl) {
+        chainObj.blockExplorers = {
+          default: { name: 'Explorer', url: chainConfig.explorerUrl },
+        };
+      }
+
+      return chainObj;
+    }
+
+    // If no chain config found, throw an error
+    throw new Error(`Chain configuration not found for chain ID ${id}. Please ensure the chain is configured in the backend.`);
+  };
 
   const handleMint = async (chainId: number, tokenAddress: string, tokenSymbol: string, decimals: number) => {
     if (!isConnected || !address) {
@@ -51,11 +87,33 @@ const Mint = () => {
     // Switch to the target chain if not already on it
     if (currentChainId !== chainId) {
       try {
-        await switchChain({ chainId });
+        // Get the chain config for the target chain
+        const chainConfig = configUtils.getChainByChainId(chainId);
+        if (!chainConfig) {
+          toast({
+            title: "Chain not supported",
+            description: `Chain ID ${chainId} is not configured in the backend`,
+            variant: "destructive",
+          });
+          return;
+        }
+
         toast({
           title: "Switching network",
-          description: `Switching to chain ${chainId}...`,
+          description: `Switching to ${chainConfig.network}...`,
         });
+
+        // Use our custom network switching
+        const success = await switchToNetwork(chainConfig);
+        if (!success) {
+          toast({
+            title: "Network switch failed",
+            description: "Failed to switch to the required network",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Wait a bit for the switch to complete
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error: any) {
@@ -80,29 +138,76 @@ const Mint = () => {
         tokenSymbol,
         decimals,
         mintAmount: mintAmount.toString(),
-        userAddress: address
+        address
       });
 
-      // Call the mint function
-      const hash = await writeContract({
+      // Create a simple mint function call
+      const mintFunction = {
         address: tokenAddress as `0x${string}`,
-        abi: ERC20_ABI,
+        abi: [
+          {
+            "inputs": [
+              {"name": "to", "type": "address"},
+              {"name": "amount", "type": "uint256"}
+            ],
+            "name": "mint",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
+        ] as any,
+      };
+
+      const hash = await walletClient!.writeContract({
+        address: tokenAddress as `0x${string}`,
+        abi: mintFunction.abi,
         functionName: 'mint',
         args: [address as `0x${string}`, mintAmount],
+        account: address as `0x${string}`,
+        chain: getChainById(chainId),
       });
-      
-      console.log('Mint transaction hash:', hash);
 
+      console.log('Mint successful:', hash);
+
+      // Show success toast with Etherscan link
+      const etherscanLink = getEtherscanLink(hash, chainId);
+      const shortHash = shortenTxHash(hash);
+      
       toast({
         title: "Mint successful",
-        description: `Successfully minted 1000 ${tokenSymbol} on chain ${chainId}`,
+        description: (
+          <div>
+            <p>Successfully minted 1000 {tokenSymbol} tokens</p>
+            <a 
+              href={etherscanLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              View on Explorer: {shortHash}
+            </a>
+          </div>
+        ),
       });
 
-    } catch (error: any) {
-      console.error('Mint error:', error);
+    } catch (err: any) {
+      console.error('Mint failed:', err);
+      
+      let errorMessage = 'Mint failed';
+      
+      if (err.message?.includes('Internal JSON-RPC error')) {
+        errorMessage = 'RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.';
+      } else if (err.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds for transaction. Please check your balance.';
+      } else if (err.message?.includes('user rejected')) {
+        errorMessage = 'Transaction was rejected by user.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       toast({
         title: "Mint failed",
-        description: error.message || "Failed to mint tokens",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -120,27 +225,8 @@ const Mint = () => {
     <div className="min-h-screen bg-neutral-soft/30">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="p-4 flex justify-between items-center">
-          <div className="flex gap-6">
-            <Link to="/pro" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Pro
-            </Link>
-            <Link to="/simple" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Simple
-            </Link>
-            <Link to="/docs" className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
-              Docs
-            </Link>
-          </div>
-          
-          <div className="flex gap-3 items-center">
-            {currentChainId && (
-              <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                ✅ {currentChainId}
-              </div>
-            )}
-            <WalletButton />
-          </div>
+        <div className="p-4">
+          <Navigation />
         </div>
         
         <div className="p-8 max-w-4xl mx-auto">

@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useContract } from "@/hooks/useContract";
-import { useTradeContracts } from "@/hooks/useTradeContract";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { useAccount } from "wagmi";
+import { useContract } from "@/hooks/useContract";
+import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useTradeContracts } from "@/hooks/useTradeContract";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { getEtherscanLink, shortenTxHash, triggerBalanceRefresh } from "@/lib/utils";
+import { configUtils } from "@/lib/config-utils";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -17,14 +21,72 @@ interface DepositWithdrawModalProps {
   onSuccess?: () => void; // Callback for successful transactions
 }
 
+// Component for switching to supported networks
+const NetworkSwitcher = ({ onNetworkSwitch }: { onNetworkSwitch: () => void }) => {
+  const { switchToNetwork, getSupportedNetworks, isSwitching } = useNetworkSwitch();
+
+  const supportedChains = getSupportedNetworks();
+
+  const handleNetworkSwitch = async (chainConfig: any) => {
+    const success = await switchToNetwork(chainConfig);
+    if (success) {
+      onNetworkSwitch();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <p className="text-red-600 mb-2">Current network is not supported for deposits/withdrawals</p>
+        <p className="text-sm text-gray-600 mb-4">Please switch to one of the supported networks:</p>
+      </div>
+      
+      <div className="space-y-2">
+        {supportedChains.map((chain) => (
+          <Button
+            key={chain.chainId}
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => handleNetworkSwitch(chain)}
+            disabled={isSwitching}
+          >
+            {isSwitching ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                Switching...
+              </>
+            ) : (
+              <>
+                <span className="font-medium">{chain.network}</span>
+                <span className="text-gray-500 ml-2">(Chain ID: {chain.chainId})</span>
+              </>
+            )}
+          </Button>
+        ))}
+      </div>
+      
+      {supportedChains.length === 0 && (
+        <p className="text-center text-gray-500">
+          No supported networks found. Please check your configuration.
+        </p>
+      )}
+      
+      <div className="text-center text-xs text-gray-500">
+        <p>If you don't see your network listed, please check your wallet settings or contact support.</p>
+      </div>
+    </div>
+  );
+};
+
 const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", onSuccess }: DepositWithdrawModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("");
   const [activeType, setActiveType] = useState<"deposit" | "withdraw">(initialType);
-  const { deposit, withdraw, isLoading, error } = useContract();
+  const { deposit, withdraw, isLoading, isConfirming, error } = useContract();
   const { getAllChains, loading: configLoading, error: configError } = useTradeContracts();
   const { currentChainId, isSupported } = useChainMonitor();
   const { isConnected } = useAccount();
+  const { toast } = useToast();
   
   // Use the new token balance hook
   const { balance: tokenBalance, loading: balanceLoading, error: balanceError } = useTokenBalance(selectedToken, currentChainId || 0);
@@ -43,8 +105,6 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
     address: token.address,
     decimals: token.decimals
   })) : [];
-
-
 
   // Auto-select first token if available and none selected
   useEffect(() => {
@@ -75,98 +135,125 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
     }
 
     try {
+      let txHash: string | undefined;
+      
       if (activeType === "deposit") {
-        await deposit(amount, selectedTokenObj.address, currentChainId);
+        txHash = await deposit(amount, selectedTokenObj.address, currentChainId);
       } else {
-        await withdraw(amount, selectedTokenObj.address, currentChainId);
+        txHash = await withdraw(amount, selectedTokenObj.address, currentChainId);
       }
       
-      // Reset form and close modal on success
+      // Transaction was successful (confirmed), now show success message
+      if (txHash && currentChainId) {
+        const etherscanLink = getEtherscanLink(txHash, currentChainId);
+        const shortHash = shortenTxHash(txHash);
+        
+        toast({
+          title: `${activeType === "deposit" ? "Deposit" : "Withdrawal"} successful`,
+          description: (
+            <div>
+              <p>{`Successfully ${activeType === "deposit" ? "deposited" : "withdrew"} ${amount} ${selectedTokenObj.label.split(' ')[0]}`}</p>
+              <a 
+                href={etherscanLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                View on Explorer: {shortHash}
+              </a>
+            </div>
+          ),
+        });
+      } else {
+        toast({
+          title: `${activeType === "deposit" ? "Deposit" : "Withdrawal"} successful`,
+          description: `Successfully ${activeType === "deposit" ? "deposited" : "withdrew"} ${amount} ${selectedTokenObj.label.split(' ')[0]}`,
+        });
+      }
+      
+      // Reset form
       setAmount("");
       setSelectedToken("");
-      onClose();
       
-      // Call success callback to refresh balances
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (err) {
-      // Error is handled by the hook
+      // Add a delay before calling success callback to allow blockchain state to update
+      setTimeout(() => {
+        // Trigger global balance refresh for all components
+        triggerBalanceRefresh();
+        
+        // Call success callback
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 1000); // Wait 1 second for blockchain state to update
+      
+      // Close modal
+      onClose();
+    } catch (err: any) {
       console.error(`${activeType} failed:`, err);
+      
+      let errorMessage = `${activeType} failed`;
+      
+      if (err.message?.includes('Internal JSON-RPC error')) {
+        errorMessage = 'RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.';
+      } else if (err.message?.includes('insufficient funds')) {
+        errorMessage = `Insufficient funds for ${activeType}. Please check your balance.`;
+      } else if (err.message?.includes('user rejected')) {
+        errorMessage = 'Transaction was rejected by user.';
+      } else if (err.message?.includes('reverted')) {
+        errorMessage = `Transaction was reverted on the blockchain. This usually means the ${activeType} failed due to insufficient balance or other contract constraints.`;
+      } else if (err.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      toast({
+        title: `${activeType} failed`,
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      // Trigger global balance refresh even on error to ensure UI is up to date
+      triggerBalanceRefresh();
     }
   };
 
   const handleClose = () => {
     setAmount("");
     setSelectedToken("");
+    setActiveType(initialType);
     onClose();
   };
 
-  if (configLoading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="capitalize">{activeType} Funds</DialogTitle>
-          </DialogHeader>
-          <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading configuration...</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (configError) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="capitalize">{activeType} Funds</DialogTitle>
-          </DialogHeader>
-          <div className="text-center py-4">
-            <p className="text-red-600 mb-4">Failed to load configuration</p>
-            <p className="text-sm text-gray-600">{configError}</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Filter out any chains with invalid chainId
-  const validChains = chains.filter(chain => chain && chain.chainId != null && chain.chainId !== undefined);
+  const handleNetworkSwitch = () => {
+    // This will trigger a re-render when the network is switched
+    // The useChainMonitor hook will detect the change and update isSupported
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Funds</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>{activeType === "deposit" ? "Deposit" : "Withdraw"} Tokens</span>
+            <div className="flex space-x-1">
+              <Button
+                variant={activeType === "deposit" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveType("deposit")}
+              >
+                Deposit
+              </Button>
+              <Button
+                variant={activeType === "withdraw" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveType("withdraw")}
+              >
+                Withdraw
+              </Button>
+            </div>
+          </DialogTitle>
         </DialogHeader>
-        
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 mb-4">
-          <button
-            className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-              activeType === "deposit"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveType("deposit")}
-          >
-            Deposit
-          </button>
-          <button
-            className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-              activeType === "withdraw"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveType("withdraw")}
-          >
-            Withdraw
-          </button>
-        </div>
         
         {!isConnected ? (
           <div className="text-center py-4">
@@ -177,10 +264,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
             <p className="text-gray-600 mb-4">Please connect to a supported network</p>
           </div>
         ) : !isSupported ? (
-          <div className="text-center py-4">
-            <p className="text-red-600 mb-4">Current network is not supported for deposits/withdrawals</p>
-            <p className="text-sm text-gray-600">Please switch to a supported network in your wallet</p>
-          </div>
+          <NetworkSwitcher onNetworkSwitch={handleNetworkSwitch} />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {currentChainId && (
@@ -255,7 +339,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Processing...
+                    {isConfirming ? "Confirming..." : "Processing..."}
                   </>
                 ) : (
                   `${activeType.charAt(0).toUpperCase() + activeType.slice(1)}`

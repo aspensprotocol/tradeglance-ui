@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
-import { Info, Loader2, Settings, History, ArrowDownUp } from "lucide-react";
+import { Settings, History, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TradingPair } from "@/hooks/useTradingPairs";
-import { useAccount, useChainId, usePublicClient, useSwitchChain } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
 import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
-import { useTradingBalance } from "@/hooks/useTokenBalance";
+import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
+import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { triggerBalanceRefresh } from "@/lib/utils";
 
 interface SimpleFormProps {
   selectedPair?: string;
@@ -30,18 +32,14 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
   const [percentageValue, setPercentageValue] = useState<number | null>(null);
 
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
   const { currentChainId } = useChainMonitor();
   const { toast } = useToast();
   const { tradingPairs } = useTradingPairs();
   const publicClient = usePublicClient();
-  const { switchChain } = useSwitchChain();
+  const { switchToNetwork } = useNetworkSwitch();
 
   // Get trading balances for the current trading pair
-  const { availableBalance, lockedBalance, loading: balanceLoading, refresh: refreshBalance } = useTradingBalance(
-    tradingPair?.baseSymbol || "ATOM", 
-    currentChainId || 0
-  );
+  const { availableBalance, lockedBalance, balanceLoading, refreshBalance } = useBalanceManager(tradingPair);
 
   // Debug logging
   console.log('SimpleForm balances:', {
@@ -113,7 +111,16 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
       // Switch MetaMask to the new network
       const chainId = typeof newChainConfig.chainId === 'string' ? parseInt(newChainConfig.chainId, 10) : newChainConfig.chainId;
-      await switchChain({ chainId });
+      const success = await switchToNetwork(newChainConfig);
+      
+      if (!success) {
+        toast({
+          title: "Network switch failed",
+          description: "Failed to switch to the selected network",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Update sender network
       setSenderNetwork(newNetwork);
@@ -433,6 +440,9 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
       // Refresh balance to show updated amounts
       refreshBalance();
+      
+      // Trigger global balance refresh for all components
+      triggerBalanceRefresh();
 
       // Reset form
       setSenderAmount("");
@@ -447,6 +457,9 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
           description: error.message || "Failed to submit simple order. Please try again.",
         variant: "destructive",
       });
+      
+      // Trigger global balance refresh even on error to ensure UI is up to date
+      triggerBalanceRefresh();
     } finally {
       setIsSubmitting(false);
     }

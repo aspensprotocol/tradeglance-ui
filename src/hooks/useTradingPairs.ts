@@ -74,11 +74,24 @@ export const useTradingPairs = () => {
 
     // Create trading pairs from markets
     markets.forEach((market: any) => {
+      console.log('Processing market:', {
+        slug: market.slug,
+        name: market.name,
+        marketId: market.marketId,
+        baseChainNetwork: market.baseChainNetwork,
+        quoteChainNetwork: market.quoteChainNetwork
+      });
+      
       // Find base and quote chains by network name
       const baseChain = chains.find((chain: any) => chain.network === market.baseChainNetwork);
       const quoteChain = chains.find((chain: any) => chain.network === market.quoteChainNetwork);
       
       if (!baseChain || !quoteChain) {
+        console.log('Skipping market - chain not found:', {
+          baseChainNetwork: market.baseChainNetwork,
+          quoteChainNetwork: market.quoteChainNetwork,
+          availableChains: chains.map(c => c.network)
+        });
         return;
       }
 
@@ -101,8 +114,16 @@ export const useTradingPairs = () => {
       };
 
       tradingPairs.push(tradingPair);
+      console.log('Created trading pair:', {
+        id: tradingPair.id,
+        displayName: tradingPair.displayName,
+        marketId: tradingPair.marketId,
+        baseChainId: tradingPair.baseChainId,
+        quoteChainId: tradingPair.quoteChainId
+      });
     });
 
+    console.log('Final trading pairs:', tradingPairs.map(p => ({ id: p.id, marketId: p.marketId })));
     return tradingPairs;
   };
 
