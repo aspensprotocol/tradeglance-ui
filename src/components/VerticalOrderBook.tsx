@@ -99,8 +99,8 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
         {/* Header */}
         <div className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
           <span className="text-left">Price</span>
-          <span className="text-right">Amount (USD)</span>
-          <span className="text-right">Total (USD)</span>
+          <span className="text-right">Amount ({selectedTradingPair?.baseSymbol || 'TOKEN'})</span>
+          <span className="text-right">Total ({selectedTradingPair?.quoteSymbol || 'TOKEN'})</span>
         </div>
 
         {/* Asks (Sell orders) - Red */}
@@ -109,7 +109,7 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
             <div key={i} className="grid grid-cols-3 text-xs gap-x-4 py-0.5 hover:bg-gray-50 cursor-pointer">
               <span className="text-red-500 font-mono">{formatPrice(ask.price)}</span>
               <span className="text-right text-gray-700">{formatNumber(parseFloat(ask.quantity))}</span>
-              <span className="text-right text-gray-700">{formatNumber(parseFloat(ask.total))}</span>
+              <span className="text-right text-gray-700">{formatPrice(ask.total)}</span>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
             <div key={i} className="grid grid-cols-3 text-xs gap-x-4 py-0.5 hover:bg-gray-50 cursor-pointer">
               <span className="text-green-500 font-mono">{formatPrice(bid.price)}</span>
               <span className="text-right text-gray-700">{formatNumber(parseFloat(bid.quantity))}</span>
-              <span className="text-right text-gray-700">{formatNumber(parseFloat(bid.total))}</span>
+              <span className="text-right text-gray-700">{formatPrice(bid.total)}</span>
             </div>
           ))}
         </div>

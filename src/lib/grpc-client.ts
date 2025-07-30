@@ -1762,15 +1762,16 @@ export const arborterService = {
   },
 
   // Get orderbook snapshot (standardized to match config/send order pattern)
-  async getOrderbookSnapshot(marketId: string): Promise<OrderbookResponse> {
+  async getOrderbookSnapshot(marketId: string, filterByTrader?: string): Promise<OrderbookResponse> {
     try {
-      console.log('Calling getOrderbookSnapshot via arborterService for market:', marketId);
+      console.log('Calling getOrderbookSnapshot via arborterService for market:', marketId, 'filterByTrader:', filterByTrader);
       
       // For snapshot, we want to get all historical orders without streaming
       const request: OrderbookRequest = {
         continue_stream: false,
         historical_open_orders: true,
-        market_id: marketId
+        market_id: marketId,
+        filter_by_trader: filterByTrader
       };
       
       console.log('Sending orderbook snapshot request:', request);
@@ -1926,14 +1927,15 @@ export const arborterService = {
   },
 
   // Get trades snapshot (non-streaming)
-  async getTradesSnapshot(marketId: string): Promise<TradeResponse> {
+  async getTradesSnapshot(marketId: string, filterByTrader?: string): Promise<TradeResponse> {
     try {
-      console.log('Calling getTradesSnapshot via arborterService for market:', marketId);
+      console.log('Calling getTradesSnapshot via arborterService for market:', marketId, 'filterByTrader:', filterByTrader);
       
       const request = {
         continue_stream: false,
         historical_closed_trades: true,
-        market_id: marketId
+        market_id: marketId,
+        filter_by_trader: filterByTrader
       };
       
       console.log('Sending trades request to gRPC:', request);

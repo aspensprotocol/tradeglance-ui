@@ -43,7 +43,7 @@ export interface UseRecentTradesReturn {
   refresh: () => Promise<void>;
 }
 
-export function useRecentTrades(marketId: string | undefined): UseRecentTradesReturn {
+export function useRecentTrades(marketId: string | undefined, filterByTrader?: string): UseRecentTradesReturn {
   const [trades, setTrades] = useState<RecentTrade[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -133,7 +133,7 @@ export function useRecentTrades(marketId: string | undefined): UseRecentTradesRe
       
       // Import here to avoid circular dependency
       const { arborterService } = await import('../lib/grpc-client');
-      const response = await arborterService.getTradesSnapshot(marketId);
+      const response = await arborterService.getTradesSnapshot(marketId, filterByTrader);
       
       if (response.success && response.data) {
         processTradesData(response.data);
@@ -152,7 +152,7 @@ export function useRecentTrades(marketId: string | undefined): UseRecentTradesRe
     } finally {
       setLoading(false);
     }
-  }, [marketId, processTradesData]);
+  }, [marketId, filterByTrader, processTradesData]);
 
   // Debounced effect to prevent rapid re-fetches when marketId changes
   useEffect(() => {

@@ -20,7 +20,7 @@ export interface OrderbookData {
   lastUpdate: Date;
 }
 
-export function useOrderbook(marketId: string) {
+export function useOrderbook(marketId: string, filterByTrader?: string) {
   const [orderbook, setOrderbook] = useState<OrderbookData>({
     bids: [],
     asks: [],
@@ -71,7 +71,7 @@ export function useOrderbook(marketId: string) {
     try {
       console.log('Fetching orderbook for market:', marketId);
       
-      const response: OrderbookResponse = await arborterService.getOrderbookSnapshot(marketId);
+      const response: OrderbookResponse = await arborterService.getOrderbookSnapshot(marketId, filterByTrader);
       
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch orderbook');
@@ -120,15 +120,17 @@ export function useOrderbook(marketId: string) {
         const priceDecimal = weiToDecimal(entry.price || '0');
         const quantityDecimal = weiToDecimal(entry.quantity || '0');
         
-        // Format the decimal values for display
+        // Calculate total using raw decimal values (before formatting)
+        const priceNum = parseFloat(priceDecimal);
+        const quantityNum = parseFloat(quantityDecimal);
+        const totalDecimal = (!isNaN(priceNum) && !isNaN(quantityNum)) ? (priceNum * quantityNum).toString() : '0';
+        
+        // Format the values for display - use more precision for total to avoid rounding issues
         const priceFormatted = formatDecimal(priceDecimal);
         const quantityFormatted = formatDecimal(quantityDecimal);
+        const totalFormatted = formatDecimal(totalDecimal, 6); // Use 6 decimal places for total
         
-        // Calculate total in decimal format
-        const priceNum = parseFloat(priceFormatted);
-        const quantityNum = parseFloat(quantityFormatted);
-        const totalDecimal = (!isNaN(priceNum) && !isNaN(quantityNum)) ? (priceNum * quantityNum).toString() : '0';
-        const totalFormatted = formatDecimal(totalDecimal);
+
         
         const order: OrderbookOrder = {
           price: priceFormatted,
@@ -195,7 +197,7 @@ export function useOrderbook(marketId: string) {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [marketId]);
+  }, [marketId, filterByTrader]);
 
   // Debounced effect to prevent rapid re-fetches when marketId changes
   useEffect(() => {
@@ -209,7 +211,7 @@ export function useOrderbook(marketId: string) {
     }, 300); // 300ms debounce
     
     return () => clearTimeout(timeoutId);
-  }, [marketId]);
+  }, [marketId, filterByTrader]);
 
   // Set up polling for real-time updates (less frequent)
   useEffect(() => {

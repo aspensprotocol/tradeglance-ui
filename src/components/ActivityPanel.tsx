@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
@@ -15,15 +16,19 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances">("trades");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
+  const [showMineOnly, setShowMineOnly] = useState(false);
+
+  // Get wallet address
+  const { address } = useAccount();
 
   // Get the market ID from the trading pair
   const marketId = tradingPair?.marketId;
   
-  // Use real recent trades data
-  const { trades, loading: tradesLoading, initialLoading: tradesInitialLoading, error: tradesError } = useRecentTrades(marketId);
+  // Use real recent trades data with optional filtering
+  const { trades, loading: tradesLoading, initialLoading: tradesInitialLoading, error: tradesError } = useRecentTrades(marketId, showMineOnly ? address : undefined);
 
-  // Use real open orders data
-  const { orders, loading: ordersLoading, initialLoading: ordersInitialLoading, error: ordersError } = useOpenOrders(marketId);
+  // Use real open orders data with optional filtering
+  const { orders, loading: ordersLoading, initialLoading: ordersInitialLoading, error: ordersError } = useOpenOrders(marketId, showMineOnly ? address : undefined);
 
   // Get trading balances for the current trading pair
   const { 
@@ -120,6 +125,34 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
         <div className="animate-fade-in flex-1 overflow-auto min-w-0">
           {activeTab === "trades" ? (
             <div className="space-y-2 min-w-0">
+              {/* Filter toggle */}
+              <div className="flex justify-end mb-2">
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setShowMineOnly(false)}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      !showMineOnly
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    )}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setShowMineOnly(true)}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      showMineOnly
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    )}
+                  >
+                    Mine
+                  </button>
+                </div>
+              </div>
+              
               {/* Header row */}
               <div className="grid grid-cols-5 text-xs text-gray-500 py-2 border-b gap-2">
                 <span className="text-right truncate">Price</span>
@@ -171,6 +204,34 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             </div>
           ) : activeTab === "orders" ? (
             <div className="space-y-2 min-w-0">
+              {/* Filter toggle */}
+              <div className="flex justify-end mb-2">
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setShowMineOnly(false)}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      !showMineOnly
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    )}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setShowMineOnly(true)}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      showMineOnly
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    )}
+                  >
+                    Mine
+                  </button>
+                </div>
+              </div>
+              
               {/* Header row */}
               <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b gap-2">
                 <span className="truncate">Type</span>

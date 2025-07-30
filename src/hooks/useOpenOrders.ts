@@ -19,7 +19,7 @@ export interface UseOpenOrdersReturn {
   refresh: () => Promise<void>;
 }
 
-export function useOpenOrders(marketId: string | undefined): UseOpenOrdersReturn {
+export function useOpenOrders(marketId: string | undefined, filterByTrader?: string): UseOpenOrdersReturn {
   const [orders, setOrders] = useState<OpenOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -91,7 +91,7 @@ export function useOpenOrders(marketId: string | undefined): UseOpenOrdersReturn
       
       // Import here to avoid circular dependency
       const { arborterService } = await import('../lib/grpc-client');
-      const response = await arborterService.getOrderbookSnapshot(marketId);
+      const response = await arborterService.getOrderbookSnapshot(marketId, filterByTrader);
       
       if (response.success && response.data) {
         processOrderbookData(response.data);
@@ -110,7 +110,7 @@ export function useOpenOrders(marketId: string | undefined): UseOpenOrdersReturn
     } finally {
       setLoading(false);
     }
-  }, [marketId, processOrderbookData]);
+  }, [marketId, filterByTrader, processOrderbookData]);
 
   // Debounced effect to prevent rapid re-fetches when marketId changes
   useEffect(() => {
