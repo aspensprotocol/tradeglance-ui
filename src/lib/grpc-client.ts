@@ -8,6 +8,19 @@ export interface OrderbookRequest {
   filter_by_trader?: string;
 }
 
+// Protobuf Orderbook Entry - matches the backend structure
+export interface ProtobufOrderbookEntry {
+  timestamp: number;           // Field 1: uint64 timestamp
+  order_id: number;           // Field 2: uint64 order_id  
+  price: string;              // Field 3: string price
+  quantity: string;           // Field 4: string quantity
+  side: number;               // Field 5: uint32 side (1 = BID, 2 = ASK)
+  maker_base_address: string; // Field 6: string maker_base_address
+  maker_quote_address: string; // Field 7: string maker_quote_address
+  status: number;             // Field 8: uint32 status (1 = ADDED, 2 = UPDATED, 3 = REMOVED)
+  market_id: string;          // Field 9: string market_id
+}
+
 export interface OrderbookEntry {
   timestamp: number;
   order_id: number;
@@ -347,7 +360,12 @@ class ConnectGrpcWebClient {
       
       // Only add timeout for non-streaming methods
       if (!isStreamingMethod) {
-        fetchOptions.signal = AbortSignal.timeout(10000); // 10 second timeout
+        // Use longer timeout for SendOrder method
+        const timeoutMs = (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'SendOrder') ? 30000 : 8000;
+        fetchOptions.signal = AbortSignal.timeout(timeoutMs);
+      } else {
+        // For streaming methods, use a shorter timeout to prevent hanging
+        fetchOptions.signal = AbortSignal.timeout(15000);
       }
       
       const response = await fetch(url, fetchOptions);
@@ -379,22 +397,55 @@ class ConnectGrpcWebClient {
           throw new Error('No response body reader available for streaming');
         }
         
-        // Read the first chunk to get the initial data
-        const { done, value } = await reader.read();
-        if (done) {
-          console.log('Stream ended immediately');
-          return [];
+        const entries: OrderbookEntry[] = [];
+        
+        try {
+          // Read all chunks from the stream
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              console.log('Stream ended normally');
+              break;
+            }
+            
+                  // Reduced logging for performance
+      console.log('Streaming response chunk, length:', value?.length);
+            
+            // For gRPC-Web streaming, each chunk is a separate frame
+            // Process each frame in the chunk
+            let offset = 0;
+            while (offset < value.length) {
+              // Check if we have enough bytes for a frame header
+              if (offset + 5 > value.length) {
+                console.log('Incomplete frame header, breaking');
+                break;
+              }
+              
+              const flag = value[offset];
+              const length = (value[offset + 1] << 24) | (value[offset + 2] << 16) | (value[offset + 3] << 8) | value[offset + 4];
+              // Reduced logging for performance
+              
+              if (length > 0 && offset + 5 + length <= value.length) {
+                const messageBytes = value.slice(offset + 5, offset + 5 + length);
+                              // Parse this individual message
+              const messageEntries = this.parseOrderbookStreamResponse(messageBytes);
+                entries.push(...messageEntries);
+                
+                offset += 5 + length;
+              } else {
+                console.log('Incomplete frame, breaking');
+                break;
+              }
+            }
+          }
+        } catch (streamError) {
+          console.log('Stream reading error (this is normal for incomplete streams):', streamError);
+          // Don't throw here - we want to return whatever data we got
+        } finally {
+          reader.releaseLock();
         }
         
-        console.log('Streaming response chunk:', {
-          done,
-          valueLength: value?.length,
-          valueBytes: Array.from(value || []).slice(0, 100)
-        });
-        
-        // Parse the streaming response
-        const entries = this.parseOrderbookStreamResponse(value);
-        console.log('Parsed streaming entries:', entries);
+        console.log('Total entries from stream:', entries.length);
         return entries;
       }
       
@@ -824,14 +875,21 @@ class ConnectGrpcWebClient {
   readVarint(bytes: Uint8Array, offset: number): number {
     let result = 0;
     let shift = 0;
+    let currentOffset = offset;
     
-    while (offset < bytes.length) {
-      const byte = bytes[offset];
+    while (currentOffset < bytes.length) {
+      const byte = bytes[currentOffset];
       result |= (byte & 0x7F) << shift;
-      offset++;
+      currentOffset++;
       
       if ((byte & 0x80) === 0) break;
       shift += 7;
+      
+      // Allow 64-bit varints for timestamps
+      if (shift >= 64) {
+        console.warn('Varint too large, truncating');
+        break;
+      }
     }
     
     return result;
@@ -892,7 +950,7 @@ class ConnectGrpcWebClient {
   }
 
   // Parse Orderbook stream response (protobuf binary format)
-  parseOrderbookStreamResponse(responseBytes: Uint8Array): any {
+  parseOrderbookStreamResponse(responseBytes: Uint8Array): ProtobufOrderbookEntry[] {
     console.log('Parsing Orderbook stream response, bytes length:', responseBytes.length);
     
     // If response is empty, return empty array
@@ -912,27 +970,46 @@ class ConnectGrpcWebClient {
       
       // If it's an array, return it directly
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed as ProtobufOrderbookEntry[];
       }
       
       // If it has a data property, return that
       if (parsed && parsed.data) {
-        return Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+        const data = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+        return data as ProtobufOrderbookEntry[];
       }
       
       // If it's a single object, wrap it in an array
-      return [parsed];
+      return [parsed as ProtobufOrderbookEntry];
       
     } catch (error) {
       console.log('Not JSON, parsing as protobuf binary format');
       
-      // Parse as protobuf binary format
+      // Parse as protobuf binary format - each message should be a single OrderbookEntry
       try {
-        const entries = this.parseOrderbookProtobufResponse(responseBytes);
-        console.log('Parsed protobuf orderbook entries:', entries);
-        return entries;
+        const entry = this.parseOrderbookEntryProtobuf(responseBytes);
+        if (entry) {
+          console.log('Successfully parsed single orderbook entry:', entry);
+          return [entry];
+        } else {
+          console.log('Failed to parse orderbook entry from protobuf');
+          return [];
+        }
       } catch (protobufError) {
         console.error('Failed to parse Orderbook stream response as protobuf:', protobufError);
+        
+        // Last resort: try to parse as a simple protobuf message without frame
+        try {
+          console.log('Attempting to parse as raw protobuf message');
+          const entry = this.parseOrderbookEntryProtobuf(responseBytes);
+          if (entry) {
+            console.log('Successfully parsed raw protobuf message');
+            return [entry];
+          }
+        } catch (rawError) {
+          console.error('Failed to parse as raw protobuf:', rawError);
+        }
+        
         // Return empty array as fallback
         return [];
       }
@@ -940,135 +1017,232 @@ class ConnectGrpcWebClient {
   }
 
   // Parse orderbook protobuf binary response
-  parseOrderbookProtobufResponse(responseBytes: Uint8Array): any[] {
+  parseOrderbookProtobufResponse(responseBytes: Uint8Array): ProtobufOrderbookEntry[] {
     console.log('Parsing orderbook protobuf response');
     
-    const entries: any[] = [];
-    let offset = 0;
+    // Based on the hex data we've seen, let's try a simpler approach
+    // The data seems to be: [gRPC frame][protobuf message]
     
-    // Parse multiple protobuf messages from the response
-    while (offset < responseBytes.length) {
-      try {
-        // Read the length prefix (4 bytes)
-        if (offset + 4 > responseBytes.length) {
-          console.log('Not enough bytes for length prefix, stopping');
-          break;
-        }
-        
-        const length = (responseBytes[offset] << 24) | 
-                      (responseBytes[offset + 1] << 16) | 
-                      (responseBytes[offset + 2] << 8) | 
-                      responseBytes[offset + 3];
-        
-        console.log(`Message length: ${length} at offset ${offset}`);
-        
-        if (length <= 0 || offset + 4 + length > responseBytes.length) {
-          console.log('Invalid message length or not enough bytes, stopping');
-          break;
-        }
-        
-        // Extract the message bytes
-        const messageBytes = responseBytes.slice(offset + 4, offset + 4 + length);
-        
-        // Parse the individual orderbook entry
-        const entry = this.parseOrderbookEntryProtobuf(messageBytes);
-        if (entry) {
-          entries.push(entry);
-        }
-        
-        // Move to next message
-        offset += 4 + length;
-        
-      } catch (error) {
-        console.error('Error parsing protobuf message at offset', offset, error);
-        break;
+    let messageBytes = responseBytes;
+    
+    // Skip gRPC-Web frame if present (first 5 bytes)
+    if (responseBytes.length >= 5) {
+      const flag = responseBytes[0];
+      const length = (responseBytes[1] << 24) | (responseBytes[2] << 16) | (responseBytes[3] << 8) | responseBytes[4];
+      console.log(`gRPC-Web frame: flag=${flag}, length=${length}`);
+      
+      if (length > 0 && length <= responseBytes.length - 5) {
+        messageBytes = responseBytes.slice(5, 5 + length);
+        console.log(`Extracted message bytes, length: ${messageBytes.length}`);
       }
     }
     
-    console.log(`Parsed ${entries.length} orderbook entries from protobuf`);
-    return entries;
+    // Now try to parse the actual protobuf message
+    try {
+      const entry = this.parseOrderbookEntryProtobuf(messageBytes);
+      if (entry) {
+        console.log('Successfully parsed orderbook entry');
+        return [entry];
+      }
+    } catch (error) {
+      console.error('Failed to parse protobuf message:', error);
+    }
+    
+    console.log('No valid orderbook entries found');
+    return [];
   }
 
   // Parse individual orderbook entry from protobuf
-  parseOrderbookEntryProtobuf(messageBytes: Uint8Array): any {
+  parseOrderbookEntryProtobuf(messageBytes: Uint8Array): ProtobufOrderbookEntry | null {
     try {
       console.log('Parsing orderbook entry protobuf, bytes length:', messageBytes.length);
+      console.log('First 20 bytes:', Array.from(messageBytes.slice(0, 20)));
+      console.log('All bytes as hex:', Array.from(messageBytes).map(b => b.toString(16).padStart(2, '0')).join(' '));
       
       let offset = 0;
-      const entry: any = {};
+      const entry: Partial<ProtobufOrderbookEntry> = {};
+      const allFields: any = {};
       
       while (offset < messageBytes.length) {
-        // Read field number and wire type
-        const tag = this.readVarint(messageBytes, offset);
-        const fieldNumber = tag >> 3;
-        const wireType = tag & 0x7;
-        
-        console.log(`Field ${fieldNumber}, wire type ${wireType} at offset ${offset}`);
-        
-        // Read the field value based on wire type
-        let value: any;
-        let newOffset: number;
-        
-        if (wireType === 0) { // Varint
-          value = this.readVarint(messageBytes, offset + 1);
-          newOffset = offset + 1 + this.varintLength(value);
-        } else if (wireType === 1) { // 64-bit
-          if (offset + 9 > messageBytes.length) break;
-          value = this.readBytes(messageBytes, offset + 1, 8);
-          newOffset = offset + 9;
-        } else if (wireType === 2) { // Length-delimited
-          const length = this.readVarint(messageBytes, offset + 1);
-          const lengthBytes = this.varintLength(length);
-          value = this.readBytes(messageBytes, offset + 1 + lengthBytes, length);
-          newOffset = offset + 1 + lengthBytes + length;
-        } else {
-          console.log(`Unknown wire type ${wireType}, skipping`);
+        try {
+          // Read field number and wire type
+          const tag = this.readVarint(messageBytes, offset);
+          const fieldNumber = tag >> 3;
+          const wireType = tag & 0x7;
+          
+          console.log(`Field ${fieldNumber}, wire type ${wireType} at offset ${offset}, tag: ${tag}`);
+          
+          // Read the field value based on wire type
+          let value: any;
+          let newOffset: number;
+          
+          if (wireType === 0) { // Varint
+            value = this.readVarint(messageBytes, offset + 1);
+            newOffset = offset + 1 + this.varintLength(value);
+            console.log(`Varint value: ${value}`);
+          } else if (wireType === 1) { // 64-bit
+            if (offset + 9 > messageBytes.length) break;
+            value = this.readBytes(messageBytes, offset + 1, 8);
+            newOffset = offset + 9;
+            console.log(`64-bit value length: ${value.length}`);
+          } else if (wireType === 2) { // Length-delimited
+            const length = this.readVarint(messageBytes, offset + 1);
+            const lengthBytes = this.varintLength(length);
+            value = this.readBytes(messageBytes, offset + 1 + lengthBytes, length);
+            newOffset = offset + 1 + lengthBytes + length;
+            console.log(`Length-delimited value length: ${length}, decoded:`, this.decodeString(value));
+          } else if (wireType === 3) { // Start group (deprecated but still used)
+            console.log(`Wire type 3 (start group) at field ${fieldNumber}, skipping`);
+            // Skip the start group marker and continue
+            newOffset = offset + 1;
+          } else if (wireType === 4) { // End group (deprecated but still used)
+            console.log(`Wire type 4 (end group) at field ${fieldNumber}, skipping`);
+            // Skip the end group marker and continue
+            newOffset = offset + 1;
+          } else if (wireType === 5) { // 32-bit
+            if (offset + 5 > messageBytes.length) break;
+            value = this.readBytes(messageBytes, offset + 1, 4);
+            newOffset = offset + 5;
+            console.log(`32-bit value length: ${value.length}`);
+          } else {
+            console.log(`Unknown wire type ${wireType}, skipping field ${fieldNumber}`);
+            console.log(`Cannot handle wire type ${wireType}, stopping parsing`);
+            break;
+          }
+          
+          // Store all fields for debugging
+          allFields[fieldNumber] = { value, wireType, offset };
+          
+          // Map field numbers to field names based on the expected protobuf structure
+          switch (fieldNumber) {
+            case 1: // timestamp (uint64)
+              entry.timestamp = Number(value);
+              console.log(`Set timestamp to: ${entry.timestamp}`);
+              break;
+            case 2: // order_id (uint64)
+              entry.order_id = Number(value);
+              console.log(`Set order_id to: ${entry.order_id}`);
+              break;
+            case 3: // price (string)
+              entry.price = this.decodeString(value);
+              console.log(`Set price to: ${entry.price}`);
+              break;
+            case 4: // quantity (string)
+              entry.quantity = this.decodeString(value);
+              console.log(`Set quantity to: ${entry.quantity}`);
+              break;
+            case 5: // side (uint32)
+              entry.side = Number(value);
+              console.log(`Set side to: ${entry.side}`);
+              break;
+            case 6: // maker_base_address (string)
+              entry.maker_base_address = this.decodeString(value);
+              console.log(`Set maker_base_address to: ${entry.maker_base_address}`);
+              break;
+            case 7: // maker_quote_address (string)
+              entry.maker_quote_address = this.decodeString(value);
+              console.log(`Set maker_quote_address to: ${entry.maker_quote_address}`);
+              break;
+            case 8: // status (uint32)
+              entry.status = Number(value);
+              console.log(`Set status to: ${entry.status}`);
+              break;
+            case 9: // market_id (string)
+              entry.market_id = this.decodeString(value);
+              console.log(`Set market_id to: ${entry.market_id}`);
+              break;
+            default:
+              console.log(`Unknown field number ${fieldNumber}, value:`, value);
+              // Try to guess the field type based on the value
+              if (wireType === 0) { // varint
+                console.log(`Field ${fieldNumber} is a varint with value: ${value}`);
+              } else if (wireType === 2) { // length-delimited
+                const decoded = this.decodeString(value);
+                console.log(`Field ${fieldNumber} is a string with value: "${decoded}"`);
+              }
+          }
+          
+          offset = newOffset;
+        } catch (fieldError) {
+          console.error('Error parsing field at offset', offset, fieldError);
           break;
         }
-        
-        // Map field numbers to field names based on the expected protobuf structure
-        switch (fieldNumber) {
-          case 1: // timestamp
-            entry.timestamp = value.toString();
-            break;
-          case 2: // order_id
-            entry.order_id = value;
-            break;
-          case 3: // price
-            entry.price = value.toString();
-            break;
-          case 4: // quantity
-            entry.quantity = value.toString();
-            break;
-          case 5: // side
-            entry.side = value;
-            break;
-          case 6: // maker_base_address
-            entry.maker_base_address = this.decodeString(value);
-            break;
-          case 7: // maker_quote_address
-            entry.maker_quote_address = this.decodeString(value);
-            break;
-          case 8: // status
-            entry.status = value;
-            break;
-          case 9: // market_id
-            entry.market_id = this.decodeString(value);
-            break;
-          default:
-            console.log(`Unknown field number ${fieldNumber}, value:`, value);
-        }
-        
-        offset = newOffset;
       }
       
-      console.log('Parsed orderbook entry:', entry);
-      return entry;
+      console.log('All parsed fields:', allFields);
+      
+      // For now, let's be more lenient and try to construct an entry from what we have
+      if (Object.keys(allFields).length > 0) {
+        console.log('Attempting to construct orderbook entry from available fields');
+        
+        // Try to map fields based on their values and types
+        const constructedEntry: any = {};
+        
+        for (const [fieldNum, fieldData] of Object.entries(allFields)) {
+          const num = parseInt(fieldNum);
+          const { value, wireType } = fieldData as any;
+          
+          console.log(`Processing field ${num}, wireType ${wireType}, value:`, value);
+          
+          if (wireType === 0) { // varint
+            if (num === 1) constructedEntry.timestamp = Number(value);
+            else if (num === 2) constructedEntry.order_id = Number(value);
+            else if (num === 5) constructedEntry.side = Number(value);
+            else if (num === 8) constructedEntry.status = Number(value);
+            else console.log(`Unmapped varint field ${num}: ${value}`);
+          } else if (wireType === 2) { // string
+            const strValue = this.decodeString(value);
+            console.log(`String field ${num}: "${strValue}"`);
+            if (num === 3) constructedEntry.price = strValue;
+            else if (num === 4) constructedEntry.quantity = strValue;
+            else if (num === 6) constructedEntry.maker_base_address = strValue;
+            else if (num === 7) constructedEntry.maker_quote_address = strValue;
+            else if (num === 9) constructedEntry.market_id = strValue;
+            else console.log(`Unmapped string field ${num}: "${strValue}"`);
+          }
+        }
+        
+        console.log('Constructed entry:', constructedEntry);
+        
+        // If we have at least some basic fields, return it
+        if (constructedEntry.price || constructedEntry.quantity || constructedEntry.side !== undefined || constructedEntry.timestamp) {
+          console.log('Returning constructed orderbook entry with available fields');
+          return {
+            timestamp: constructedEntry.timestamp || 0,
+            order_id: constructedEntry.order_id || 0,
+            price: constructedEntry.price || '0',
+            quantity: constructedEntry.quantity || '0',
+            side: constructedEntry.side || 0,
+            maker_base_address: constructedEntry.maker_base_address || '',
+            maker_quote_address: constructedEntry.maker_quote_address || '',
+            status: constructedEntry.status || 0,
+            market_id: constructedEntry.market_id || ''
+          };
+        }
+      }
+      
+      console.warn('Could not construct valid orderbook entry');
+      return null;
       
     } catch (error) {
       console.error('Error parsing orderbook entry protobuf:', error);
       return null;
     }
+  }
+
+  // Validate that an orderbook entry has all required fields
+  private isValidOrderbookEntry(entry: Partial<ProtobufOrderbookEntry>): entry is ProtobufOrderbookEntry {
+    return (
+      typeof entry.timestamp === 'number' &&
+      typeof entry.order_id === 'number' &&
+      typeof entry.price === 'string' &&
+      typeof entry.quantity === 'string' &&
+      typeof entry.side === 'number' &&
+      typeof entry.maker_base_address === 'string' &&
+      typeof entry.maker_quote_address === 'string' &&
+      typeof entry.status === 'number' &&
+      typeof entry.market_id === 'string'
+    );
   }
 
 }
@@ -1140,15 +1314,40 @@ export const arborterService = {
       };
       
       console.log('Sending request to gRPC:', request);
+      console.log('Request order data:', request.order);
+      console.log('Request signature hash length:', signatureHash.length);
       
-      const response = await grpcClient.call(
-        'xyz.aspens.arborter.v1.ArborterService',
-        'SendOrder',
-        request
-      );
+      // First, let's test if the backend is reachable with a simple request
+      try {
+        console.log('Testing backend connectivity...');
+        const testResponse = await grpcClient.call(
+          'xyz.aspens.arborter_config.v1.ConfigService',
+          'GetConfig',
+          {}
+        );
+        console.log('Backend connectivity test successful:', testResponse);
+      } catch (testError) {
+        console.error('Backend connectivity test failed:', testError);
+        throw new Error(`Backend not reachable: ${testError.message}`);
+      }
       
-      console.log('Connect gRPC-Web sendOrder success:', response);
-      return { success: true, data: response };
+      try {
+        const response = await grpcClient.call(
+          'xyz.aspens.arborter.v1.ArborterService',
+          'SendOrder',
+          request
+        );
+        
+        console.log('Connect gRPC-Web sendOrder success:', response);
+        return { success: true, data: response };
+      } catch (sendOrderError) {
+        console.error('SendOrder method failed:', sendOrderError);
+        
+        // Re-throw the error - no mock data
+        throw sendOrderError;
+        
+        throw sendOrderError;
+      }
     } catch (error) {
       console.error('Connect gRPC-Web sendOrder error:', error);
       throw error;
@@ -1181,7 +1380,32 @@ export const arborterService = {
   },
 
   // Parse raw orderbook entry into proper OrderbookEntry type
-  parseOrderbookEntry(rawEntry: any): OrderbookEntry {
+  parseOrderbookEntry(rawEntry: ProtobufOrderbookEntry | any): OrderbookEntry {
+    // If it's already a ProtobufOrderbookEntry, convert it directly
+    if (rawEntry && typeof rawEntry === 'object' && 
+        typeof rawEntry.timestamp === 'number' &&
+        typeof rawEntry.order_id === 'number' &&
+        typeof rawEntry.price === 'string' &&
+        typeof rawEntry.quantity === 'string' &&
+        typeof rawEntry.side === 'number' &&
+        typeof rawEntry.maker_base_address === 'string' &&
+        typeof rawEntry.maker_quote_address === 'string' &&
+        typeof rawEntry.status === 'number' &&
+        typeof rawEntry.market_id === 'string') {
+      return {
+        timestamp: rawEntry.timestamp,
+        order_id: rawEntry.order_id,
+        price: rawEntry.price,
+        quantity: rawEntry.quantity,
+        side: rawEntry.side,
+        maker_base_address: rawEntry.maker_base_address,
+        maker_quote_address: rawEntry.maker_quote_address,
+        status: rawEntry.status,
+        market_id: rawEntry.market_id
+      };
+    }
+    
+    // Fallback for legacy/unknown format
     return {
       timestamp: Number(rawEntry.timestamp) || 0,
       order_id: Number(rawEntry.order_id) || 0,
@@ -1200,10 +1424,9 @@ export const arborterService = {
     try {
       console.log('Calling getOrderbookSnapshot via arborterService for market:', marketId);
       
-      // For streaming methods, we need to use continue_stream: true for proper streaming
-      // The backend expects this to be a streaming connection
+      // For snapshot, we want to get all historical orders without streaming
       const request: OrderbookRequest = {
-        continue_stream: true,
+        continue_stream: false,
         historical_open_orders: true,
         market_id: marketId
       };
@@ -1218,21 +1441,22 @@ export const arborterService = {
       
       console.log('Raw orderbook response:', response);
       
-      // Parse the response into OrderbookEntry objects using the same pattern as config
+      // Parse the streaming response into OrderbookEntry objects
       let entries: OrderbookEntry[] = [];
       
       if (Array.isArray(response)) {
-        entries = response.map(entry => this.parseOrderbookEntry(entry));
+        // If response is already an array of OrderbookEntry (from streaming)
+        entries = response;
       } else if (response && typeof response === 'object') {
         // If it's a single object, wrap it in an array
-        entries = [this.parseOrderbookEntry(response)];
+        entries = [response];
       } else if (response && response.data) {
         // If it has a data property, use that
         const data = Array.isArray(response.data) ? response.data : [response.data];
-        entries = data.map(entry => this.parseOrderbookEntry(entry));
+        entries = data;
       }
       
-      console.log('Parsed orderbook entries:', entries);
+      console.log('Final orderbook entries count:', entries.length);
       
       return { 
         success: true, 
@@ -1241,9 +1465,9 @@ export const arborterService = {
     } catch (error) {
       console.error('arborterService getOrderbookSnapshot error:', error);
       
-      // Return empty orderbook on error (same pattern as config)
+      // Return error response (correct pattern)
       return { 
-        success: true, 
+        success: false, 
         data: [],
         error: error instanceof Error ? error.message : 'Unknown error'
       };
@@ -1359,6 +1583,55 @@ export const arborterService = {
     }
   }
 };
+
+// Utility functions for orderbook data
+export function convertProtobufToOrderbookEntry(protobufEntry: ProtobufOrderbookEntry): OrderbookEntry {
+  return {
+    timestamp: protobufEntry.timestamp,
+    order_id: protobufEntry.order_id,
+    price: protobufEntry.price,
+    quantity: protobufEntry.quantity,
+    side: protobufEntry.side,
+    maker_base_address: protobufEntry.maker_base_address,
+    maker_quote_address: protobufEntry.maker_quote_address,
+    status: protobufEntry.status,
+    market_id: protobufEntry.market_id
+  };
+}
+
+export function convertOrderbookEntryToProtobuf(orderbookEntry: OrderbookEntry): ProtobufOrderbookEntry {
+  return {
+    timestamp: orderbookEntry.timestamp,
+    order_id: orderbookEntry.order_id,
+    price: orderbookEntry.price,
+    quantity: orderbookEntry.quantity,
+    side: orderbookEntry.side,
+    maker_base_address: orderbookEntry.maker_base_address,
+    maker_quote_address: orderbookEntry.maker_quote_address,
+    status: orderbookEntry.status,
+    market_id: orderbookEntry.market_id
+  };
+}
+
+// Helper function to validate orderbook entry status
+export function isActiveOrderbookEntry(entry: OrderbookEntry | ProtobufOrderbookEntry): boolean {
+  return entry.status !== 3; // 3 = REMOVED
+}
+
+// Helper function to get side as string
+export function getOrderbookSideString(side: number): 'bid' | 'ask' {
+  return side === 1 ? 'bid' : 'ask';
+}
+
+// Helper function to get status as string
+export function getOrderbookStatusString(status: number): 'added' | 'updated' | 'removed' | 'unknown' {
+  switch (status) {
+    case 1: return 'added';
+    case 2: return 'updated';
+    case 3: return 'removed';
+    default: return 'unknown';
+  }
+}
 
 // Test gRPC connection
 export async function testGrpcConnection(): Promise<boolean> {

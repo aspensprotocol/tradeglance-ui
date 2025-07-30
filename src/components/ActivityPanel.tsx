@@ -4,6 +4,7 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades, RecentTrade } from "@/hooks/useRecentTrades";
+import { formatDecimal } from "../lib/number-utils";
 
 interface ActivityPanelProps {
   tradingPair?: any;
@@ -18,7 +19,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   const marketId = tradingPair?.marketId;
   
   // Use real recent trades data
-  const { trades, loading: tradesLoading, error: tradesError } = useRecentTrades(marketId);
+  const { trades, loading: tradesLoading, initialLoading: tradesInitialLoading, error: tradesError } = useRecentTrades(marketId);
 
   // Get trading balances for the current trading pair
   const { 
@@ -55,7 +56,12 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   );
 
   const formatTime = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Use user's local timezone explicitly
+    return timestamp.toLocaleTimeString(navigator.language, { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true // Use 12-hour format with AM/PM
+    });
   };
 
   return (
@@ -131,7 +137,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 <span className="text-right truncate">Time</span>
               </div>
               
-              {tradesLoading ? (
+              {tradesInitialLoading ? (
                 <div className="text-center py-8 text-neutral">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
                   Loading recent trades...
@@ -158,10 +164,10 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                         {trade.side.toUpperCase()}
                       </span>
                       <span className="text-right truncate font-mono">
-                        {parseFloat(trade.price).toLocaleString()}
+                        {formatDecimal(trade.price)}
                       </span>
                       <span className="text-right truncate font-mono">
-                        {parseFloat(trade.quantity).toFixed(4)}
+                        {formatDecimal(trade.quantity)}
                       </span>
                       <span className="text-right text-neutral truncate text-xs">
                         {formatTime(trade.timestamp)}
