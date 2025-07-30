@@ -4,6 +4,7 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades, RecentTrade } from "@/hooks/useRecentTrades";
+import { useOpenOrders, OpenOrder } from "@/hooks/useOpenOrders";
 import { formatDecimal } from "../lib/number-utils";
 
 interface ActivityPanelProps {
@@ -11,7 +12,7 @@ interface ActivityPanelProps {
 }
 
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
-  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances" | "deposits">("trades");
+  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances">("trades");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
 
@@ -20,6 +21,9 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   
   // Use real recent trades data
   const { trades, loading: tradesLoading, initialLoading: tradesInitialLoading, error: tradesError } = useRecentTrades(marketId);
+
+  // Use real open orders data
+  const { orders, loading: ordersLoading, initialLoading: ordersInitialLoading, error: ordersError } = useOpenOrders(marketId);
 
   // Get trading balances for the current trading pair
   const { 
@@ -56,22 +60,23 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   );
 
   const formatTime = (timestamp: Date) => {
-    // Use user's local timezone explicitly
-    return timestamp.toLocaleTimeString(navigator.language, { 
+    // Force CET timezone for display
+    return timestamp.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
-      hour12: true // Use 12-hour format with AM/PM
+      hour12: true, // Use 12-hour format with AM/PM
+      timeZone: 'Europe/Berlin' // Force CET timezone
     });
   };
 
   return (
     <div className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
       <div className="p-4 h-full flex flex-col min-w-0">
-        <div className="flex space-x-2 border-b mb-4 overflow-x-auto">
+        <div className="flex border-b mb-4 overflow-x-auto">
           <button
             onClick={() => setActiveTab("trades")}
             className={cn(
-              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
+              "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
               activeTab === "trades"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
@@ -85,7 +90,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => setActiveTab("orders")}
             className={cn(
-              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
+              "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
               activeTab === "orders"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
@@ -99,7 +104,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => setActiveTab("balances")}
             className={cn(
-              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
+              "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
               activeTab === "balances"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark"
@@ -110,30 +115,17 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
           </button>
-          <button
-            onClick={() => setActiveTab("deposits")}
-            className={cn(
-              "pb-2 text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0",
-              activeTab === "deposits"
-                ? "text-neutral-dark"
-                : "text-neutral hover:text-neutral-dark"
-            )}
-          >
-            Deposits
-            {activeTab === "deposits" && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
-            )}
-          </button>
         </div>
 
         <div className="animate-fade-in flex-1 overflow-auto min-w-0">
           {activeTab === "trades" ? (
             <div className="space-y-2 min-w-0">
               {/* Header row */}
-              <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b gap-2">
-                <span className="truncate">Type</span>
+              <div className="grid grid-cols-5 text-xs text-gray-500 py-2 border-b gap-2">
                 <span className="text-right truncate">Price</span>
                 <span className="text-right truncate">Amount</span>
+                <span className="text-right truncate">Maker</span>
+                <span className="text-right truncate">Taker</span>
                 <span className="text-right truncate">Time</span>
               </div>
               
@@ -155,19 +147,19 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                   {trades.map((trade) => (
                     <div
                       key={trade.id}
-                      className="grid grid-cols-4 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
+                      className="grid grid-cols-5 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
                     >
-                      <span className={cn(
-                        trade.side === "buy" ? "text-bid-dark" : "text-ask-dark",
-                        "truncate font-medium"
-                      )}>
-                        {trade.side.toUpperCase()}
-                      </span>
                       <span className="text-right truncate font-mono">
                         {formatDecimal(trade.price)}
                       </span>
                       <span className="text-right truncate font-mono">
                         {formatDecimal(trade.quantity)}
+                      </span>
+                      <span className="text-right text-neutral truncate text-xs">
+                        {trade.makerBaseAddress ? `${trade.makerBaseAddress.slice(0, 6)}...${trade.makerBaseAddress.slice(-4)}` : 'N/A'}
+                      </span>
+                      <span className="text-right text-neutral truncate text-xs">
+                        {trade.seller ? `${trade.seller.slice(0, 6)}...${trade.seller.slice(-4)}` : 'N/A'}
                       </span>
                       <span className="text-right text-neutral truncate text-xs">
                         {formatTime(trade.timestamp)}
@@ -178,48 +170,54 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               )}
             </div>
           ) : activeTab === "orders" ? (
-            <div className="space-y-4">
-              {/* Locked Balance */}
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-xs text-gray-600 mb-2">In Order Book</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {balanceLoading ? (
-                    <span className="text-blue-500">Loading...</span>
-                  ) : (
-                    <span className="text-orange-600">
-                      {lockedBalance} {tradingPair?.baseSymbol || "ATOM"}
-                    </span>
-                  )}
+            <div className="space-y-2 min-w-0">
+              {/* Header row */}
+              <div className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b gap-2">
+                <span className="truncate">Type</span>
+                <span className="text-right truncate">Price</span>
+                <span className="text-right truncate">Amount</span>
+                <span className="text-right truncate">Time</span>
+              </div>
+              
+              {ordersInitialLoading ? (
+                <div className="text-center py-8 text-neutral">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  Loading open orders...
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Funds in active orders
+              ) : ordersError ? (
+                <div className="text-center py-8 text-red-500">
+                  Error loading open orders: {ordersError}
                 </div>
-              </div>
-
-              {/* Open Orders List */}
-              <div className="text-center py-8 text-neutral">
-                No open orders
-              </div>
-            </div>
-          ) : activeTab === "deposits" ? (
-            <div className="space-y-4">
-              <div className="flex justify-center gap-4 px-12">
-                <button 
-                  onClick={handleDepositClick}
-                  className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors"
-                >
-                  Deposit
-                </button>
-                <button 
-                  onClick={handleWithdrawClick}
-                  className="w-32 bg-neutral-soft hover:bg-neutral-soft/80 text-neutral-dark font-medium py-2 rounded-lg transition-colors"
-                >
-                  Withdraw
-                </button>
-              </div>
-              <div className="text-center py-8 text-neutral">
-                No recent transactions
-              </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-8 text-neutral">
+                  No open orders
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="grid grid-cols-4 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
+                    >
+                      <span className={cn(
+                        order.side === "buy" ? "text-bid-dark" : "text-ask-dark",
+                        "truncate font-medium"
+                      )}>
+                        {order.side.toUpperCase()}
+                      </span>
+                      <span className="text-right truncate font-mono">
+                        {formatDecimal(order.price)}
+                      </span>
+                      <span className="text-right truncate font-mono">
+                        {formatDecimal(order.quantity)}
+                      </span>
+                      <span className="text-right text-neutral truncate text-xs">
+                        {formatTime(order.timestamp)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">

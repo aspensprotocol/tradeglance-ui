@@ -8,6 +8,13 @@ export interface OrderbookRequest {
   filter_by_trader?: string;
 }
 
+export interface TradeRequest {
+  continue_stream: boolean;
+  market_id: string;
+  historical_closed_trades?: boolean;
+  filter_by_trader?: string;
+}
+
 // Protobuf Orderbook Entry - matches the backend structure
 export interface ProtobufOrderbookEntry {
   timestamp: number;           // Field 1: uint64 timestamp
@@ -31,6 +38,39 @@ export interface OrderbookEntry {
   maker_quote_address: string;
   status: number; // 1 = ADDED, 2 = UPDATED, 3 = REMOVED
   market_id: string;
+}
+
+// Protobuf Trade - matches the backend structure
+export interface ProtobufTrade {
+  timestamp: number;           // Field 1: uint64 timestamp
+  price: string;              // Field 2: string price
+  qty: string;                // Field 3: string qty
+  maker: string;              // Field 4: string maker
+  taker: string;              // Field 5: string taker
+  maker_base_address: string; // Field 6: string maker_base_address
+  maker_quote_address: string; // Field 7: string maker_quote_address
+  buyer: string;              // Field 8: string buyer
+  seller: string;             // Field 9: string seller
+  order_hit: number;          // Field 10: uint64 order_hit
+}
+
+export interface Trade {
+  timestamp: number;
+  price: string;
+  qty: string;
+  maker: string;
+  taker: string;
+  maker_base_address: string;
+  maker_quote_address: string;
+  buyer: string;
+  seller: string;
+  order_hit: number;
+}
+
+export interface TradeResponse {
+  success: boolean;
+  data?: Trade[];
+  error?: string;
 }
 
 export interface OrderbookResponse {
@@ -304,6 +344,52 @@ class ConnectGrpcWebClient {
     return this.concatenateUint8Arrays(parts);
   }
 
+  // Encode TradeRequest as protobuf
+  private encodeTradeRequest(data: TradeRequest): Uint8Array {
+    const encodeVarint = (value: number): Uint8Array => {
+      const bytes: number[] = [];
+      while (value >= 0x80) {
+        bytes.push((value & 0x7F) | 0x80);
+        value >>>= 7;
+      }
+      bytes.push(value & 0x7F);
+      return new Uint8Array(bytes);
+    };
+
+    const encodeStringField = (fieldNumber: number, value: string): Uint8Array => {
+      const stringBytes = new TextEncoder().encode(value);
+      const fieldHeader = encodeVarint((fieldNumber << 3) | 2); // Wire type 2 = length-delimited
+      const lengthBytes = encodeVarint(stringBytes.length);
+      return this.concatenateUint8Arrays([fieldHeader, lengthBytes, stringBytes]);
+    };
+
+    const encodeBoolField = (fieldNumber: number, value: boolean): Uint8Array => {
+      const fieldHeader = encodeVarint((fieldNumber << 3) | 0); // Wire type 0 = varint
+      const valueBytes = encodeVarint(value ? 1 : 0);
+      return this.concatenateUint8Arrays([fieldHeader, valueBytes]);
+    };
+
+    const parts: Uint8Array[] = [];
+
+    // Field 1: continue_stream (bool)
+    parts.push(encodeBoolField(1, data.continue_stream));
+
+    // Field 2: market_id (string)
+    parts.push(encodeStringField(2, data.market_id));
+
+    // Field 3: historical_closed_trades (optional bool)
+    if (data.historical_closed_trades !== undefined) {
+      parts.push(encodeBoolField(3, data.historical_closed_trades));
+    }
+
+    // Field 4: filter_by_trader (optional string)
+    if (data.filter_by_trader !== undefined) {
+      parts.push(encodeStringField(4, data.filter_by_trader));
+    }
+
+    return this.concatenateUint8Arrays(parts);
+  }
+
   async call(service: string, method: string, data: any = {}) {
     console.log(`Connect gRPC-Web client making request to: ${service}/${method}`);
     
@@ -325,11 +411,13 @@ class ConnectGrpcWebClient {
         // For non-empty requests, create proper protobuf frame
         let messageBytes: Uint8Array;
         
-        // Use protobuf encoding for SendOrder and Orderbook, JSON for others
+        // Use protobuf encoding for SendOrder, Orderbook, and Trades, JSON for others
         if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'SendOrder') {
           messageBytes = this.encodeOrderProtobuf(data);
         } else if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Orderbook') {
           messageBytes = this.encodeOrderbookRequest(data);
+        } else if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Trades') {
+          messageBytes = this.encodeTradeRequest(data);
         } else {
           messageBytes = new TextEncoder().encode(JSON.stringify(data));
         }
@@ -347,7 +435,7 @@ class ConnectGrpcWebClient {
       
       // Use the browser's fetch directly with Connect-Web headers
       // For streaming methods, don't use timeout
-      const isStreamingMethod = service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Orderbook';
+      const isStreamingMethod = service === 'xyz.aspens.arborter.v1.ArborterService' && (method === 'Orderbook' || method === 'Trades');
       
       const fetchOptions: RequestInit = {
         method: 'POST',
@@ -390,14 +478,15 @@ class ConnectGrpcWebClient {
       
       // For streaming methods, handle differently
       if (isStreamingMethod) {
-        console.log('Handling streaming response for orderbook');
+        console.log(`Handling streaming response for ${method}`);
+        console.log(`Service: ${service}, Method: ${method}, isStreamingMethod: ${isStreamingMethod}`);
         // For streaming, we need to read the response as a stream
         const reader = response.body?.getReader();
         if (!reader) {
           throw new Error('No response body reader available for streaming');
         }
         
-        const entries: OrderbookEntry[] = [];
+        const entries: any[] = [];
         
         try {
           // Read all chunks from the stream
@@ -408,8 +497,8 @@ class ConnectGrpcWebClient {
               break;
             }
             
-                  // Reduced logging for performance
-      console.log('Streaming response chunk, length:', value?.length);
+            // Reduced logging for performance
+            console.log('Streaming response chunk, length:', value?.length);
             
             // For gRPC-Web streaming, each chunk is a separate frame
             // Process each frame in the chunk
@@ -427,9 +516,22 @@ class ConnectGrpcWebClient {
               
               if (length > 0 && offset + 5 + length <= value.length) {
                 const messageBytes = value.slice(offset + 5, offset + 5 + length);
-                              // Parse this individual message
-              const messageEntries = this.parseOrderbookStreamResponse(messageBytes);
-                entries.push(...messageEntries);
+                
+                // Parse this individual message based on method
+                console.log(`Parsing message for method: ${method}`);
+                if (method === 'Orderbook') {
+                  console.log('Using orderbook parser');
+                  const messageEntries = this.parseOrderbookStreamResponse(messageBytes);
+                  entries.push(...messageEntries);
+                } else if (method === 'Trades') {
+                  console.log('Using trades parser');
+                  const messageTrades = this.parseTradeStreamResponse(messageBytes);
+                  entries.push(...messageTrades);
+                } else {
+                  console.log(`Unknown method: ${method}, using orderbook parser as fallback`);
+                  const messageEntries = this.parseOrderbookStreamResponse(messageBytes);
+                  entries.push(...messageEntries);
+                }
                 
                 offset += 5 + length;
               } else {
@@ -445,7 +547,7 @@ class ConnectGrpcWebClient {
           reader.releaseLock();
         }
         
-        console.log('Total entries from stream:', entries.length);
+        console.log(`Total ${method} entries from stream:`, entries.length);
         return entries;
       }
       
@@ -514,6 +616,39 @@ class ConnectGrpcWebClient {
               console.warn('Failed to parse orderbook as JSON, trying protobuf:', error);
               // Fallback to protobuf parsing if JSON fails
               return this.parseOrderbookStreamResponse(responseBytes);
+            }
+          }
+          
+          // For Trades, handle as streaming response
+          if (service === 'xyz.aspens.arborter.v1.ArborterService' && method === 'Trades') {
+            console.log('Handling trades response...');
+            try {
+              const messageText = new TextDecoder().decode(messageBytes);
+              console.log(`Trades response text:`, messageText);
+              
+              // Try to parse as JSON first
+              const parsed = JSON.parse(messageText);
+              console.log('Parsed trades response as JSON:', parsed);
+              
+              // If it's an array, return it directly
+              if (Array.isArray(parsed)) {
+                console.log('Trades response is array, returning directly');
+                return parsed;
+              }
+              
+              // If it has a data field, return that
+              if (parsed && parsed.data) {
+                console.log('Trades response has data field, returning data');
+                return Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+              }
+              
+              // Otherwise return the parsed object
+              console.log('Trades response is object, returning as is');
+              return parsed;
+            } catch (error) {
+              console.warn('Failed to parse trades as JSON, trying protobuf:', error);
+              // Fallback to protobuf parsing if JSON fails
+              return this.parseTradeStreamResponse(responseBytes);
             }
           }
           
@@ -644,6 +779,33 @@ class ConnectGrpcWebClient {
       value = this.readBytes(bytes, offset, length);
       offset += length;
       console.log('parseProtobufField: Length-delimited value length:', length);
+    } else if (wireType === 3) { // Start group (deprecated, but we should handle it gracefully)
+      console.warn(`Wire type 3 (start group) encountered at field ${fieldNumber}, skipping`);
+      // Skip to the end of the group (wire type 4)
+      let groupOffset = offset;
+      while (groupOffset < bytes.length) {
+        const groupTag = this.readVarint(bytes, groupOffset);
+        const groupWireType = groupTag & 0x7;
+        if (groupWireType === 4) { // End group
+          offset = groupOffset + this.varintLength(groupTag);
+          break;
+        }
+        // Skip the field
+        groupOffset += this.varintLength(groupTag);
+        if (groupWireType === 0) { // Varint
+          const varintValue = this.readVarint(bytes, groupOffset);
+          groupOffset += this.varintLength(varintValue);
+        } else if (groupWireType === 2) { // Length-delimited
+          const length = this.readVarint(bytes, groupOffset);
+          groupOffset += this.varintLength(length) + length;
+        } else {
+          groupOffset += 8; // Fixed64
+        }
+      }
+      value = null; // Skip this field
+    } else if (wireType === 4) { // End group (deprecated)
+      console.warn(`Wire type 4 (end group) encountered, skipping`);
+      value = null;
     } else if (wireType === 5) { // 32-bit
       value = this.readBytes(bytes, offset, 4);
       offset += 4;
@@ -1016,6 +1178,74 @@ class ConnectGrpcWebClient {
     }
   }
 
+  // Parse Trade stream response (protobuf binary format)
+  parseTradeStreamResponse(responseBytes: Uint8Array): ProtobufTrade[] {
+    console.log('=== parseTradeStreamResponse called ===');
+    console.log('Parsing Trade stream response, bytes length:', responseBytes.length);
+    
+    // If response is empty, return empty array
+    if (responseBytes.length === 0) {
+      console.log('Empty response received, returning empty array');
+      return [];
+    }
+    
+    // Try to parse as JSON first (fallback)
+    try {
+      const decoder = new TextDecoder();
+      const text = decoder.decode(responseBytes);
+      console.log('Trade stream response text:', text);
+      
+      const parsed = JSON.parse(text);
+      console.log('Parsed trade response as JSON:', parsed);
+      
+      // If it's an array, return it directly
+      if (Array.isArray(parsed)) {
+        return parsed as ProtobufTrade[];
+      }
+      
+      // If it has a data property, return that
+      if (parsed && parsed.data) {
+        const data = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+        return data as ProtobufTrade[];
+      }
+      
+      // If it's a single object, wrap it in an array
+      return [parsed as ProtobufTrade];
+      
+    } catch (error) {
+      console.log('Not JSON, parsing as protobuf binary format');
+      
+      // Parse as protobuf binary format - each message should be a single Trade
+      try {
+        const trade = this.parseTradeProtobuf(responseBytes);
+        if (trade) {
+          console.log('Successfully parsed single trade:', trade);
+          return [trade];
+        } else {
+          console.log('Failed to parse trade from protobuf');
+          return [];
+        }
+      } catch (protobufError) {
+        console.error('Failed to parse Trade stream response as protobuf:', protobufError);
+        
+        // Last resort: try to parse as a simple protobuf message without frame
+        try {
+          console.log('Attempting to parse as raw protobuf message');
+          const trade = this.parseTradeProtobuf(responseBytes);
+          if (trade) {
+            console.log('Successfully parsed raw protobuf message');
+            return [trade];
+          }
+        } catch (rawError) {
+          console.error('Failed to parse as raw protobuf:', rawError);
+        }
+        
+        // Return empty array as fallback
+        return [];
+      }
+    }
+  }
+
   // Parse orderbook protobuf binary response
   parseOrderbookProtobufResponse(responseBytes: Uint8Array): ProtobufOrderbookEntry[] {
     console.log('Parsing orderbook protobuf response');
@@ -1226,6 +1456,118 @@ class ConnectGrpcWebClient {
       
     } catch (error) {
       console.error('Error parsing orderbook entry protobuf:', error);
+      return null;
+    }
+  }
+
+  // Parse Trade protobuf message
+  parseTradeProtobuf(messageBytes: Uint8Array): ProtobufTrade | null {
+    console.log('Parsing Trade protobuf message, bytes length:', messageBytes.length);
+    
+    try {
+      // First try to parse as JSON (since the response might be JSON)
+      try {
+        const decoder = new TextDecoder();
+        const text = decoder.decode(messageBytes);
+        console.log('Trade response as text:', text);
+        
+        const parsed = JSON.parse(text);
+        console.log('Parsed trade as JSON:', parsed);
+        
+        // Map JSON fields to our ProtobufTrade interface
+        const trade = {
+          timestamp: parsed.timestamp ? parseInt(parsed.timestamp) : 0,
+          price: parsed.price || '0',
+          qty: parsed.qty || '0',
+          maker: parsed.maker || '',
+          taker: parsed.taker || '',
+          maker_base_address: parsed.makerBaseAddress || parsed.maker_base_address || '',
+          maker_quote_address: parsed.makerQuoteAddress || parsed.maker_quote_address || '',
+          buyer: parsed.buyer || '',
+          seller: parsed.seller || '',
+          order_hit: parsed.orderHit ? parseInt(parsed.orderHit) : 0
+        };
+        
+        console.log('Parsed trade from JSON:', trade);
+        return trade;
+      } catch (jsonError) {
+        console.log('Not JSON, trying protobuf parsing');
+      }
+      
+      // Fallback to protobuf parsing
+      const allFields: Record<number, { value: any; wireType: number }> = {};
+      let offset = 0;
+      
+      while (offset < messageBytes.length) {
+        try {
+          const { fieldNumber, wireType, value, newOffset } = this.parseProtobufField(messageBytes, offset);
+          allFields[fieldNumber] = { value, wireType };
+          offset = newOffset;
+        } catch (fieldError) {
+          console.error('Error parsing field at offset', offset, fieldError);
+          break;
+        }
+      }
+      
+      console.log('All parsed trade fields:', allFields);
+      console.log('Field numbers found:', Object.keys(allFields).map(k => parseInt(k)).sort((a, b) => a - b));
+      
+      // Construct trade from available fields
+      if (Object.keys(allFields).length > 0) {
+        console.log('Attempting to construct trade from available fields');
+        
+        const constructedTrade: any = {};
+        
+        for (const [fieldNum, fieldData] of Object.entries(allFields)) {
+          const num = parseInt(fieldNum);
+          const { value, wireType } = fieldData as any;
+          
+          console.log(`Processing trade field ${num}, wireType ${wireType}, value:`, value);
+          
+          if (wireType === 0) { // varint
+            if (num === 1) constructedTrade.timestamp = Number(value);
+            else if (num === 10) constructedTrade.order_hit = Number(value);
+            else console.log(`Unmapped varint field ${num}: ${value}`);
+          } else if (wireType === 2) { // string
+            const strValue = this.decodeString(value);
+            console.log(`String field ${num}: "${strValue}"`);
+            if (num === 2) constructedTrade.price = strValue;
+            else if (num === 3) constructedTrade.qty = strValue;
+            else if (num === 4) constructedTrade.maker = strValue;
+            else if (num === 5) constructedTrade.taker = strValue;
+            else if (num === 6) constructedTrade.maker_base_address = strValue;
+            else if (num === 7) constructedTrade.maker_quote_address = strValue;
+            else if (num === 8) constructedTrade.buyer = strValue;
+            else if (num === 9) constructedTrade.seller = strValue;
+            else console.log(`Unmapped string field ${num}: "${strValue}"`);
+          }
+        }
+        
+        console.log('Constructed trade:', constructedTrade);
+        
+        // If we have at least some basic fields, return it
+        if (constructedTrade.price || constructedTrade.qty || constructedTrade.timestamp) {
+          console.log('Returning constructed trade with available fields');
+          return {
+            timestamp: constructedTrade.timestamp || 0,
+            price: constructedTrade.price || '0',
+            qty: constructedTrade.qty || '0',
+            maker: constructedTrade.maker || '',
+            taker: constructedTrade.taker || '',
+            maker_base_address: constructedTrade.maker_base_address || '',
+            maker_quote_address: constructedTrade.maker_quote_address || '',
+            buyer: constructedTrade.buyer || '',
+            seller: constructedTrade.seller || '',
+            order_hit: constructedTrade.order_hit || 0
+          };
+        }
+      }
+      
+      console.warn('Could not construct valid trade');
+      return null;
+      
+    } catch (error) {
+      console.error('Error parsing trade protobuf:', error);
       return null;
     }
   }
@@ -1580,6 +1922,82 @@ export const arborterService = {
     } catch (error) {
       console.error('Connect gRPC-Web getOrderbook error:', error);
       throw error;
+    }
+  },
+
+  // Get trades snapshot (non-streaming)
+  async getTradesSnapshot(marketId: string): Promise<TradeResponse> {
+    try {
+      console.log('Calling getTradesSnapshot via arborterService for market:', marketId);
+      
+      const request = {
+        continue_stream: false,
+        historical_closed_trades: true,
+        market_id: marketId
+      };
+      
+      console.log('Sending trades request to gRPC:', request);
+      
+      const response = await grpcClient.call(
+        'xyz.aspens.arborter.v1.ArborterService',
+        'Trades',
+        request
+      );
+      
+      console.log('Connect gRPC-Web getTradesSnapshot success:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response is array:', Array.isArray(response));
+      console.log('Response length:', Array.isArray(response) ? response.length : 'N/A');
+      
+      if (Array.isArray(response)) {
+        console.log('First trade in response:', response[0]);
+        return { success: true, data: response };
+      } else {
+        console.error('Unexpected trades response format:', response);
+        return { success: false, error: 'Invalid response format' };
+      }
+    } catch (error) {
+      console.error('arborterService getTradesSnapshot error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  },
+
+  // Get trades stream (streaming)
+  async getTradesStream(marketId: string, onUpdate: (trades: Trade[]) => void): Promise<{ success: boolean; cleanup: () => void }> {
+    try {
+      console.log('Starting trades stream for market:', marketId);
+      
+      const request = {
+        continue_stream: true,
+        historical_closed_trades: true,
+        market_id: marketId
+      };
+      
+      console.log('Sending trades stream request to gRPC:', request);
+      
+      const response = await grpcClient.call(
+        'xyz.aspens.arborter.v1.ArborterService',
+        'Trades',
+        request
+      );
+      
+      console.log('Trades stream response:', response);
+      
+      if (Array.isArray(response)) {
+        onUpdate(response);
+      }
+      
+      // For now, return a simple cleanup function
+      // In a real implementation, you'd want to maintain the stream connection
+      return {
+        success: true,
+        cleanup: () => {
+          console.log('Trades stream cleanup called');
+        }
+      };
+    } catch (error) {
+      console.error('Trades stream error:', error);
+      return { success: false, cleanup: () => {} };
     }
   }
 };

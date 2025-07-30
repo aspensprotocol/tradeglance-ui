@@ -1,12 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { OrderbookEntry } from '../lib/grpc-client';
+import { Trade } from '../lib/grpc-client';
 import { weiToDecimal, formatDecimal } from '../lib/number-utils';
 
-// Utility function to create a Date object from Unix timestamp in user's timezone
-const createLocalDate = (unixTimestamp: number): Date => {
-  // Unix timestamps are in UTC, convert to user's local timezone
-  const date = new Date(unixTimestamp * 1000);
-  console.log(`Unix timestamp: ${unixTimestamp}, Local time: ${date.toLocaleString()}, Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+// Utility function to create a Date object from timestamp in user's timezone
+const createLocalDate = (timestamp: number): Date => {
+  // Check if timestamp is in milliseconds (13+ digits) or seconds (10-12 digits)
+  const isMilliseconds = timestamp > 9999999999; // 10 digits = seconds, 13+ digits = milliseconds
+  
+  let date: Date;
+  if (isMilliseconds) {
+    // Already in milliseconds
+    date = new Date(timestamp);
+  } else {
+    // Convert from seconds to milliseconds
+    date = new Date(timestamp * 1000);
+  }
+  
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  console.log(`Timestamp: ${timestamp}, isMilliseconds: ${isMilliseconds}, UTC time: ${date.toISOString()}, Local time: ${date.toLocaleString()}, User timezone: ${userTimezone}`);
   return date;
 };
 
@@ -16,7 +27,12 @@ export interface RecentTrade {
   quantity: string;
   side: 'buy' | 'sell';
   timestamp: Date;
-  txHash?: string;
+  maker: string;
+  taker: string;
+  makerBaseAddress: string;
+  makerQuoteAddress: string;
+  buyer: string;
+  seller: string;
 }
 
 export interface UseRecentTradesReturn {
@@ -27,10 +43,6 @@ export interface UseRecentTradesReturn {
   refresh: () => Promise<void>;
 }
 
-// Shared cache for orderbook data to avoid duplicate requests
-const orderbookCache = new Map<string, { data: OrderbookEntry[], timestamp: number }>();
-const CACHE_DURATION = 10000; // 10 seconds
-
 export function useRecentTrades(marketId: string | undefined): UseRecentTradesReturn {
   const [trades, setTrades] = useState<RecentTrade[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,51 +51,64 @@ export function useRecentTrades(marketId: string | undefined): UseRecentTradesRe
   const lastDataHashRef = useRef<string>('');
   const hasLoadedOnceRef = useRef<boolean>(false);
 
-  const processOrderbookData = useCallback((orderbookEntries: OrderbookEntry[]) => {
-    // Create a hash of the data to check if it's changed
-    const dataHash = JSON.stringify(orderbookEntries.map(e => ({ 
-      order_id: e.order_id, 
-      price: e.price, 
-      quantity: e.quantity, 
-      side: e.side, 
-      status: e.status,
-      timestamp: e.timestamp
+  const processTradesData = useCallback((tradesData: Trade[]) => {
+    console.log('Processing trades data:', tradesData);
+    
+    const dataHash = JSON.stringify(tradesData.map(t => ({ 
+      timestamp: t.timestamp, 
+      price: t.price, 
+      qty: t.qty,
+      order_hit: t.order_hit 
     })));
     
-    // Skip update if data hasn't changed
-    if (dataHash === lastDataHashRef.current) {
-      return;
-    }
-    
+    if (dataHash === lastDataHashRef.current) return;
     lastDataHashRef.current = dataHash;
-    
-    // Filter for recent activity (orders with status 1 = ADDED, 2 = UPDATED)
-    const recentActivity = orderbookEntries.filter(entry => 
-      entry.status === 1 || entry.status === 2
-    );
-    
-    // Convert to recent trades format with proper decimal formatting
-    const parsedTrades: RecentTrade[] = recentActivity.map(entry => {
-      // Convert wei values to decimal format
-      const priceDecimal = weiToDecimal(entry.price || '0');
-      const quantityDecimal = weiToDecimal(entry.quantity || '0');
+
+    const parsedTrades: RecentTrade[] = tradesData.map(trade => {
+      console.log('Processing trade:', trade);
+      console.log('Raw price:', trade.price, 'Raw qty:', trade.qty);
+      
+      const priceDecimal = weiToDecimal(trade.price || '0');
+      const quantityDecimal = weiToDecimal(trade.qty || '0');
+      
+      console.log('Price decimal:', priceDecimal, 'Quantity decimal:', quantityDecimal);
       
       // Format the decimal values for display
       const priceFormatted = formatDecimal(priceDecimal);
       const quantityFormatted = formatDecimal(quantityDecimal);
       
+      console.log('Price formatted:', priceFormatted, 'Quantity formatted:', quantityFormatted);
+      
+      // Determine side based on buyer/seller addresses
+      // For now, we'll use a simple heuristic - if buyer and seller are the same, it's a market order
+      const side = trade.buyer === trade.seller ? 'buy' : 'buy'; // Default to buy for now
+      
       return {
-        id: entry.order_id?.toString() || '',
+        id: trade.order_hit?.toString() || '',
         price: priceFormatted,
         quantity: quantityFormatted,
-        side: entry.side === 1 ? 'buy' : 'sell', // 1 = BID (buy), 2 = ASK (sell)
-        timestamp: createLocalDate(entry.timestamp), // Convert Unix timestamp to user's local timezone
-        txHash: entry.maker_base_address // Use maker address as transaction reference
+        side: side,
+        timestamp: createLocalDate(trade.timestamp), // Convert timestamp to user's local timezone
+        maker: trade.maker || '',
+        taker: trade.taker || '',
+        makerBaseAddress: trade.maker_base_address || '',
+        makerQuoteAddress: trade.maker_quote_address || '',
+        buyer: trade.buyer || '',
+        seller: trade.seller || ''
       };
     });
 
     setTrades(parsedTrades);
     console.log('Recent trades data updated:', parsedTrades);
+    console.log('Sample trade details:', parsedTrades[0] ? {
+      id: parsedTrades[0].id,
+      price: parsedTrades[0].price,
+      quantity: parsedTrades[0].quantity,
+      side: parsedTrades[0].side,
+      timestamp: parsedTrades[0].timestamp,
+      rawPrice: tradesData[0]?.price,
+      rawQty: tradesData[0]?.qty
+    } : 'No trades');
     
     // Mark as loaded once
     if (!hasLoadedOnceRef.current) {
@@ -104,31 +129,16 @@ export function useRecentTrades(marketId: string | undefined): UseRecentTradesRe
     setError(null);
 
     try {
-      // Check cache first
-      const cached = orderbookCache.get(marketId);
-      const now = Date.now();
-      
-      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-        console.log('Using cached orderbook data for recent trades');
-        processOrderbookData(cached.data);
-        setLoading(false);
-        return;
-      }
-
       console.log('Fetching recent trades for market:', marketId);
       
       // Import here to avoid circular dependency
       const { arborterService } = await import('../lib/grpc-client');
-      const response = await arborterService.getOrderbookSnapshot(marketId);
+      const response = await arborterService.getTradesSnapshot(marketId);
       
       if (response.success && response.data) {
-        // Cache the data
-        orderbookCache.set(marketId, { data: response.data, timestamp: now });
-        
-        // Process the data
-        processOrderbookData(response.data);
+        processTradesData(response.data);
       } else {
-        throw new Error('Failed to fetch recent trades data');
+        throw new Error(response.error || 'Failed to fetch recent trades data');
       }
     } catch (err) {
       console.error('Error fetching recent trades:', err);
@@ -142,7 +152,7 @@ export function useRecentTrades(marketId: string | undefined): UseRecentTradesRe
     } finally {
       setLoading(false);
     }
-  }, [marketId, processOrderbookData]);
+  }, [marketId, processTradesData]);
 
   // Debounced effect to prevent rapid re-fetches when marketId changes
   useEffect(() => {
@@ -169,11 +179,5 @@ export function useRecentTrades(marketId: string | undefined): UseRecentTradesRe
     return () => clearInterval(interval);
   }, [marketId, fetchRecentTrades]);
 
-  return {
-    trades,
-    loading,
-    initialLoading,
-    error,
-    refresh: fetchRecentTrades
-  };
+  return { trades, loading, initialLoading, error, refresh: fetchRecentTrades };
 } 
