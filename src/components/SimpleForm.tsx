@@ -163,13 +163,52 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
     setReceiverNetwork(newNetwork);
   };
 
-  const handleSwapTokens = () => {
-    setSenderToken(receiverToken);
-    setReceiverToken(senderToken);
-    setSenderNetwork(receiverNetwork);
-    setReceiverNetwork(senderNetwork);
-    setSenderAmount(receiverAmount);
-    setReceiverAmount(senderAmount);
+  const handleSwapTokens = async () => {
+    // Store current values before swapping
+    const oldSenderToken = senderToken;
+    const oldReceiverToken = receiverToken;
+    const oldSenderNetwork = senderNetwork;
+    const oldReceiverNetwork = receiverNetwork;
+    const oldSenderAmount = senderAmount;
+    const oldReceiverAmount = receiverAmount;
+
+    // Swap the values
+    setSenderToken(oldReceiverToken);
+    setReceiverToken(oldSenderToken);
+    setSenderNetwork(oldReceiverNetwork);
+    setReceiverNetwork(oldSenderNetwork);
+    setSenderAmount(oldReceiverAmount);
+    setReceiverAmount(oldSenderAmount);
+
+    // Switch MetaMask to the new sender network (which was the old receiver network)
+    try {
+      const newSenderChainConfig = configUtils.getChainByNetwork(oldReceiverNetwork);
+      if (newSenderChainConfig) {
+        const success = await switchToNetwork(newSenderChainConfig);
+        
+        if (!success) {
+          toast({
+            title: "Network switch failed",
+            description: "Failed to switch to the new sender network",
+            variant: "destructive",
+          });
+          // Optionally revert the swap if network switch fails
+          // setSenderToken(oldSenderToken);
+          // setReceiverToken(oldReceiverToken);
+          // setSenderNetwork(oldSenderNetwork);
+          // setReceiverNetwork(oldReceiverNetwork);
+          // setSenderAmount(oldSenderAmount);
+          // setReceiverAmount(oldReceiverAmount);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error switching network during swap:', error);
+      toast({
+        title: "Network switch failed",
+        description: error.message || "Failed to switch network during swap",
+        variant: "destructive",
+      });
+    }
   };
 
   // Update tokens when trading pair changes

@@ -117,6 +117,6 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      #address: host.docker.internal
                       address: 192.168.50.253
+                      #address: host.docker.internal
                       port_value: 50051
