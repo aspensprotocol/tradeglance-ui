@@ -431,7 +431,7 @@ class ConnectGrpcWebClient {
         fetchOptions.signal = AbortSignal.timeout(timeoutMs);
       } else {
         // For streaming methods, use a shorter timeout to prevent hanging
-        fetchOptions.signal = AbortSignal.timeout(15000);
+        fetchOptions.signal = AbortSignal.timeout(100);
       }
       
       const response = await fetch(url, fetchOptions);

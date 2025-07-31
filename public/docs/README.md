@@ -1,28 +1,28 @@
-import { Layout } from "@/components/Layout";
-import { DocumentationViewer, renderMarkdown } from "@/components/DocumentationViewer";
-import { useState, useEffect } from "react";
-
-const Docs = () => {
-  const [markdownContent, setMarkdownContent] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Load the markdown content from the docs directory
-    const loadDocumentation = async () => {
-      try {
-        // In a real application, you would fetch this from your server
-        // For now, we'll use a static import or fetch from public directory
-        const response = await fetch('/docs/README.md');
-        if (response.ok) {
-          const content = await response.text();
-          setMarkdownContent(content);
-        } else {
-          // Fallback content if file is not found
-          setMarkdownContent(`# 🚀 TradeGlance UI Documentation
+# 🚀 TradeGlance UI Documentation
 
 ## 📋 Overview
 
 TradeGlance UI is a modern, real-time trading interface built with React, TypeScript, and Vite. It provides a comprehensive trading experience with order book visualization, real-time trade execution, and multi-chain support.
+
+## 📝 How to Write Documentation
+
+### Quick Start
+1. **Create a new doc**: `./docs/create-doc.sh my-topic "My Topic Title"`
+2. **Edit the file**: `docs/my-topic.md`
+3. **View online**: Navigate to `/docs` in the app
+
+### Documentation System
+- **Location**: All docs go in the `docs/` directory
+- **Format**: Markdown with emojis and proper headers
+- **Template**: Use `docs/template.md` as a starting point
+- **Script**: Use `docs/create-doc.sh` to create new docs
+
+### Writing Guidelines
+- Use emojis for section headers (🚀, 📋, 🏗️, etc.)
+- Follow the markdown structure from the template
+- Include code examples where helpful
+- Keep content clear and concise
+- Update the "Last updated" date
 
 ## 🏗️ Architecture
 
@@ -45,7 +45,7 @@ TradeGlance UI is a modern, real-time trading interface built with React, TypeSc
 
 ## 🗂️ Project Structure
 
-\`\`\`
+```
 tradeglance-ui/
 ├── src/
 │   ├── components/          # React components
@@ -54,18 +54,21 @@ tradeglance-ui/
 │   ├── pages/              # Page components
 │   └── main.tsx           # Application entry point
 ├── docs/                   # Documentation
+│   ├── README.md          # This file
+│   ├── template.md        # Documentation template
+│   └── create-doc.sh     # Script to create new docs
 └── public/                # Static assets
-\`\`\`
+```
 
 ## 🔧 Core Components
 
-### 📊 Trading Interface
+### 📊 Trading Interface (`src/pages/Index.tsx`)
 The main trading interface with three panels:
 - **Activity Panel**: Recent trades, open orders, and balances
 - **Order Book**: Real-time bid/ask visualization
 - **Trade Form**: Order placement interface
 
-### 💼 Trade Form
+### 💼 Trade Form (`src/components/TradeForm.tsx`)
 Advanced trading component with:
 - Limit and market order types
 - Buy/sell side switching with network auto-switching
@@ -73,9 +76,23 @@ Advanced trading component with:
 - Real-time balance validation
 - MetaMask transaction signing
 
+### 📈 Order Book (`src/components/VerticalOrderBook.tsx`)
+Real-time order book display with:
+- Bid/ask price visualization
+- Spread calculation
+- Trading pair selection
+- Responsive design
+
+### 📋 Activity Panel (`src/components/ActivityPanel.tsx`)
+Multi-tab activity monitoring:
+- Recent trades with filtering
+- Open orders management
+- Balance overview
+- Deposit/withdraw functionality
+
 ## 🔌 Data Management
 
-### 📡 gRPC Communication
+### 📡 gRPC Communication (`src/lib/grpc-client.ts`)
 Custom gRPC-Web client using Connect-Web:
 - Real-time order book streaming
 - Trade execution
@@ -84,28 +101,41 @@ Custom gRPC-Web client using Connect-Web:
 
 ### 🎣 Custom Hooks
 
-#### useOrderbook
+#### `useOrderbook` (`src/hooks/useOrderbook.ts`)
 Manages real-time order book data:
 - Fetches order book snapshots
 - Processes bid/ask data
 - Calculates spreads
 - Handles data formatting
 
-#### useDataFetching
+#### `useDataFetching` (`src/hooks/useDataFetching.ts`)
 Generic data fetching hook with:
 - Optimized polling
 - Debounced updates
 - Error handling
 - Performance monitoring
 
+#### `useTradingPairs` (`src/hooks/useTradingPairs.ts`)
+Trading pair management:
+- Dynamic pair loading from config
+- Market ID resolution
+- Chain configuration mapping
+
 ## 🔐 Security & Signing
 
-### Transaction Signing
+### Transaction Signing (`src/lib/signing-utils.ts`)
 Secure order signing with MetaMask:
 - Protobuf message encoding
 - EIP-191 signature compatibility
 - Multi-chain support
 - Error handling
+
+### Configuration Management (`src/lib/config-utils.ts`)
+Dynamic configuration system:
+- Chain configuration
+- Market definitions
+- Token metadata
+- Network switching
 
 ## 🌐 Web3 Integration
 
@@ -166,7 +196,7 @@ Secure order signing with MetaMask:
 ## 🔧 Development
 
 ### Environment Setup
-\`\`\`bash
+```bash
 # Install dependencies
 npm install
 
@@ -175,19 +205,19 @@ npm run dev
 
 # Build for production
 npm run build
-\`\`\`
+```
 
 ### Key Dependencies
-- \`@connectrpc/connect-web\`: gRPC-Web client
-- \`@tanstack/react-query\`: Server state management
-- \`wagmi\`: Web3 hooks
-- \`viem\`: Ethereum interactions
-- \`tailwindcss\`: Styling framework
+- `@connectrpc/connect-web`: gRPC-Web client
+- `@tanstack/react-query`: Server state management
+- `wagmi`: Web3 hooks
+- `viem`: Ethereum interactions
+- `tailwindcss`: Styling framework
 
 ## 📝 Configuration
 
 ### Environment Variables
-- \`VITE_GRPC_WEB_PROXY_URL\`: gRPC-Web proxy endpoint
+- `VITE_GRPC_WEB_PROXY_URL`: gRPC-Web proxy endpoint
 - Chain-specific RPC URLs
 - Contract addresses
 
@@ -243,15 +273,15 @@ npm run build
 ## 📚 API Reference
 
 ### gRPC Services
-- \`ArborterService\`: Trading operations
-- \`ConfigService\`: Configuration management
+- `ArborterService`: Trading operations
+- `ConfigService`: Configuration management
 - Streaming endpoints for real-time data
 
 ### Web3 Methods
-- \`sendOrder\`: Submit trading orders
-- \`cancelOrder\`: Cancel existing orders
-- \`getOrderbook\`: Fetch order book data
-- \`getTrades\`: Retrieve trade history
+- `sendOrder`: Submit trading orders
+- `cancelOrder`: Cancel existing orders
+- `getOrderbook`: Fetch order book data
+- `getTrades`: Retrieve trade history
 
 ## 🤝 Contributing
 
@@ -273,41 +303,4 @@ This project is proprietary software. All rights reserved.
 
 ---
 
-*Last updated: December 2024*`);
-        }
-      } catch (error) {
-        console.error('Error loading documentation:', error);
-        setMarkdownContent('# Error Loading Documentation\n\nPlease check the docs/README.md file.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDocumentation();
-  }, []);
-
-  if (loading) {
-    return (
-      <Layout footerPosition="absolute">
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading documentation...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  return (
-    <Layout footerPosition="absolute">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <DocumentationViewer>
-          {renderMarkdown(markdownContent)}
-        </DocumentationViewer>
-      </div>
-    </Layout>
-  );
-};
-
-export default Docs; 
+*Last updated: December 2024* 
