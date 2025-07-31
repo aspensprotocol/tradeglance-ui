@@ -40,30 +40,40 @@ export interface OrderbookEntry {
   market_id: string;
 }
 
-// Protobuf Trade - matches the backend structure
+// Add TradeRole enum
+export enum TradeRole {
+  TRADE_ROLE_UNSPECIFIED = 0,
+  MAKER = 1,
+  TAKER = 2,
+}
+
 export interface ProtobufTrade {
   timestamp: number;           // Field 1: uint64 timestamp
   price: string;              // Field 2: string price
   qty: string;                // Field 3: string qty
-  maker: string;              // Field 4: string maker
-  taker: string;              // Field 5: string taker
+  maker_id: string;           // Field 4: string maker_id (renamed from maker)
+  taker_id: string;           // Field 5: string taker_id (renamed from taker)
   maker_base_address: string; // Field 6: string maker_base_address
   maker_quote_address: string; // Field 7: string maker_quote_address
-  buyer: string;              // Field 8: string buyer
-  seller: string;             // Field 9: string seller
-  order_hit: number;          // Field 10: uint64 order_hit
+  taker_base_address: string; // Field 8: string taker_base_address (new)
+  taker_quote_address: string; // Field 9: string taker_quote_address (new)
+  buyer_is: TradeRole;        // Field 10: TradeRole buyer_is (new)
+  seller_is: TradeRole;       // Field 11: TradeRole seller_is (new)
+  order_hit: number;          // Field 12: uint64 order_hit (moved from 10)
 }
 
 export interface Trade {
   timestamp: number;
   price: string;
   qty: string;
-  maker: string;
-  taker: string;
+  maker_id: string;
+  taker_id: string;
   maker_base_address: string;
   maker_quote_address: string;
-  buyer: string;
-  seller: string;
+  taker_base_address: string;
+  taker_quote_address: string;
+  buyer_is: TradeRole;
+  seller_is: TradeRole;
   order_hit: number;
 }
 
@@ -431,7 +441,7 @@ class ConnectGrpcWebClient {
         fetchOptions.signal = AbortSignal.timeout(timeoutMs);
       } else {
         // For streaming methods, use a shorter timeout to prevent hanging
-        fetchOptions.signal = AbortSignal.timeout(15000);
+        fetchOptions.signal = AbortSignal.timeout(100);
       }
       
       const response = await fetch(url, fetchOptions);
@@ -1421,12 +1431,14 @@ class ConnectGrpcWebClient {
           timestamp: parsed.timestamp ? parseInt(parsed.timestamp) : 0,
           price: parsed.price || '0',
           qty: parsed.qty || '0',
-          maker: parsed.maker || '',
-          taker: parsed.taker || '',
+          maker_id: parsed.makerId || parsed.maker_id || '',
+          taker_id: parsed.takerId || parsed.taker_id || '',
           maker_base_address: parsed.makerBaseAddress || parsed.maker_base_address || '',
           maker_quote_address: parsed.makerQuoteAddress || parsed.maker_quote_address || '',
-          buyer: parsed.buyer || '',
-          seller: parsed.seller || '',
+          taker_base_address: parsed.takerBaseAddress || parsed.taker_base_address || '',
+          taker_quote_address: parsed.takerQuoteAddress || parsed.taker_quote_address || '',
+          buyer_is: parsed.buyerIs ? parseInt(parsed.buyerIs) : 0,
+          seller_is: parsed.sellerIs ? parseInt(parsed.sellerIs) : 0,
           order_hit: parsed.orderHit ? parseInt(parsed.orderHit) : 0
         };
         
@@ -1468,19 +1480,21 @@ class ConnectGrpcWebClient {
           
           if (wireType === 0) { // varint
             if (num === 1) constructedTrade.timestamp = Number(value);
-            else if (num === 10) constructedTrade.order_hit = Number(value);
+            else if (num === 10) constructedTrade.buyer_is = Number(value);
+            else if (num === 11) constructedTrade.seller_is = Number(value);
+            else if (num === 12) constructedTrade.order_hit = Number(value);
             else console.log(`Unmapped varint field ${num}: ${value}`);
           } else if (wireType === 2) { // string
             const strValue = this.decodeString(value);
             console.log(`String field ${num}: "${strValue}"`);
             if (num === 2) constructedTrade.price = strValue;
             else if (num === 3) constructedTrade.qty = strValue;
-            else if (num === 4) constructedTrade.maker = strValue;
-            else if (num === 5) constructedTrade.taker = strValue;
+            else if (num === 4) constructedTrade.maker_id = strValue;
+            else if (num === 5) constructedTrade.taker_id = strValue;
             else if (num === 6) constructedTrade.maker_base_address = strValue;
             else if (num === 7) constructedTrade.maker_quote_address = strValue;
-            else if (num === 8) constructedTrade.buyer = strValue;
-            else if (num === 9) constructedTrade.seller = strValue;
+            else if (num === 8) constructedTrade.taker_base_address = strValue;
+            else if (num === 9) constructedTrade.taker_quote_address = strValue;
             else console.log(`Unmapped string field ${num}: "${strValue}"`);
           }
         }
@@ -1494,12 +1508,14 @@ class ConnectGrpcWebClient {
             timestamp: constructedTrade.timestamp || 0,
             price: constructedTrade.price || '0',
             qty: constructedTrade.qty || '0',
-            maker: constructedTrade.maker || '',
-            taker: constructedTrade.taker || '',
+            maker_id: constructedTrade.maker_id || '',
+            taker_id: constructedTrade.taker_id || '',
             maker_base_address: constructedTrade.maker_base_address || '',
             maker_quote_address: constructedTrade.maker_quote_address || '',
-            buyer: constructedTrade.buyer || '',
-            seller: constructedTrade.seller || '',
+            taker_base_address: constructedTrade.taker_base_address || '',
+            taker_quote_address: constructedTrade.taker_quote_address || '',
+            buyer_is: constructedTrade.buyer_is || 0,
+            seller_is: constructedTrade.seller_is || 0,
             order_hit: constructedTrade.order_hit || 0
           };
         }

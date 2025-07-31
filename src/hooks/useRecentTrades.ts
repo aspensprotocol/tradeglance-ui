@@ -27,12 +27,14 @@ export interface RecentTrade {
   quantity: string;
   side: 'buy' | 'sell';
   timestamp: Date;
-  maker: string;
-  taker: string;
+  makerId: string;
+  takerId: string;
   makerBaseAddress: string;
   makerQuoteAddress: string;
-  buyer: string;
-  seller: string;
+  takerBaseAddress: string;
+  takerQuoteAddress: string;
+  buyerIs: number; // TradeRole enum value
+  sellerIs: number; // TradeRole enum value
 }
 
 export interface UseRecentTradesReturn {
@@ -79,9 +81,9 @@ export function useRecentTrades(marketId: string | undefined, filterByTrader?: s
       
       console.log('Price formatted:', priceFormatted, 'Quantity formatted:', quantityFormatted);
       
-      // Determine side based on buyer/seller addresses
-      // For now, we'll use a simple heuristic - if buyer and seller are the same, it's a market order
-      const side = trade.buyer === trade.seller ? 'buy' : 'buy'; // Default to buy for now
+      // Determine side based on buyer_is/seller_is roles
+      // If buyer_is is MAKER (1), then the maker is buying
+      const side = trade.buyer_is === 1 ? 'buy' : 'sell';
       
       return {
         id: trade.order_hit?.toString() || '',
@@ -89,12 +91,14 @@ export function useRecentTrades(marketId: string | undefined, filterByTrader?: s
         quantity: quantityFormatted,
         side: side,
         timestamp: createLocalDate(trade.timestamp), // Convert timestamp to user's local timezone
-        maker: trade.maker || '',
-        taker: trade.taker || '',
+        makerId: trade.maker_id || '',
+        takerId: trade.taker_id || '',
         makerBaseAddress: trade.maker_base_address || '',
         makerQuoteAddress: trade.maker_quote_address || '',
-        buyer: trade.buyer || '',
-        seller: trade.seller || ''
+        takerBaseAddress: trade.taker_base_address || '',
+        takerQuoteAddress: trade.taker_quote_address || '',
+        buyerIs: trade.buyer_is || 0,
+        sellerIs: trade.seller_is || 0
       };
     });
 

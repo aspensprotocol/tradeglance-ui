@@ -192,7 +192,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                         {trade.makerBaseAddress ? `${trade.makerBaseAddress.slice(0, 6)}...${trade.makerBaseAddress.slice(-4)}` : 'N/A'}
                       </span>
                       <span className="text-right text-neutral truncate text-xs">
-                        {trade.seller ? `${trade.seller.slice(0, 6)}...${trade.seller.slice(-4)}` : 'N/A'}
+                        {trade.takerBaseAddress ? `${trade.takerBaseAddress.slice(0, 6)}...${trade.takerBaseAddress.slice(-4)}` : 'N/A'}
                       </span>
                       <span className="text-right text-neutral truncate text-xs">
                         {formatTime(trade.timestamp)}
