@@ -57,5 +57,6 @@ Some examples we thought about that can be built on top of Aspens include:
 - Portfolio management
 - Memecoin launcher
 - Chain agnostic private transaction protocol
+- Telegram trading bot
 
 We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧
