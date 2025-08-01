@@ -476,13 +476,13 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
           </div>
 
           {/* Percentage Buttons */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 mt-1">
             {[10, 25, 50, 75, 100].map((percentage) => (
               <button
                 key={percentage}
                 onClick={() => handlePercentageClick(percentage)}
                 className={cn(
-                  "flex-1 py-2 text-sm rounded-lg transition-colors",
+                  "flex-1 py-1 text-sm rounded-lg transition-colors",
                   percentageValue === percentage
                     ? "bg-blue-600 text-white"
                     : "bg-[#2a2d3a] text-gray-400 hover:text-white hover:bg-[#3a3d4a]"
