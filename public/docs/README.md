@@ -1,6 +1,6 @@
 # 📈 Aspens App Example Demo
 
-## 📈 Cross chain + CLOBs + TEEs = 😀
+## ⛓️‍💥 Cross chain + CLOBs + TEEs = 😀
 
 This is a simple cross chain limit order dex built to demonstrate what is possible to build using [Aspens](https://aspens.xyz/), a protocol that aims to **make cross chain chill** 😎. In this example, we're showing a dex that trades across chains, with 2 different modes, i.e. [pro](/pro) or [simple](/simple). For more information of what aspens is, read our [docs](https://docs.aspens.xyz). Here's a video demonstration of how to use the dapp:
 
