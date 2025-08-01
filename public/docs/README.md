@@ -1,306 +1,61 @@
-# 🚀 TradeGlance UI Documentation
+# 📈 Aspens App Example Demo
 
-## 📋 Overview
+## ⛓️‍💥 Cross chain + CLOBs + TEEs = 😀
 
-TradeGlance UI is a modern, real-time trading interface built with React, TypeScript, and Vite. It provides a comprehensive trading experience with order book visualization, real-time trade execution, and multi-chain support.
+This is a simple cross chain limit order dex built to demonstrate what is possible to build using [Aspens](https://aspens.xyz/), a protocol that aims to **make cross chain chill** 😎. In this example, we're showing a dex that trades across chains, with 2 different modes, i.e. [pro](/pro) or [simple](/simple). For more information of what aspens is, read our [docs](https://docs.aspens.xyz). Here's a video demonstration of how to use the dapp:
 
-## 📝 How to Write Documentation
+![video demo](/vids/vid-demo.mp4)
 
-### Quick Start
-1. **Create a new doc**: `./docs/create-doc.sh my-topic "My Topic Title"`
-2. **Edit the file**: `docs/my-topic.md`
-3. **View online**: Navigate to `/docs` in the app
 
-### Documentation System
-- **Location**: All docs go in the `docs/` directory
-- **Format**: Markdown with emojis and proper headers
-- **Template**: Use `docs/template.md` as a starting point
-- **Script**: Use `docs/create-doc.sh` to create new docs
+And here is a step by step guide on how to use it:
 
-### Writing Guidelines
-- Use emojis for section headers (🚀, 📋, 🏗️, etc.)
-- Follow the markdown structure from the template
-- Include code examples where helpful
-- Keep content clear and concise
-- Update the "Last updated" date
+### 🛬 Landing page:
 
-## 🏗️ Architecture
+![landing page](/imgs/1.png)
 
-### Core Technologies
-- **React 18** with TypeScript for type safety
-- **Vite** for fast development and building
-- **Tailwind CSS** for styling
-- **Connect-Web** for gRPC communication
-- **Wagmi** for Web3 integration
-- **Viem** for blockchain interactions
-- **MetaMask** for wallet connectivity
+### 💰 Firstly, navigate to the token minting page:
 
-### Key Features
-- 🔄 Real-time order book updates
-- 📊 Live trading activity monitoring
-- 💰 Multi-chain balance management
-- 🎯 Limit and market order support
-- 🔐 Secure transaction signing
-- 📱 Responsive design
+![Navigate](/imgs/2.png)
 
-## 🗂️ Project Structure
+### 💸 Then, mint tokens on the chain that you want:
 
-```
-tradeglance-ui/
-├── src/
-│   ├── components/          # React components
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Utility libraries
-│   ├── pages/              # Page components
-│   └── main.tsx           # Application entry point
-├── docs/                   # Documentation
-│   ├── README.md          # This file
-│   ├── template.md        # Documentation template
-│   └── create-doc.sh     # Script to create new docs
-└── public/                # Static assets
-```
+![Mint](/imgs/3.png)
 
-## 🔧 Core Components
+### 💵 In order to deposit funds, press on this button:
 
-### 📊 Trading Interface (`src/pages/Index.tsx`)
-The main trading interface with three panels:
-- **Activity Panel**: Recent trades, open orders, and balances
-- **Order Book**: Real-time bid/ask visualization
-- **Trade Form**: Order placement interface
+![Deposit](/imgs/4.png)
 
-### 💼 Trade Form (`src/components/TradeForm.tsx`)
-Advanced trading component with:
-- Limit and market order types
-- Buy/sell side switching with network auto-switching
-- Percentage-based amount selection
-- Real-time balance validation
-- MetaMask transaction signing
+### 📝 Choose how much you want to deposit in this prompt:
 
-### 📈 Order Book (`src/components/VerticalOrderBook.tsx`)
-Real-time order book display with:
-- Bid/ask price visualization
-- Spread calculation
-- Trading pair selection
-- Responsive design
+![Deposit view](/imgs/5.png)
 
-### 📋 Activity Panel (`src/components/ActivityPanel.tsx`)
-Multi-tab activity monitoring:
-- Recent trades with filtering
-- Open orders management
-- Balance overview
-- Deposit/withdraw functionality
+### 📈 Then, you are read to trade:
 
-## 🔌 Data Management
+![Navigate to trade](/imgs/6.png)
 
-### 📡 gRPC Communication (`src/lib/grpc-client.ts`)
-Custom gRPC-Web client using Connect-Web:
-- Real-time order book streaming
-- Trade execution
-- Configuration management
-- Protobuf message handling
+### 🤓 Through either our pro view:
 
-### 🎣 Custom Hooks
+![Pro view](/imgs/7.png)
 
-#### `useOrderbook` (`src/hooks/useOrderbook.ts`)
-Manages real-time order book data:
-- Fetches order book snapshots
-- Processes bid/ask data
-- Calculates spreads
-- Handles data formatting
+### 😎 Or, our simple view:
 
-#### `useDataFetching` (`src/hooks/useDataFetching.ts`)
-Generic data fetching hook with:
-- Optimized polling
-- Debounced updates
-- Error handling
-- Performance monitoring
+![Simple view](/imgs/8.png)
 
-#### `useTradingPairs` (`src/hooks/useTradingPairs.ts`)
-Trading pair management:
-- Dynamic pair loading from config
-- Market ID resolution
-- Chain configuration mapping
+## 🌳 Aspens for builders
 
-## 🔐 Security & Signing
+This is only one example of many that we envision can be built on Aspens. When you build with Aspens, you are in charge. You will have your own **AMS**, Aspens Market Stack, which includes:
 
-### Transaction Signing (`src/lib/signing-utils.ts`)
-Secure order signing with MetaMask:
-- Protobuf message encoding
-- EIP-191 signature compatibility
-- Multi-chain support
-- Error handling
+1. A TEE, you can choose and customize the provider, that controls and executes orders, trade matching and configuration by you.
+2. Deployed smart contracts on the chains you want to support.
 
-### Configuration Management (`src/lib/config-utils.ts`)
-Dynamic configuration system:
-- Chain configuration
-- Market definitions
-- Token metadata
-- Network switching
+Since Aspens order book logic is hosted within a TEE, we can support any chain, EVM or non-EVM. You choose the chains you want to support, and the token pairs you want, and Aspens will seamlessly have your market created for you. You have full customization and can create markets for **token A on chain A -> token A on chain B**, **token A on chain A -> token B on chain B** or **token A on chain A -> token B on chain A**.
 
-## 🌐 Web3 Integration
+Some examples we thought about that can be built on top of Aspens include:
 
-### Wallet Connectivity
-- MetaMask integration via Wagmi
-- Multi-chain support
-- Automatic network switching
-- Balance monitoring
-
-### Smart Contract Interaction
-- Viem for contract calls
-- ABI management
-- Transaction monitoring
-- Gas estimation
-
-## 🎨 UI/UX Design
-
-### Design System
-- **Shadcn/ui** components
-- **Tailwind CSS** for styling
-- **Radix UI** primitives
-- **Lucide React** icons
-
-### Color Scheme
-- Dark theme optimized
-- High contrast for trading data
-- Semantic colors (green/red for buy/sell)
-- Accessible design
-
-## 🔄 Real-time Features
-
-### Data Streaming
-- WebSocket-like gRPC streaming
-- Optimized polling intervals
-- Debounced updates
-- Performance monitoring
-
-### State Management
-- React Query for server state
-- Local state with hooks
-- Optimistic updates
-- Error boundaries
-
-## 🚀 Performance Optimizations
-
-### Data Fetching
-- Intelligent polling
-- Request deduplication
-- Cache management
-- Background updates
-
-### UI Performance
-- Virtual scrolling for large datasets
-- Memoized components
-- Optimized re-renders
-- Lazy loading
-
-## 🔧 Development
-
-### Environment Setup
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-```
-
-### Key Dependencies
-- `@connectrpc/connect-web`: gRPC-Web client
-- `@tanstack/react-query`: Server state management
-- `wagmi`: Web3 hooks
-- `viem`: Ethereum interactions
-- `tailwindcss`: Styling framework
-
-## 📝 Configuration
-
-### Environment Variables
-- `VITE_GRPC_WEB_PROXY_URL`: gRPC-Web proxy endpoint
-- Chain-specific RPC URLs
-- Contract addresses
-
-### Network Configuration
-- Multi-chain support
-- Dynamic chain switching
-- Network validation
-- RPC endpoint management
-
-## 🧪 Testing
-
-### Component Testing
-- React Testing Library
-- Jest for unit tests
-- Integration testing
-- E2E testing with Playwright
-
-### Performance Testing
-- Lighthouse audits
-- Bundle analysis
-- Memory profiling
-- Network optimization
-
-## 🚀 Deployment
-
-### Build Process
-- Vite for fast builds
-- TypeScript compilation
-- Asset optimization
-- Environment configuration
-
-### Hosting
-- Static file hosting
-- CDN integration
-- SSL configuration
-- Performance monitoring
-
-## 🔮 Future Enhancements
-
-### Planned Features
-- Advanced order types
+- Bridges
+- Limit order book controlled dexes
 - Portfolio management
-- Chart integration
-- Mobile optimization
-- Multi-language support
+- Memecoin launcher
+- Chain agnostic private transaction protocol
 
-### Technical Improvements
-- Service worker caching
-- WebAssembly integration
-- Advanced analytics
-- Machine learning integration
-
-## 📚 API Reference
-
-### gRPC Services
-- `ArborterService`: Trading operations
-- `ConfigService`: Configuration management
-- Streaming endpoints for real-time data
-
-### Web3 Methods
-- `sendOrder`: Submit trading orders
-- `cancelOrder`: Cancel existing orders
-- `getOrderbook`: Fetch order book data
-- `getTrades`: Retrieve trade history
-
-## 🤝 Contributing
-
-### Development Guidelines
-- TypeScript for type safety
-- ESLint for code quality
-- Prettier for formatting
-- Conventional commits
-
-### Code Standards
-- Functional components
-- Custom hooks for logic
-- Proper error handling
-- Performance optimization
-
-## 📄 License
-
-This project is proprietary software. All rights reserved.
-
----
-
-*Last updated: December 2024* 
+We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧

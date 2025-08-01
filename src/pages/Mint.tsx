@@ -6,8 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { configUtils } from '@/lib/config-utils';
 import { useChainMonitor } from '@/hooks/useChainMonitor';
 import { useNetworkSwitch } from '@/hooks/useNetworkSwitch';
-import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
+import { Layout } from '@/components/Layout';
 import { getEtherscanLink, shortenTxHash } from '@/lib/utils';
 
 // Standard ERC20 ABI with mint function
@@ -222,14 +221,8 @@ const Mint = () => {
   const chains = getChains();
 
   return (
-    <div className="min-h-screen bg-neutral-soft/30">
-      <div className="container mx-auto">
-        {/* Header */}
-        <div className="p-4">
-          <Navigation />
-        </div>
-        
-        <div className="p-8 max-w-4xl mx-auto">
+    <Layout footerPosition="fixed">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Test Token Minting</h1>
           <p className="text-gray-600">
@@ -320,9 +313,8 @@ const Mint = () => {
             <li>• Use these tokens to test deposits and trading</li>
           </ul>
         </div>
-      </div>
-      </div>
-    </div>
+              </div>
+      </Layout>
   );
 };
 

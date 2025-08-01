@@ -26,7 +26,7 @@ const Simple = () => {
   const currentTradingPair = getTradingPairById(selectedPair);
 
   return (
-    <Layout>
+    <Layout footerPosition="fixed">
       <div className="flex items-center justify-center h-full">
         {pairsLoading || !currentChainId ? (
           <LoadingSpinner 

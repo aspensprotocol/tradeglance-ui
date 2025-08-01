@@ -24,7 +24,7 @@ const Index = () => {
   const currentTradingPair = getTradingPairById(selectedPair);
 
   return (
-    <Layout footerPosition="absolute">
+    <Layout footerPosition="fixed">
       <div className="grid grid-cols-4 gap-4 h-full">
         {pairsLoading ? (
           <div className="col-span-4">

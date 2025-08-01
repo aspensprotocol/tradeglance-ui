@@ -723,20 +723,33 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
 
                       {/* Simple Button */}
           <Button 
-                            onClick={handleSubmitSimple}
+            onClick={handleSubmitSimple}
             disabled={isSubmitting || !isConnected || !currentChainId || !senderAmount}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2"
+            className={cn(
+              "w-full text-white font-medium py-2",
+              (() => {
+                if (!currentChainId) return "bg-blue-600 hover:bg-blue-700";
+                const currentChain = configUtils.getChainByChainId(currentChainId);
+                const isBaseChain = currentChain?.baseOrQuote === "BASE_OR_QUOTE_BASE";
+                return isBaseChain 
+                  ? "bg-red-600 hover:bg-red-700" // Sell (red)
+                  : "bg-green-600 hover:bg-green-700"; // Buy (green)
+              })()
+            )}
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    Processing Simple...
+                Processing Simple...
               </div>
             ) : !isConnected ? (
               "Connect Wallet"
-            ) : (
-                                "Simple Tokens"
-            )}
+            ) : (() => {
+              if (!currentChainId) return "Simple Tokens";
+              const currentChain = configUtils.getChainByChainId(currentChainId);
+              const isBaseChain = currentChain?.baseOrQuote === "BASE_OR_QUOTE_BASE";
+              return isBaseChain ? "Sell" : "Buy";
+            })()}
           </Button>
         </div>
       </div>

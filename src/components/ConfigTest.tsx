@@ -60,6 +60,11 @@ export const ConfigTest: React.FC = () => {
             <div><strong>RPC URL:</strong> {chain.rpcUrl}</div>
             <div><strong>Service Address:</strong> {chain.serviceAddress}</div>
             <div><strong>Trade Contract:</strong> {chain.tradeContract.address}</div>
+            {chain.explorerUrl && (
+              <div>
+                <strong>Scanner:</strong> <a href={chain.explorerUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">{chain.explorerUrl}</a>
+              </div>
+            )}
             <div><strong>Tokens:</strong> {Object.keys(chain.tokens).length}</div>
             {Object.entries(chain.tokens).map(([symbol, token]) => (
               <div key={symbol} className="ml-4 mt-1">
