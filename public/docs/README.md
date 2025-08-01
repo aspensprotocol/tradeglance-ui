@@ -6,8 +6,41 @@ This is a simple cross chain limit order dex built to demonstrate what is possib
 
 
 
+And here is a step by step guide on how to use it:
 
-## 🚀 Aspens for builders
+### 🛬 Landing page:
+
+![landing page](/public/imgs/1.png)
+
+### 💰 Firstly, navigate to the token minting page:
+
+![Navigate](/public/imgs/2.png)
+
+### 💸 Then, mint tokens on the chain that you want:
+
+![Mint](/public/imgs/3.png)
+
+### 💵 In order to deposit funds, press on this button:
+
+![Deposit](/public/imgs/4.png)
+
+### 📝 Choose how much you want to deposit in this prompt:
+
+![Deposit view](/public/imgs/5.png)
+
+### 📈 Then, you are read to trade:
+
+![Navigate to trade](/public/imgs/6.png)
+
+### 🤓 Through either our pro view:
+
+![Pro view](/public/imgs/7.png)
+
+### 😎 Or, our simple view:
+
+![Simple view](/public/imgs/8.png)
+
+## 🌳 Aspens for builders
 
 This is only one example of many that we envision can be built on Aspens. When you build with Aspens, you are in charge. You will have your own **AMS**, Aspens Market Stack, which includes:
 

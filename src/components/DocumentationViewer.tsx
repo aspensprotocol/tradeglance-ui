@@ -109,6 +109,29 @@ export const renderMarkdown = (content: string) => {
       continue;
     }
     
+    // Handle images
+    if (line.includes('![') && line.includes('](')) {
+      const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+      if (imageMatch) {
+        const [, altText, imageUrl] = imageMatch;
+        const result = (
+          <div key={index} className="my-6 text-center">
+            <img 
+              src={imageUrl} 
+              alt={altText} 
+              className="max-w-full h-auto rounded-lg shadow-lg mx-auto"
+              onError={(e) => {
+                console.error('Failed to load image:', imageUrl);
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        );
+        processedLines.push(result);
+        continue;
+      }
+    }
+    
     // Handle links - simplified approach (must come before bold/italic processing)
     if (line.includes('[') && line.includes('](')) {
       // Replace markdown links with HTML links, also handle bold text within links
