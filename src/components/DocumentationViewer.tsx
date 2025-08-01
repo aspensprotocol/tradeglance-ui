@@ -41,24 +41,55 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({
 export const renderMarkdown = (content: string) => {
   // Split content into lines for processing
   const lines = content.split('\n');
-  const processedLines = lines.map((line, index) => {
+  const processedLines = [];
+  let skipUntil = -1;
+  
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    
+    // Skip lines that are part of a multi-item ordered list
+    if (index <= skipUntil) {
+      continue;
+    }
     // Handle headers with emojis
     if (line.startsWith('# ')) {
-      return <h1 key={index} className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        {line.replace('# ', '')}
-      </h1>;
+      const headerText = line.replace('# ', '');
+      // Split emoji and text to apply gradient only to text
+      const emojiMatch = headerText.match(/^(\p{Emoji}+)/u);
+      if (emojiMatch) {
+        const emoji = emojiMatch[1];
+        const text = headerText.replace(emoji, '').trim();
+        const result = (
+          <h1 key={index} className="text-4xl font-bold text-center mb-8">
+            <span className="text-4xl">{emoji}</span>
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{text}</span>
+          </h1>
+        );
+        processedLines.push(result);
+        continue;
+      } else {
+        const result = <h1 key={index} className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          {headerText}
+        </h1>;
+        processedLines.push(result);
+        continue;
+      }
     }
     
     if (line.startsWith('## ')) {
-      return <h2 key={index} className="text-3xl font-bold mt-12 mb-6 text-gray-800 border-b border-gray-200 pb-2">
+      const result = <h2 key={index} className="text-3xl font-bold mt-12 mb-6 text-gray-800 border-b border-gray-200 pb-2">
         {line.replace('## ', '')}
       </h2>;
+      processedLines.push(result);
+      continue;
     }
     
     if (line.startsWith('### ')) {
-      return <h3 key={index} className="text-2xl font-bold mt-8 mb-4 text-gray-700">
+      const result = <h3 key={index} className="text-2xl font-bold mt-8 mb-4 text-gray-700">
         {line.replace('### ', '')}
       </h3>;
+      processedLines.push(result);
+      continue;
     }
     
     // Handle code blocks
@@ -69,17 +100,38 @@ export const renderMarkdown = (content: string) => {
         codeBlock.push(lines[i]);
         i++;
       }
-      return (
+      const result = (
         <pre key={index} className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
           <code>{codeBlock.join('\n')}</code>
         </pre>
       );
+      processedLines.push(result);
+      continue;
+    }
+    
+    // Handle links - simplified approach (must come before bold/italic processing)
+    if (line.includes('[') && line.includes('](')) {
+      // Replace markdown links with HTML links, also handle bold text within links
+      let processedLine = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+        // Process bold text within the link text
+        const processedLinkText = linkText.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-gray-900 font-semibold">$1</strong>');
+        return `<a href="${url}" class="text-blue-600 no-underline hover:underline" target="_blank" rel="noopener noreferrer">${processedLinkText}</a>`;
+      });
+      
+      // Also handle any remaining bold text outside of links
+      processedLine = processedLine.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-gray-900 font-semibold">$1</strong>');
+      
+      const result = (
+        <p key={index} className="text-gray-600 leading-relaxed mb-4" dangerouslySetInnerHTML={{ __html: processedLine }} />
+      );
+      processedLines.push(result);
+      continue;
     }
     
     // Handle inline code
     if (line.includes('`')) {
       const parts = line.split('`');
-      return (
+      const result = (
         <p key={index} className="text-gray-600 leading-relaxed mb-4">
           {parts.map((part, partIndex) => 
             partIndex % 2 === 0 ? 
@@ -88,29 +140,70 @@ export const renderMarkdown = (content: string) => {
           )}
         </p>
       );
+      processedLines.push(result);
+      continue;
     }
     
     // Handle lists
     if (line.startsWith('- ')) {
-      return (
+      const result = (
         <li key={index} className="text-gray-600 mb-1 list-disc ml-6">
           {line.replace('- ', '')}
         </li>
       );
+      processedLines.push(result);
+      continue;
     }
     
     if (line.startsWith('1. ')) {
-      return (
-        <li key={index} className="text-gray-600 mb-1 list-decimal ml-6">
-          {line.replace(/^\d+\.\s/, '')}
-        </li>
-      );
+      // Check if this is the start of an ordered list
+      let listItems = [];
+      let i = index;
+      
+      // Collect all consecutive numbered list items
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        listItems.push({
+          number: lines[i].match(/^(\d+)\./)?.[1] || '1',
+          content: lines[i].replace(/^\d+\.\s/, '')
+        });
+        i++;
+      }
+      
+      // If we found multiple items, render them as a proper ordered list
+      if (listItems.length > 1) {
+        // Set skip until the end of this list
+        skipUntil = index + listItems.length - 1;
+        
+        // Return the ordered list
+        const result = (
+          <ol key={index} className="list-decimal ml-6 mb-4 space-y-2">
+            {listItems.map((item, itemIndex) => (
+              <li key={itemIndex} className="text-gray-600 leading-relaxed">
+                {item.content}
+              </li>
+            ))}
+          </ol>
+        );
+        processedLines.push(result);
+        continue;
+      } else {
+        // Single item
+        const result = (
+          <ol key={index} className="list-decimal ml-6 mb-4">
+            <li className="text-gray-600 leading-relaxed">
+              {listItems[0].content}
+            </li>
+          </ol>
+        );
+        processedLines.push(result);
+        continue;
+      }
     }
     
     // Handle bold text
     if (line.includes('**')) {
       const parts = line.split('**');
-      return (
+      const result = (
         <p key={index} className="text-gray-600 leading-relaxed mb-4">
           {parts.map((part, partIndex) => 
             partIndex % 2 === 0 ? 
@@ -119,12 +212,14 @@ export const renderMarkdown = (content: string) => {
           )}
         </p>
       );
+      processedLines.push(result);
+      continue;
     }
     
     // Handle italic text
     if (line.includes('*') && !line.startsWith('*')) {
       const parts = line.split('*');
-      return (
+      const result = (
         <p key={index} className="text-gray-600 leading-relaxed mb-4">
           {parts.map((part, partIndex) => 
             partIndex % 2 === 0 ? 
@@ -133,40 +228,21 @@ export const renderMarkdown = (content: string) => {
           )}
         </p>
       );
-    }
-    
-    // Handle links
-    if (line.includes('[') && line.includes('](')) {
-      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-      const parts = line.split(linkRegex);
-      return (
-        <p key={index} className="text-gray-600 leading-relaxed mb-4">
-          {parts.map((part, partIndex) => {
-            if (partIndex % 3 === 1) {
-              const url = parts[partIndex + 1];
-              return (
-                <a key={partIndex} href={url} className="text-blue-600 no-underline hover:underline">
-                  {part}
-                </a>
-              );
-            } else if (partIndex % 3 === 2) {
-              return null; // Skip URL part
-            } else {
-              return <span key={partIndex}>{part}</span>;
-            }
-          })}
-        </p>
-      );
+      processedLines.push(result);
+      continue;
     }
     
     // Handle empty lines
     if (line.trim() === '') {
-      return <br key={index} />;
+      const result = <br key={index} />;
+      processedLines.push(result);
+      continue;
     }
     
     // Regular paragraph
-    return <p key={index} className="text-gray-600 leading-relaxed mb-4">{line}</p>;
-  });
+    const result = <p key={index} className="text-gray-600 leading-relaxed mb-4">{line}</p>;
+    processedLines.push(result);
+  }
   
   return processedLines;
 }; 

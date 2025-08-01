@@ -10,8 +10,8 @@ interface LayoutProps {
 
 export const Layout = ({ children, className = "", footerPosition = "fixed" }: LayoutProps) => {
   return (
-    <div className={`h-screen bg-neutral-soft/30 relative overflow-hidden ${className}`}>
-      <div className="container h-full flex flex-col">
+    <div className={`min-h-screen bg-neutral-soft/30 relative ${className}`}>
+      <div className="container min-h-screen flex flex-col">
         <div className="p-4">
           <Navigation />
         </div>

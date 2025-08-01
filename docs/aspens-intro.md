@@ -1,4 +1,4 @@
-# 📈 Aspens App Example Demo
+# Introduction to Aspens
 
 ## 📈 Cross chain + CLOBs + TEEs = 😀
 

@@ -10,42 +10,18 @@ if [ $# -eq 0 ]; then
 fi
 
 FILENAME=$1
-TITLE=${2:-"Documentation"}
+TITLE=${2:-"Aspens App Example Demo"}
 
-# Create the new file from template
+# Create the new file from template in docs directory
 cp docs/template.md "docs/${FILENAME}.md"
 
-# Update the title in the new file
-sed -i '' "s/# 📝 Documentation Template/# 📝 ${TITLE}/" "docs/${FILENAME}.md"
+# Update the title in the new file (preserve the rest of the content)
+sed -i '' "s/# .*Aspens App Example Demo/# ${TITLE}/" "docs/${FILENAME}.md"
 
-# Remove template-specific content
-sed -i '' '/## 🎯 Purpose/,/Template created for TradeGlance UI documentation/d' "docs/${FILENAME}.md"
+# Also copy to public/docs for web access
+cp "docs/${FILENAME}.md" "public/docs/${FILENAME}.md"
 
-# Add a simple structure
-cat > "docs/${FILENAME}.md" << EOF
-# 📝 ${TITLE}
-
-## 📋 Overview
-
-[Add your overview here]
-
-## 🏗️ Structure
-
-[Add your structure here]
-
-## 🔧 Implementation
-
-[Add implementation details here]
-
-## 📝 Examples
-
-[Add examples here]
-
----
-
-*Last updated: $(date +"%B %Y")*
-EOF
-
-echo "✅ Created docs/${FILENAME}.md"
-echo "📝 Edit the file to add your content"
+echo "✅ Created docs/${FILENAME}.md from template"
+echo "✅ Copied to public/docs/${FILENAME}.md for web access"
+echo "📝 Edit the file to customize the content for your specific use case"
 echo "🌐 View at: http://localhost:5173/docs (after starting dev server)" 
