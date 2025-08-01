@@ -109,26 +109,48 @@ export const renderMarkdown = (content: string) => {
       continue;
     }
     
-    // Handle images
+    // Handle images and videos
     if (line.includes('![') && line.includes('](')) {
-      const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
-      if (imageMatch) {
-        const [, altText, imageUrl] = imageMatch;
-        const result = (
-          <div key={index} className="my-6 text-center">
-            <img 
-              src={imageUrl} 
-              alt={altText} 
-              className="max-w-full h-auto rounded-lg shadow-lg mx-auto"
-              onError={(e) => {
-                console.error('Failed to load image:', imageUrl);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-        );
-        processedLines.push(result);
-        continue;
+      const mediaMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+      if (mediaMatch) {
+        const [, altText, mediaUrl] = mediaMatch;
+        const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i);
+        
+        if (isVideo) {
+          const result = (
+            <div key={index} className="my-6 text-center">
+              <video 
+                src={mediaUrl} 
+                controls
+                className="max-w-full h-auto rounded-lg shadow-lg mx-auto"
+                onError={(e) => {
+                  console.error('Failed to load video:', mediaUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          );
+          processedLines.push(result);
+          continue;
+        } else {
+          const result = (
+            <div key={index} className="my-6 text-center">
+              <img 
+                src={mediaUrl} 
+                alt={altText} 
+                className="max-w-full h-auto rounded-lg shadow-lg mx-auto"
+                onError={(e) => {
+                  console.error('Failed to load image:', mediaUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          );
+          processedLines.push(result);
+          continue;
+        }
       }
     }
     
