@@ -388,24 +388,6 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   return (
     <div className="h-full bg-[#1a1c23] rounded-lg shadow-sm border border-gray-700 animate-fade-in">
       <div className="p-6 h-full flex flex-col">
-        {/* Order Type Tabs */}
-        <div className="flex bg-[#2a2d3a] rounded-lg p-1 mb-6">
-          {["limit", "market"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setActiveOrderType(type as "limit" | "market")}
-              className={cn(
-                "flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors",
-                activeOrderType === type
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
-              )}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
-
         {/* Buy/Sell Tabs */}
         <div className="flex bg-[#2a2d3a] rounded-lg p-1 mb-6">
           {["buy", "sell"].map((tab) => (
@@ -424,6 +406,29 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
               {tab.toUpperCase()}
             </button>
           ))}
+        </div>
+
+        {/* Order Type Toggle */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-300">Order Type</span>
+          </div>
+          <div className="flex bg-[#2a2d3a] rounded-lg p-1">
+            {["limit", "market"].map((type) => (
+              <button
+                key={type}
+                onClick={() => setActiveOrderType(type as "limit" | "market")}
+                className={cn(
+                  "flex-1 py-1 px-4 text-sm font-medium rounded-md transition-colors",
+                  activeOrderType === type
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-400 hover:text-white"
+                )}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Trade Form */}
