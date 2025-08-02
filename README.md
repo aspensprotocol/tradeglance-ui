@@ -234,11 +234,77 @@ docker logs -f envoy-grpc-web
 DEBUG=vite:* npm run dev
 ```
 
+## 🐳 Docker Deployment
+
+### Quick Deployment
+
+Use the automated deployment script:
+
+```bash
+./deploy.sh
+```
+
+This script will:
+1. Build the Docker image
+2. Stop any existing containers
+3. Start the new container
+4. Wait for health checks to pass
+5. Display deployment status
+
+### Manual Deployment
+
+#### Using Docker Compose (Recommended)
+
+```bash
+# Build and start the application
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the application
+docker-compose down
+```
+
+#### Using Docker directly
+
+```bash
+# Build the image
+docker build -t tradeglance-ui .
+
+# Run the container
+docker run -d -p 80:80 --name tradeglance-ui tradeglance-ui
+
+# View logs
+docker logs -f tradeglance-ui
+
+# Stop and remove container
+docker stop tradeglance-ui
+docker rm tradeglance-ui
+```
+
+### Production Deployment
+
+For production environments, consider:
+
+1. **Environment Variables**: Set production environment variables
+2. **SSL/TLS**: Use a reverse proxy (nginx, traefik) with SSL certificates
+3. **Monitoring**: Set up health checks and monitoring
+4. **Logging**: Configure log aggregation
+5. **Backup**: Set up regular backups of any persistent data
+
+### Health Checks
+
+The application includes health check endpoints:
+- **Health Check**: http://localhost/health
+- **Main Application**: http://localhost
+
 ## 🌐 Network Access
 
 The application is accessible on:
-- **Local**: http://localhost:8080
-- **Network**: http://192.168.50.253:8080 (or your local IP)
+- **Local**: http://localhost:8080 (development)
+- **Network**: http://192.168.50.253:8080 (development)
+- **Production**: http://localhost (Docker deployment)
 
 ## 📚 Additional Resources
 
