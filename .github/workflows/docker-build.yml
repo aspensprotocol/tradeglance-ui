@@ -34,15 +34,10 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Get the git hash
-        GIT_HASH=$(git rev-parse --short HEAD)
-        
         # Build a docker container and push it to ECR
-        docker build -t $ECR_REPOSITORY:$GIT_HASH .
-        docker build -t $ECR_REPOSITORY:latest .
+        docker build -t $ECR_REPOSITORY:${{ github.sha }} .
         
         # Push the images
-        docker push $ECR_REPOSITORY:$GIT_HASH
-        docker push $ECR_REPOSITORY:latest
+        docker push $ECR_REPOSITORY:${{ github.sha }}
         
-        echo "image=$ECR_REPOSITORY:$GIT_HASH" >> $GITHUB_OUTPUT 
+        echo "image=$ECR_REPOSITORY:${{ github.sha }}" >> $GITHUB_OUTPUT 
