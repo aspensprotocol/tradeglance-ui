@@ -35,7 +35,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build a docker container and push it to ECR
-        docker build -t $ECR_REPOSITORY:${{ github.sha }} .
+        docker buildx build --platform linux/amd64 -t $ECR_REPOSITORY:${{ github.sha }} .
         
         # Push the images
         docker push $ECR_REPOSITORY:${{ github.sha }}
