@@ -32,15 +32,17 @@ jobs:
     - name: Build Docker image
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build a docker container
-        docker build -t $ECR_REPOSITORY:${{ github.sha }} .
+        docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
         
     - name: Push Docker image to ECR
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
         # Push the image to ECR
-        docker push $ECR_REPOSITORY:${{ github.sha }}
+        docker push $ECR_REPOSITORY:$IMAGE_TAG
         
-        echo "image=$ECR_REPOSITORY:${{ github.sha }}" >> $GITHUB_OUTPUT 
+        echo "image=$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT 
