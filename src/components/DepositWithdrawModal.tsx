@@ -236,7 +236,7 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{activeType === "deposit" ? "Deposit" : "Withdraw"} Tokens</span>
-            <div className="flex space-x-1">
+            <div className="flex space-x-2 mr-3">
               <Button
                 variant={activeType === "deposit" ? "default" : "outline"}
                 size="sm"
