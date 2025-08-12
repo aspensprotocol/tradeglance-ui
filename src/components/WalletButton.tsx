@@ -3,30 +3,12 @@ import { useAccount, useDisconnect } from 'wagmi'
 import { Button } from './ui/button'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 import DepositWithdrawModal from './DepositWithdrawModal'
-import { useBalanceManager } from '@/hooks/useBalanceManager'
-import { useTradingPairs } from '@/hooks/useTradingPairs'
 
 export const WalletButton: React.FC = () => {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const [modalOpen, setModalOpen] = useState(false)
   
-  const { tradingPairs } = useTradingPairs()
-  
-  // Get the first available trading pair for balance display
-  const firstTradingPair = tradingPairs.length > 0 ? tradingPairs[0] : null
-  
-  // Get trading balances for the first available trading pair
-  const { availableBalance: depositedBalance, balanceLoading, refreshBalance } = useBalanceManager(firstTradingPair)
-
-  // Debug logging
-  console.log('WalletButton Debug:', {
-    firstTradingPair,
-    baseSymbol: firstTradingPair?.baseSymbol || "TTK",
-    depositedBalance,
-    balanceLoading
-  })
-
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
   }
@@ -44,9 +26,6 @@ export const WalletButton: React.FC = () => {
           title="Click to deposit/withdraw funds"
         >
           <div className="font-medium">{formatAddress(address)}</div>
-          <div className="text-xs text-gray-600">
-            {balanceLoading ? "Loading..." : `Deposited: ${parseFloat(depositedBalance || "0").toFixed(4)} ${firstTradingPair?.baseSymbol || "TTK"}`}
-          </div>
         </div>
         <Button 
           variant="outline" 
@@ -59,7 +38,7 @@ export const WalletButton: React.FC = () => {
         <DepositWithdrawModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
-          onSuccess={refreshBalance}
+          onSuccess={() => {}} // No refreshBalance here as it's removed
         />
       </div>
     )
