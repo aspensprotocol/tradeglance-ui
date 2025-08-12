@@ -95,14 +95,28 @@ export const useTradingPairs = () => {
         return;
       }
 
+      // Helper function to get chain prefix for trading pairs
+      const getChainPrefix = (network: string): string => {
+        if (network.includes('flare')) return 'f'; // flare-coston2
+        if (network.includes('base')) return 'b';  // base-sepolia
+        if (network.includes('mainnet')) return 'm';
+        if (network.includes('goerli')) return 'g';
+        if (network.includes('sepolia')) return 's';
+        return network.charAt(0).toLowerCase(); // fallback to first letter
+      };
+
+      // Get chain prefixes
+      const basePrefix = getChainPrefix(baseChain.network);
+      const quotePrefix = getChainPrefix(quoteChain.network);
+
       // Convert chain IDs to numbers for consistency
       const baseChainId = typeof baseChain.chainId === 'string' ? parseInt(baseChain.chainId, 10) : baseChain.chainId;
       const quoteChainId = typeof quoteChain.chainId === 'string' ? parseInt(quoteChain.chainId, 10) : quoteChain.chainId;
 
-      // Create trading pair
+      // Create trading pair with chain prefixes
       const tradingPair: TradingPair = {
-        id: `${market.baseChainTokenSymbol}-${market.quoteChainTokenSymbol}`,
-        displayName: `${market.baseChainTokenSymbol}/${market.quoteChainTokenSymbol}`,
+        id: `${basePrefix}${market.baseChainTokenSymbol}-${quotePrefix}${market.quoteChainTokenSymbol}`,
+        displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
         baseSymbol: market.baseChainTokenSymbol,
         quoteSymbol: market.quoteChainTokenSymbol,
         baseChainId: baseChainId,

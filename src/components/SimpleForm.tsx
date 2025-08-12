@@ -540,7 +540,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {tradingPairs.map((pair) => (
                         <SelectItem key={pair.baseSymbol} value={pair.baseSymbol} className="text-white hover:bg-gray-600">
-                          {pair.baseSymbol}
+                          {pair.displayName.split('/')[0]}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -658,7 +658,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {tradingPairs.map((pair) => (
                         <SelectItem key={pair.quoteSymbol} value={pair.quoteSymbol} className="text-white hover:bg-gray-600">
-                          {pair.quoteSymbol}
+                          {pair.displayName.split('/')[1]}
                         </SelectItem>
                       ))}
                     </SelectContent>
