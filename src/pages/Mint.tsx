@@ -215,10 +215,22 @@ const Mint = () => {
   };
 
   const getChains = () => {
-    return configUtils.getAllChains();
+    const chains = configUtils.getAllChains();
+    console.log('Mint page: All chains from config:', chains);
+    return chains;
   };
 
   const chains = getChains();
+
+  // Helper function to get chain prefix for trading pairs
+  const getChainPrefix = (network: string): string => {
+    if (network.includes('flare')) return 'f'; // flare-coston2
+    if (network.includes('base')) return 'b';  // base-sepolia
+    if (network.includes('mainnet')) return 'm';
+    if (network.includes('goerli')) return 'g';
+    if (network.includes('sepolia')) return 's';
+    return network.charAt(0).toLowerCase(); // fallback to first letter
+  };
 
   return (
     <Layout footerPosition="fixed">
@@ -239,68 +251,76 @@ const Mint = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {chains.map((chain) => {
-              const tokenSymbol = Object.keys(chain.tokens)[0]; // Get first token
-              const tokenConfig = chain.tokens[tokenSymbol];
-              
-              if (!tokenConfig) return null;
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {chains.flatMap((chain) => 
+              Object.keys(chain.tokens).map((tokenSymbol) => {
+                const tokenConfig = chain.tokens[tokenSymbol];
+                if (!tokenConfig) return null;
 
-              return (
-                <Card key={chain.chainId} className="border-2 border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{chain.network}</span>
-                      <span className="text-sm text-gray-500">Chain ID: {chain.chainId}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Token:</span>
-                        <span className="font-medium">{tokenSymbol}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Address:</span>
-                        <span className="text-xs font-mono text-gray-500">
-                          {tokenConfig.address.slice(0, 8)}...{tokenConfig.address.slice(-6)}
+                return (
+                  <Card key={`${chain.chainId}-${tokenSymbol}`} className="border-2 border-gray-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="text-lg">
+                          {(() => {
+                            const prefix = getChainPrefix(chain.network);
+                            const fullSymbol = `${prefix}${tokenSymbol}`;
+                            console.log('Token display:', { network: chain.network, prefix, tokenSymbol, fullSymbol });
+                            return fullSymbol;
+                          })()}
                         </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Decimals:</span>
-                        <span className="font-medium">{tokenConfig.decimals}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => handleMint(
-                        typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
-                        tokenConfig.address,
-                        tokenSymbol,
-                        tokenConfig.decimals
-                      )}
-                      disabled={isMinting}
-                      className="w-full"
-                    >
-                      {isMinting ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Minting...
+                        <span className="text-sm text-gray-500">{chain.network}</span>
+                      </CardTitle>
+                      <div className="text-xs text-gray-400">Chain ID: {chain.chainId}</div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Address:</span>
+                          <span className="text-xs font-mono text-gray-500">
+                            {tokenConfig.address.slice(0, 8)}...{tokenConfig.address.slice(-6)}
+                          </span>
                         </div>
-                      ) : (
-                        `Mint 1000 ${tokenSymbol}`
-                      )}
-                    </Button>
-
-                    {currentChainId === (typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId) && (
-                      <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                        ✓ Currently on this network
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Decimals:</span>
+                          <span className="font-medium">{tokenConfig.decimals}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Network:</span>
+                          <span className="font-medium">{chain.network}</span>
+                        </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+
+                      <Button
+                        onClick={() => handleMint(
+                          typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
+                          tokenConfig.address,
+                          tokenSymbol,
+                          tokenConfig.decimals
+                        )}
+                        disabled={isMinting}
+                        className="w-full"
+                      >
+                        {isMinting ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Minting...
+                          </div>
+                        ) : (
+                          `Mint 1000 ${tokenSymbol}`
+                        )}
+                      </Button>
+
+                      {currentChainId === (typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId) && (
+                        <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                          ✓ Currently on this network
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
           </div>
         )}
 
@@ -313,8 +333,8 @@ const Mint = () => {
             <li>• Use these tokens to test deposits and trading</li>
           </ul>
         </div>
-              </div>
-      </Layout>
+      </div>
+    </Layout>
   );
 };
 
