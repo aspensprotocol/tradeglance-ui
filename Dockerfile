@@ -1,5 +1,8 @@
 # Multi-stage build for production
-FROM node:18 AS builder
+FROM node:24 AS builder
+
+# Accept build argument for GRPC proxy URL
+ARG VITE_GRPC_WEB_PROXY_URL
 
 # Set working directory
 WORKDIR /app
@@ -14,7 +17,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with the build argument
 RUN npm run build
 
 # Production stage with nginx

@@ -13,6 +13,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: demo
     
     steps:
     - name: Checkout code
@@ -33,9 +34,10 @@ jobs:
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         IMAGE_TAG: ${{ github.sha }}
+        VITE_GRPC_WEB_PROXY_URL: ${{ vars.VITE_GRPC_WEB_PROXY_URL }}
       run: |
         # Build a docker container
-        docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --build-arg VITE_GRPC_WEB_PROXY_URL=$VITE_GRPC_WEB_PROXY_URL -t $ECR_REPOSITORY:$IMAGE_TAG .
         
     - name: Push Docker image to ECR
       env:
