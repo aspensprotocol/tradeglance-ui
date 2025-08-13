@@ -1,11 +1,9 @@
-#version: '3.8'
-
 services:
-  tradeglance-ui:
+  tradeglance:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tradeglance-ui
+    container_name: tradeglance
     ports:
       - "80:80"
     restart: unless-stopped

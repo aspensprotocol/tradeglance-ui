@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# TradeGlance UI Deployment Script
+# TradeGlance Deployment Script
 set -e
 
-echo "🚀 Starting TradeGlance UI deployment..."
+echo "🚀 Starting TradeGlance deployment..."
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
