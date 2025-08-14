@@ -17,7 +17,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application with the build argument
+# Build the application
 RUN npm run build
 
 # Production stage with nginx

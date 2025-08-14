@@ -2,7 +2,7 @@ static_resources:
   listeners:
     - address:
         socket_address:
-          address: demo.aspens.xyz 
+          address:  0.0.0.0 
           port_value: 8811
       filter_chains:
         - filters:
