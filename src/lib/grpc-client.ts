@@ -1,5 +1,3 @@
-import { createGrpcWebTransport } from "@connectrpc/connect-web";
-
 // Arborter gRPC Types
 export interface OrderbookRequest {
   continue_stream: boolean;
@@ -93,12 +91,6 @@ export interface OrderbookResponse {
 const GRPC_WEB_PROXY_URL = import.meta.env.VITE_GRPC_WEB_PROXY_URL || 'http://localhost:8811';
 console.log('Environment variable VITE_GRPC_WEB_PROXY_URL:', import.meta.env.VITE_GRPC_WEB_PROXY_URL);
 console.log('Using GRPC_WEB_PROXY_URL:', GRPC_WEB_PROXY_URL);
-
-// Create the gRPC-Web transport
-const transport = createGrpcWebTransport({
-  baseUrl: GRPC_WEB_PROXY_URL,
-  useBinaryFormat: true, // Use binary format for gRPC-Web
-});
 
 // Legacy types for backward compatibility
 interface Token {

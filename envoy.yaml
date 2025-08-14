@@ -2,7 +2,7 @@ static_resources:
   listeners:
     - address:
         socket_address:
-          address: demo.aspens.xyz 
+          address:  0.0.0.0 
           port_value: 8811
       filter_chains:
         - filters:
@@ -117,6 +117,6 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 0.0.0.0
-                      #address: host.docker.internal
+                      #address: host.docker.internal # local testing
+                      address: arborter # deployed alongside arborter in containers
                       port_value: 50051
