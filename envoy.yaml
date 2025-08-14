@@ -79,17 +79,17 @@ static_resources:
                         - match:
                             prefix: "/xyz.aspens.arborter_config.v1.ConfigService/"
                           route:
-                            cluster: backend_grpc_service
+                            cluster: arborter 
                         # Route all /xyz.aspens.arborter.v1.ArborterService/ requests to backend
                         - match:
                             prefix: "/xyz.aspens.arborter.v1.ArborterService/"
                           route:
-                            cluster: backend_grpc_service
+                            cluster: arborter 
                         # Catch-all route (optional, for other gRPC services)
                         - match:
                             prefix: "/"
                           route:
-                            cluster: backend_grpc_service
+                            cluster: arborter 
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:
@@ -102,7 +102,7 @@ static_resources:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
                       start_child_span: true
   clusters:
-    - name: backend_grpc_service
+    - name: arborter 
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
       typed_extension_protocol_options:
@@ -111,12 +111,12 @@ static_resources:
           explicit_http_config:
             http2_protocol_options: {}
       load_assignment:
-        cluster_name: backend_grpc_service
+        cluster_name: arborter 
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address:
                       #address: host.docker.internal # local testing
-                      address: arborter # deployed alongside arborter in containers
+                      address: arborter # deployed in containers
                       port_value: 50051
