@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
-import { DocumentationViewer, renderMarkdown } from "@/components/DocumentationViewer";
+import { DocumentationViewer } from "@/components/DocumentationViewer";
+import { renderMarkdown } from "@/lib/markdown-utils";
 import { useState, useEffect } from "react";
 
 const Docs = () => {

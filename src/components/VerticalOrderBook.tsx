@@ -5,19 +5,33 @@ import { useOrderbook, OrderbookOrder } from "@/hooks/useOrderbook";
 import { formatDecimal, formatLargeNumber } from "../lib/number-utils";
 
 interface VerticalOrderBookProps {
-  tradingPair?: any;
+  tradingPair?: TradingPair;
   selectedPair: string;
   onPairChange: (pair: string) => void;
   tradingPairs: TradingPair[];
 }
 
 const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPairs }: VerticalOrderBookProps) => {
-  // Get the market ID from the selected trading pair
-  const selectedTradingPair = tradingPairs.find(pair => pair.id === selectedPair);
-  const marketId = selectedTradingPair?.marketId;
+  // Get the market ID from the trading pair prop (not from selectedTradingPair)
+  const marketId = tradingPair?.marketId;
   
   // Use the orderbook hook to fetch real data
   const { orderbook, loading, initialLoading, error } = useOrderbook(marketId);
+
+  // Debug logging
+  console.log('VerticalOrderBook render:', {
+    marketId,
+    tradingPair,
+    selectedPair,
+    loading,
+    initialLoading,
+    error,
+    orderbook,
+    hasAsks: orderbook?.asks?.length > 0,
+    hasBids: orderbook?.bids?.length > 0,
+    orderbookKeys: orderbook ? Object.keys(orderbook) : [],
+    orderbookType: typeof orderbook
+  });
 
   // Use real orderbook data
   const asks = orderbook?.asks || [];
@@ -28,8 +42,8 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
   const formatNumber = (num: number) => formatLargeNumber(num);
   const formatPrice = (price: string) => formatDecimal(price);
 
-  // Show loading state only on initial load
-  if (initialLoading) {
+  // Show loading state until we have actual data
+  if (initialLoading || !orderbook || (asks.length === 0 && bids.length === 0)) {
     return (
       <div className="h-full bg-white rounded-lg shadow-sm border">
         <div className="p-4 border-b">
@@ -47,7 +61,34 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
           </select>
         </div>
         <div className="p-4 h-full flex items-center justify-center">
-          <div className="text-gray-500">Loading orderbook...</div>
+          <div className="text-gray-500">
+            {initialLoading ? "Loading orderbook..." : "No orderbook data available"}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Additional validation to ensure we have proper data
+  if (!Array.isArray(asks) || !Array.isArray(bids)) {
+    return (
+      <div className="h-full bg-white rounded-lg shadow-sm border">
+        <div className="p-4 border-b">
+          <select
+            value={selectedPair}
+            onChange={(e) => onPairChange(e.target.value)}
+            className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
+          >
+            <option value="">Select a trading pair</option>
+            {tradingPairs.map((pair) => (
+              <option key={pair.id} value={pair.id}>
+                {pair.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="p-4 h-full flex items-center justify-center">
+          <div className="text-red-500">Invalid orderbook data format</div>
         </div>
       </div>
     );
@@ -99,8 +140,8 @@ const VerticalOrderBook = ({ tradingPair, selectedPair, onPairChange, tradingPai
         {/* Header */}
         <div className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
           <span className="text-left">Price</span>
-          <span className="text-right">Amount ({selectedTradingPair?.baseSymbol || 'TOKEN'})</span>
-          <span className="text-right">Total ({selectedTradingPair?.quoteSymbol || 'TOKEN'})</span>
+          <span className="text-right">Amount ({tradingPair?.baseSymbol || 'TOKEN'})</span>
+          <span className="text-right">Total ({tradingPair?.quoteSymbol || 'TOKEN'})</span>
         </div>
 
         {/* Asks (Sell orders) - Red */}

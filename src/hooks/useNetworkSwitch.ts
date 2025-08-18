@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { configUtils } from '../lib/config-utils';
+import { Chain } from '../protos/gen/arborter_config_pb';
 import { useToast } from './use-toast';
 
 export const useNetworkSwitch = () => {
   const [isSwitching, setIsSwitching] = useState(false);
   const { toast } = useToast();
 
-  const switchToNetwork = async (chainConfig: any) => {
+  const switchToNetwork = async (chainConfig: Chain) => {
     if (typeof window.ethereum === 'undefined') {
       toast({
         title: "MetaMask not found",
@@ -37,11 +38,11 @@ export const useNetworkSwitch = () => {
         });
         
         return true;
-      } catch (switchError: any) {
+      } catch (switchError: unknown) {
         console.log('Switch error:', switchError);
         
         // If the network doesn't exist, add it
-        if (switchError.code === 4902) {
+        if (switchError && typeof switchError === 'object' && 'code' in switchError && switchError.code === 4902) {
           console.log(`Network ${chainConfig.network} not found, adding it...`);
           
           try {
@@ -68,24 +69,27 @@ export const useNetworkSwitch = () => {
             });
             
             return true;
-          } catch (addError: any) {
+          } catch (addError: unknown) {
             console.error('Error adding network:', addError);
-            throw new Error(`Failed to add network: ${addError.message || 'Unknown error'}`);
+            const errorMessage = addError instanceof Error ? addError.message : 'Unknown error';
+            throw new Error(`Failed to add network: ${errorMessage}`);
           }
         } else {
           // Handle other switch errors
-          if (switchError.code === 4001) {
+          if (switchError && typeof switchError === 'object' && 'code' in switchError && switchError.code === 4001) {
             throw new Error('User rejected the network switch');
           } else {
-            throw new Error(`Failed to switch network: ${switchError.message || 'Unknown error'}`);
+            const errorMessage = switchError instanceof Error ? switchError.message : 'Unknown error';
+            throw new Error(`Failed to switch network: ${errorMessage}`);
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error switching network:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to switch network";
       toast({
         title: "Network switch failed",
-        description: error.message || "Failed to switch network",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
@@ -95,7 +99,7 @@ export const useNetworkSwitch = () => {
   };
 
   const getSupportedNetworks = () => {
-    return configUtils.getAllChains().filter(chain => chain.tradeContractAddress);
+    return configUtils.getAllChains().filter(chain => chain.tradeContract);
   };
 
   return {

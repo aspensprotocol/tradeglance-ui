@@ -1,71 +1,16 @@
-// Define the actual config structure based on the protobuf definition
-interface Token {
-  name: string;
-  symbol: string;
-  address: string;
-  decimals: number;
-  tradePrecision: number;
-}
+import { Configuration, Chain, BaseOrQuote, Market, TradeContract } from '../protos/gen/arborter_config_pb';
 
-interface TradeContract {
-  address: string;
-}
-
-interface Chain {
-  architecture: string;
-  canonicalName: string;
-  network: string;
-  chainId: number;
-  contractOwnerAddress: string;
-  explorerUrl?: string;
-  rpcUrl: string;
-  serviceAddress: string;
-  tradeContract: TradeContract;
-  tokens: Record<string, Token>;
-  baseOrQuote: string;
-}
-
-interface Market {
-  slug: string;
-  name: string;
-  baseChainNetwork: string;
-  quoteChainNetwork: string;
-  baseChainTokenSymbol: string;
-  quoteChainTokenSymbol: string;
-  baseChainTokenDecimals: number;
-  quoteChainTokenDecimals: number;
-  pairDecimals: number;
-  marketId: string;
-}
-
-interface ConfigData {
-  chains: Chain[];
-  markets: Market[];
-}
-
-export interface ChainConfig {
-  chainId: number | string; // Allow both string and number
-  network: string;
-  rpcUrl: string;
-  tradeContractAddress: string;
-  serviceAddress: string;
-  explorerUrl?: string; // Optional explorer URL
-  baseOrQuote: string; // Add the baseOrQuote property
-  tokens: Record<string, {
-    address: string;
-    decimals: number;
-    symbol: string;
-  }>;
-}
+// Use proto-generated types instead of custom interfaces
+// ChainConfig is eliminated - use Chain directly from proto
 
 export class ConfigUtils {
-  private config: ConfigData | null = null;
+  private config: Configuration | null = null;
 
-  setConfig(config: ConfigData) {
+  setConfig(config: Configuration) {
     this.config = config;
   }
 
-  getChainByChainId(chainId: number): ChainConfig | null {
+  getChainByChainId(chainId: number): Chain | null {
     if (!this.config?.chains) {
       return null;
     }
@@ -76,60 +21,34 @@ export class ConfigUtils {
       return configChainId === chainId;
     });
     
-    if (!chain) {
+    if (!chain || !chain.tradeContract) {
       return null;
     }
 
-    return {
-      chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
-      network: chain.network,
-      rpcUrl: chain.rpcUrl,
-      tradeContractAddress: chain.tradeContract.address,
-      serviceAddress: chain.serviceAddress,
-      explorerUrl: chain.explorerUrl,
-      baseOrQuote: chain.baseOrQuote,
-      tokens: chain.tokens,
-    };
+    return chain;
   }
 
-  getChainByNetwork(network: string): ChainConfig | null {
+  getChainByNetwork(network: string): Chain | null {
     if (!this.config?.chains) {
       return null;
     }
 
     const chain = this.config.chains.find(c => c.network === network);
     
-    if (!chain) {
+    if (!chain || !chain.tradeContract) {
       return null;
     }
 
-    return {
-      chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
-      network: chain.network,
-      rpcUrl: chain.rpcUrl,
-      tradeContractAddress: chain.tradeContract.address,
-      serviceAddress: chain.serviceAddress,
-      explorerUrl: chain.explorerUrl,
-      baseOrQuote: chain.baseOrQuote,
-      tokens: chain.tokens,
-    };
+    return chain;
   }
 
-  getAllChains(): ChainConfig[] {
+  getAllChains(): Chain[] {
     if (!this.config?.chains) {
       return [];
     }
 
-    return this.config.chains.map(chain => ({
-      chainId: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
-      network: chain.network,
-      rpcUrl: chain.rpcUrl,
-      tradeContractAddress: chain.tradeContract.address,
-      serviceAddress: chain.serviceAddress,
-      explorerUrl: chain.explorerUrl,
-      baseOrQuote: chain.baseOrQuote,
-      tokens: chain.tokens,
-    }));
+    return this.config.chains
+      .filter(chain => chain.tradeContract); // Only include chains with trade contracts
   }
 
   getTokenByAddress(chainId: number, tokenAddress: string): { address: string; decimals: number; symbol: string } | null {
@@ -141,7 +60,7 @@ export class ConfigUtils {
     return chain.tokens[tokenAddress] || null;
   }
 
-  getMarketById(marketId: string): any {
+  getMarketById(marketId: string): Market | null {
     if (!this.config?.markets) {
       return null;
     }
@@ -149,13 +68,13 @@ export class ConfigUtils {
     return this.config.markets.find(m => m.marketId === marketId) || null;
   }
 
-  getAllMarkets(): any[] {
+  getAllMarkets(): Market[] {
     return this.config?.markets || [];
   }
 
   getTradeContractAddress(chainId: number): string | null {
     const chain = this.getChainByChainId(chainId);
-    return chain?.tradeContractAddress || null;
+    return chain?.tradeContract?.address || null;
   }
 }
 

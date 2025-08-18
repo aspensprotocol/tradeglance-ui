@@ -1,45 +1,8 @@
 import { useConfig } from './useConfig';
 import { configUtils } from '../lib/config-utils';
+import { Configuration, Market, Chain } from '../protos/gen/arborter_config_pb';
 
-// Define the actual config structure based on the protobuf definition
-interface ConfigData {
-  chains?: Array<{
-    architecture: string;
-    canonicalName: string;
-    network: string;
-    chainId: number;
-    contractOwnerAddress: string;
-    explorerUrl?: string;
-    rpcUrl: string;
-    serviceAddress: string;
-    tradeContract: {
-      contractId?: string;
-      address: string;
-    };
-    tokens: Record<string, {
-      name: string;
-      symbol: string;
-      address: string;
-      tokenId?: string;
-      decimals: number;
-      tradePrecision: number;
-    }>;
-    baseOrQuote: string;
-  }>;
-  markets?: Array<{
-    slug: string;
-    name: string;
-    baseChainNetwork: string;
-    quoteChainNetwork: string;
-    baseChainTokenSymbol: string;
-    quoteChainTokenSymbol: string;
-    baseChainTokenDecimals: number;
-    quoteChainTokenDecimals: number;
-    pairDecimals: number;
-    marketId?: string;
-  }>;
-}
-
+// Use proto-generated types instead of custom interfaces
 export interface TradingPair {
   id: string;
   displayName: string;
@@ -48,7 +11,6 @@ export interface TradingPair {
   baseChainId: number;
   quoteChainId: number;
   marketId: string;
-  // Add decimal information from market configuration
   baseTokenDecimals: number;
   quoteTokenDecimals: number;
   pairDecimals: number;
@@ -56,6 +18,17 @@ export interface TradingPair {
 
 export const useTradingPairs = () => {
   const { config, loading, error } = useConfig();
+  
+  // Debug logging for config
+  console.log('useTradingPairs: Config received:', {
+    hasConfig: !!config,
+    configType: typeof config,
+    configKeys: config ? Object.keys(config) : [],
+    chainsCount: config?.chains?.length || 0,
+    marketsCount: config?.markets?.length || 0,
+    loading,
+    error
+  });
   
   const getTradingPairs = (): TradingPair[] => {
     if (!config) {
@@ -73,24 +46,51 @@ export const useTradingPairs = () => {
     const tradingPairs: TradingPair[] = [];
 
     // Create trading pairs from markets
-    markets.forEach((market: any) => {
+    markets.forEach((market: Market) => {
       console.log('Processing market:', {
         slug: market.slug,
         name: market.name,
         marketId: market.marketId,
+        marketIdType: typeof market.marketId,
+        marketIdTruthy: !!market.marketId,
         baseChainNetwork: market.baseChainNetwork,
-        quoteChainNetwork: market.quoteChainNetwork
+        quoteChainNetwork: market.quoteChainNetwork,
+        fullMarket: market,
+        marketKeys: Object.keys(market)
       });
       
       // Find base and quote chains by network name
-      const baseChain = chains.find((chain: any) => chain.network === market.baseChainNetwork);
-      const quoteChain = chains.find((chain: any) => chain.network === market.quoteChainNetwork);
+      const baseChain = chains.find((chain: Chain) => chain.network === market.baseChainNetwork);
+      const quoteChain = chains.find((chain: Chain) => chain.network === market.quoteChainNetwork);
+      
+      console.log('Found chains:', {
+        baseChain: baseChain ? {
+          network: baseChain.network,
+          chainId: baseChain.chainId,
+          baseOrQuote: baseChain.baseOrQuote
+        } : null,
+        quoteChain: quoteChain ? {
+          network: quoteChain.network,
+          chainId: quoteChain.chainId,
+          baseOrQuote: quoteChain.baseOrQuote
+        } : null
+      });
       
       if (!baseChain || !quoteChain) {
         console.log('Skipping market - chain not found:', {
           baseChainNetwork: market.baseChainNetwork,
           quoteChainNetwork: market.quoteChainNetwork,
           availableChains: chains.map(c => c.network)
+        });
+        return;
+      }
+
+      // Skip markets without valid marketId
+      if (!market.marketId || market.marketId.trim() === '') {
+        console.warn('Skipping market - no valid marketId:', {
+          slug: market.slug,
+          name: market.name,
+          marketId: market.marketId
         });
         return;
       }
@@ -121,7 +121,7 @@ export const useTradingPairs = () => {
         quoteSymbol: market.quoteChainTokenSymbol,
         baseChainId: baseChainId,
         quoteChainId: quoteChainId,
-        marketId: market.marketId,
+        marketId: market.marketId || `${baseChain.network}-${market.baseChainTokenSymbol}-${quoteChain.network}-${market.quoteChainTokenSymbol}`,
         baseTokenDecimals: market.baseChainTokenDecimals || 18,
         quoteTokenDecimals: market.quoteChainTokenDecimals || 18,
         pairDecimals: market.pairDecimals || 8,
@@ -132,8 +132,12 @@ export const useTradingPairs = () => {
         id: tradingPair.id,
         displayName: tradingPair.displayName,
         marketId: tradingPair.marketId,
+        marketIdType: typeof tradingPair.marketId,
+        marketIdTruthy: !!tradingPair.marketId,
         baseChainId: tradingPair.baseChainId,
-        quoteChainId: tradingPair.quoteChainId
+        quoteChainId: tradingPair.quoteChainId,
+        baseChainBaseOrQuote: baseChain.baseOrQuote,
+        quoteChainBaseOrQuote: quoteChain.baseOrQuote
       });
     });
 

@@ -23,6 +23,22 @@ const Index = () => {
   // Get the current trading pair object
   const currentTradingPair = getTradingPairById(selectedPair);
 
+  // Debug logging
+  console.log('Index page render:', {
+    tradingPairs: tradingPairs.map(p => ({ 
+      id: p.id, 
+      marketId: p.marketId, 
+      displayName: p.displayName,
+      marketIdType: typeof p.marketId,
+      marketIdTruthy: !!p.marketId
+    })),
+    selectedPair,
+    currentTradingPair,
+    currentTradingPairMarketId: currentTradingPair?.marketId,
+    currentTradingPairMarketIdType: typeof currentTradingPair?.marketId,
+    pairsLoading
+  });
+
   return (
     <Layout footerPosition="fixed">
       <div className="grid grid-cols-4 gap-4 h-full">
@@ -33,10 +49,14 @@ const Index = () => {
         ) : (
           <>
             <div className="col-span-2">
-              <ActivityPanel tradingPair={currentTradingPair} />
+              <ActivityPanel 
+                key={currentTradingPair?.marketId || 'no-market'} 
+                tradingPair={currentTradingPair} 
+              />
             </div>
             <div className="col-span-1">
               <VerticalOrderBook 
+                key={`orderbook-${currentTradingPair?.marketId || 'no-market'}`}
                 tradingPair={currentTradingPair} 
                 selectedPair={selectedPair} 
                 onPairChange={setSelectedPair} 
@@ -44,7 +64,11 @@ const Index = () => {
               />
             </div>
             <div className="col-span-1">
-              <TradeForm selectedPair={selectedPair} tradingPair={currentTradingPair} />
+              <TradeForm 
+                key={`tradeform-${currentTradingPair?.marketId || 'no-market'}`}
+                selectedPair={selectedPair} 
+                tradingPair={currentTradingPair} 
+              />
             </div>
           </>
         )}

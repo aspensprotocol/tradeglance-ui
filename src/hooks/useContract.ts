@@ -60,7 +60,7 @@ export const useContract = () => {
     // Get chain config from gRPC config
     const chainConfig = configUtils.getChainByChainId(id);
     if (chainConfig) {
-      const chainObj: any = {
+      const chainObj = {
         id: typeof chainConfig.chainId === 'string' ? parseInt(chainConfig.chainId, 10) : chainConfig.chainId,
         name: chainConfig.network,
         network: chainConfig.network,
@@ -205,7 +205,7 @@ export const useContract = () => {
               "stateMutability": "nonpayable",
               "type": "function"
             }
-          ] as any,
+          ],
         };
 
         const approveHash = await walletClient.writeContract({
@@ -236,7 +236,7 @@ export const useContract = () => {
       
       const hash = await walletClient.writeContract({
         address: tradeContractAddress as `0x${string}`,
-        abi: MidribV2ABI.abi as any,
+        abi: MidribV2ABI.abi,
         functionName: 'deposit',
         args: [token, amountWei],
         account: address as `0x${string}`,
@@ -271,22 +271,24 @@ export const useContract = () => {
       
       console.log('Deposit transaction successful');
       return hash;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Deposit failed:', err);
       
       // Provide more helpful error messages
       let errorMessage = 'Deposit failed';
       
-      if (err.message?.includes('Internal JSON-RPC error')) {
-        errorMessage = 'RPC connection error. Please check your network connection and try again.';
-      } else if (err.message?.includes('approve')) {
-        errorMessage = 'Token approval failed. The token contract may not support standard ERC20 approval.';
-      } else if (err.message?.includes('insufficient funds')) {
-        errorMessage = 'Insufficient funds for transaction. Please check your balance.';
-      } else if (err.message?.includes('user rejected')) {
-        errorMessage = 'Transaction was rejected by user.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      if (err instanceof Error) {
+        if (err.message?.includes('Internal JSON-RPC error')) {
+          errorMessage = 'RPC connection error. Please check your network connection and try again.';
+        } else if (err.message?.includes('approve')) {
+          errorMessage = 'Token approval failed. The token contract may not support standard ERC20 approval.';
+        } else if (err.message?.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds for transaction. Please check your balance.';
+        } else if (err.message?.includes('user rejected')) {
+          errorMessage = 'Transaction was rejected by user.';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
       }
       
       setError(errorMessage);
@@ -339,7 +341,7 @@ export const useContract = () => {
       
       const hash = await walletClient.writeContract({
         address: tradeContractAddress as `0x${string}`,
-        abi: MidribV2ABI.abi as any,
+        abi: MidribV2ABI.abi,
         functionName: 'withdraw',
         args: [token, amountWei],
         account: address as `0x${string}`,
@@ -374,20 +376,22 @@ export const useContract = () => {
       
       console.log('Withdrawal transaction successful');
       return hash;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Withdrawal failed:', err);
       
       // Provide more helpful error messages
       let errorMessage = 'Withdrawal failed';
       
-      if (err.message?.includes('Internal JSON-RPC error')) {
-        errorMessage = 'RPC connection error. Please check your network connection and try again.';
-      } else if (err.message?.includes('insufficient funds')) {
-        errorMessage = 'Insufficient funds for withdrawal. Please check your balance.';
-      } else if (err.message?.includes('user rejected')) {
-        errorMessage = 'Transaction was rejected by user.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      if (err instanceof Error) {
+        if (err.message?.includes('Internal JSON-RPC error')) {
+          errorMessage = 'RPC connection error. Please check your network connection and try again.';
+        } else if (err.message?.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds for withdrawal. Please check your balance.';
+        } else if (err.message?.includes('user rejected')) {
+          errorMessage = 'Transaction was rejected by user.';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
       }
       
       setError(errorMessage);

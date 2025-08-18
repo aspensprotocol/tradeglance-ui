@@ -13,7 +13,8 @@ export const useBalanceManager = (tradingPair?: TradingPair) => {
     refresh: refreshBalance 
   } = useTradingBalance(
     tradingPair?.baseSymbol || "ATOM", 
-    currentChainId || 0
+    currentChainId || 0,
+    tradingPair?.marketId // Pass the marketId for contract calls
   );
 
   return {

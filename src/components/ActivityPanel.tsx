@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAccount } from "wagmi";
+import React, { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
@@ -10,9 +10,11 @@ import { formatDecimal } from "../lib/number-utils";
 import { configUtils } from "@/lib/config-utils";
 import { useConfig } from "@/hooks/useConfig";
 import { useAllBalances } from "@/hooks/useAllBalances";
+import { triggerBalanceRefresh } from '../lib/utils';
+import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface ActivityPanelProps {
-  tradingPair?: any;
+  tradingPair?: TradingPair;
 }
 
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
@@ -33,11 +35,52 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   // Get the market ID from the trading pair
   const marketId = tradingPair?.marketId;
   
-  // Use real recent trades data with optional filtering
-  const { trades, loading: tradesLoading, initialLoading: tradesInitialLoading, error: tradesError } = useRecentTrades(marketId, showMineOnly ? address : undefined);
+  // Only call hooks when their corresponding tab is active to prevent data accumulation
+  const { trades, loading: tradesLoading, error: tradesError } = useRecentTrades(
+    activeTab === "trades" ? marketId : undefined, // Only fetch when trades tab is active
+    showMineOnly ? address : undefined
+  );
 
-  // Use real open orders data with optional filtering
-  const { orders, loading: ordersLoading, initialLoading: ordersInitialLoading, error: ordersError } = useOpenOrders(marketId, showMineOnly ? address : undefined);
+  // Only call hooks when their corresponding tab is active to prevent data accumulation
+  const { orders, loading: ordersLoading, error: ordersError } = useOpenOrders(
+    activeTab === "orders" ? marketId : undefined, // Only fetch when orders tab is active
+    showMineOnly ? address : undefined
+  );
+
+  // Debug logging
+  console.log('ActivityPanel render:', {
+    tradingPair,
+    marketId,
+    marketIdType: typeof marketId,
+    marketIdTruthy: !!marketId,
+    activeTab,
+    tradesCount: trades?.length || 0,
+    ordersCount: orders?.length || 0,
+    tradesLoading,
+    ordersLoading
+  });
+  
+  // Log when data changes to help debug accumulation
+  useEffect(() => {
+    console.log('ActivityPanel data updated:', {
+      activeTab,
+      tradesCount: trades?.length || 0,
+      ordersCount: orders?.length || 0,
+      tradesLoading,
+      ordersLoading,
+      marketId,
+      timestamp: new Date().toISOString()
+    });
+  }, [activeTab, trades, orders, tradesLoading, ordersLoading, marketId]);
+
+  // Log when activeTab changes to track tab switching
+  useEffect(() => {
+    console.log('ActivityPanel tab changed:', {
+      newTab: activeTab,
+      marketId,
+      timestamp: new Date().toISOString()
+    });
+  }, [activeTab, marketId]);
 
   // Get trading balances for the current trading pair
   const { 
@@ -62,6 +105,23 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     setModalOpen(true);
   };
 
+  const handleTabChange = (newTab: "trades" | "orders" | "balances") => {
+    if (newTab !== activeTab) {
+      console.log('ActivityPanel: Switching tabs, clearing data', {
+        from: activeTab,
+        to: newTab,
+        marketId,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Force clear any accumulated data by changing the key
+      // This will force React to re-mount the components
+      setActiveTab(newTab);
+      // Reset the filter when switching tabs to ensure consistent behavior
+      setShowMineOnly(false);
+    }
+  };
+
   const formatTime = (timestamp: Date) => {
     // Force CET timezone for display
     return timestamp.toLocaleTimeString('en-US', { 
@@ -77,7 +137,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
       <div className="p-4 h-full flex flex-col min-w-0">
         <div className="flex border-b mb-4 overflow-x-auto">
           <button
-            onClick={() => setActiveTab("trades")}
+            onClick={() => handleTabChange("trades")}
             className={cn(
               "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
               activeTab === "trades"
@@ -91,7 +151,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("orders")}
+            onClick={() => handleTabChange("orders")}
             className={cn(
               "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
               activeTab === "orders"
@@ -105,7 +165,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("balances")}
+            onClick={() => handleTabChange("balances")}
             className={cn(
               "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
               activeTab === "balances"
@@ -122,7 +182,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
 
         <div className="animate-fade-in flex-1 overflow-auto min-w-0">
           {activeTab === "trades" ? (
-            <div className="space-y-2 min-w-0">
+            <div key={`trades-tab-${marketId}-${showMineOnly}`} className="space-y-2 min-w-0">
               {/* Filter toggle */}
               <div className="flex justify-end mb-2">
                 <div className="flex bg-gray-100 rounded-lg p-1">
@@ -160,10 +220,10 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 <span className="text-right truncate">Time</span>
               </div>
               
-              {tradesInitialLoading ? (
+              {tradesLoading && trades.length === 0 ? (
                 <div className="text-center py-8 text-neutral">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  Loading recent trades...
+                  <p className="text-sm text-gray-500">Fetching trade data...</p>
                 </div>
               ) : tradesError ? (
                 <div className="text-center py-8 text-red-500">
@@ -171,7 +231,13 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 </div>
               ) : trades.length === 0 ? (
                 <div className="text-center py-8 text-neutral">
-                  No recent trades
+                  <div className="text-gray-400 mb-2">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No trades yet</h3>
+                  <p className="text-sm text-gray-500">This market hasn't seen any trading activity yet.</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -179,6 +245,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                     <div
                       key={trade.id}
                       className="grid grid-cols-5 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
+                      style={{ minHeight: '2.5rem' }} // Prevent height changes during updates
                     >
                       <span className="text-right truncate font-mono">
                         {formatDecimal(trade.price)}
@@ -201,7 +268,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               )}
             </div>
           ) : activeTab === "orders" ? (
-            <div className="space-y-2 min-w-0">
+            <div key={`orders-tab-${marketId}-${showMineOnly}`} className="space-y-2 min-w-0">
               {/* Filter toggle */}
               <div className="flex justify-end mb-2">
                 <div className="flex bg-gray-100 rounded-lg p-1">
@@ -238,10 +305,10 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 <span className="text-right truncate">Time</span>
               </div>
               
-              {ordersInitialLoading ? (
+              {ordersLoading && orders.length === 0 ? (
                 <div className="text-center py-8 text-neutral">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  Loading open orders...
+                  <p className="text-sm text-gray-500">Fetching order data...</p>
                 </div>
               ) : ordersError ? (
                 <div className="text-center py-8 text-red-500">
@@ -249,7 +316,13 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 </div>
               ) : orders.length === 0 ? (
                 <div className="text-center py-8 text-neutral">
-                  No open orders
+                  <div className="text-gray-400 mb-2">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                  <p className="text-sm text-gray-500">This market doesn't have any open orders yet.</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -257,6 +330,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                     <div
                       key={order.id}
                       className="grid grid-cols-4 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
+                      style={{ minHeight: '2.5rem' }} // Prevent height changes during updates
                     >
                       <span className={cn(
                         order.side === "buy" ? "text-bid-dark" : "text-ask-dark",
@@ -279,7 +353,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div key={`balances-tab-${marketId}`} className="space-y-4">
               {balancesLoading ? (
                 <div className="text-center py-8 text-neutral">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
@@ -424,10 +498,30 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
         isOpen={modalOpen}
         onClose={() => {
           setModalOpen(false);
-          // Refresh balances after modal closes
-          setTimeout(() => refreshBalances(), 1000);
+          // Trigger global balance refresh immediately
+          triggerBalanceRefresh();
+          // Refresh local balances after modal closes
+          setTimeout(() => {
+            console.log('ActivityPanel: Refreshing balances after modal close');
+            refreshBalances();
+            // Trigger another global refresh to ensure all components update
+            triggerBalanceRefresh();
+          }, 1000);
         }}
         type={modalType}
+        onSuccess={() => {
+          console.log('ActivityPanel: Deposit/withdraw successful, triggering balance refresh');
+          // Trigger immediate global refresh
+          triggerBalanceRefresh();
+          // Refresh local balances
+          refreshBalances();
+          // Add delayed refresh to catch blockchain updates
+          setTimeout(() => {
+            console.log('ActivityPanel: Delayed balance refresh after success');
+            refreshBalances();
+            triggerBalanceRefresh();
+          }, 2000);
+        }}
       />
     </div>
   );

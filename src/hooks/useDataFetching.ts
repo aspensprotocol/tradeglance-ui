@@ -1,138 +1,169 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export interface UseDataFetchingOptions<T> {
-  marketId: string | undefined;
+interface UseDataFetchingParams<T> {
+  marketId: string;
   filterByTrader?: string;
   fetchFunction: (marketId: string, filterByTrader?: string) => Promise<T>;
   pollingInterval?: number;
   debounceMs?: number;
-  onSuccess?: (data: T) => void;
-  onError?: (error: string) => void;
 }
 
-export interface UseDataFetchingReturn<T> {
+interface UseDataFetchingReturn<T> {
   data: T;
   loading: boolean;
   initialLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  lastFetchTime: number;
 }
 
-export function useDataFetching<T>(
-  options: UseDataFetchingOptions<T>
-): UseDataFetchingReturn<T> {
-  const {
-    marketId,
-    filterByTrader,
-    fetchFunction,
-    pollingInterval = 20000,
-    debounceMs = 300,
-    onSuccess,
-    onError
-  } = options;
-
-  const [data, setData] = useState<T>({} as T);
+export function useDataFetching<T>({
+  marketId,
+  filterByTrader,
+  fetchFunction,
+  pollingInterval = 20000,
+  debounceMs = 300
+}: UseDataFetchingParams<T>) {
+  // Use useRef to prevent multiple initializations
+  const initializedRef = useRef(false);
+  const [data, setData] = useState<T>([] as T);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const lastDataHashRef = useRef<string>('');
-  const hasLoadedOnceRef = useRef<boolean>(false);
-  const isFetchingRef = useRef<boolean>(false);
-  const lastFetchTimeRef = useRef<number>(0);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
-  const fetchData = useCallback(async (forceFetch = false) => {
-    if (!marketId) {
-      setData({} as T);
+  const fetchData = useCallback(async () => {
+    if (!marketId || marketId.trim() === '') {
+      console.log('useDataFetching: Skipping fetch - no marketId or empty marketId:', marketId);
+      setData([] as T);
       setError(null);
       setInitialLoading(false);
       return;
     }
 
-    // Rate limiting: prevent fetching more than once per second
-    const now = Date.now();
-    if (!forceFetch && now - lastFetchTimeRef.current < 1000) {
-      return;
-    }
-
-    // Prevent concurrent fetches
-    if (isFetchingRef.current) {
+    // Prevent multiple simultaneous fetches
+    if (loading) {
       return;
     }
 
     setLoading(true);
     setError(null);
-    isFetchingRef.current = true;
-    lastFetchTimeRef.current = now;
 
     try {
-      console.log('Fetching data for market:', marketId, 'filterByTrader:', filterByTrader);
-      
+      console.log('useDataFetching: Fetching data for marketId:', marketId);
       const result = await fetchFunction(marketId, filterByTrader);
       
-      // Create a hash of the data to detect changes
-      const dataHash = JSON.stringify(result);
-      if (dataHash === lastDataHashRef.current && !forceFetch) {
-        console.log('Data unchanged, skipping update');
-        return;
-      }
-      lastDataHashRef.current = dataHash;
-
-      setData(result);
-      onSuccess?.(result);
+      console.log('Data fetch result:', {
+        marketId,
+        resultType: typeof result,
+        isArray: Array.isArray(result),
+        length: Array.isArray(result) ? result.length : 'N/A',
+        timestamp: new Date().toISOString()
+      });
       
-      // Mark as loaded once
-      if (!hasLoadedOnceRef.current) {
-        hasLoadedOnceRef.current = true;
-        setInitialLoading(false);
+      // Always replace data completely, never append
+      if (Array.isArray(result)) {
+        setData(result as T); // Type assertion for arrays
+      } else if (result && typeof result === 'object') {
+        setData(result as T); // Type assertion for objects
+      } else if (result === null || result === undefined) {
+        // Handle null/undefined results
+        setData([] as T);
+      } else {
+        // Fallback to empty array for unexpected types
+        console.warn('Unexpected result type from fetchFunction:', typeof result, result);
+        setData([] as T);
       }
+      
+      setError(null);
+      setLastFetchTime(Date.now());
     } catch (err) {
       console.error('Error fetching data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
-      onError?.(errorMessage);
       
-      // Mark as loaded even on error
-      if (!hasLoadedOnceRef.current) {
-        hasLoadedOnceRef.current = true;
-        setInitialLoading(false);
-      }
+      // Increment retry count
+      setRetryCount(prev => prev + 1);
+      
+      // Don't clear existing data on error, just show the error
+      // This prevents the UI from flickering between data and empty states
     } finally {
       setLoading(false);
-      isFetchingRef.current = false;
+      setInitialLoading(false);
     }
-  }, [marketId, filterByTrader, fetchFunction, onSuccess, onError]);
+  }, [marketId, filterByTrader, fetchFunction, loading]);
 
-  // Debounced effect to prevent rapid re-fetches when marketId changes
+  // Initial fetch - only run once
   useEffect(() => {
-    // Reset loading state when marketId changes
-    setInitialLoading(true);
-    hasLoadedOnceRef.current = false;
-    lastDataHashRef.current = '';
+    if (initializedRef.current) return;
     
     const timeoutId = setTimeout(() => {
-      fetchData(true); // Force fetch on marketId change
+      initializedRef.current = true;
+      fetchData();
     }, debounceMs);
-    
+
     return () => clearTimeout(timeoutId);
-  }, [marketId, filterByTrader, fetchData, debounceMs]);
+  }, [fetchData, debounceMs]);
 
-  // Set up polling for real-time updates
+  // Clear data when marketId changes to prevent stale data
   useEffect(() => {
-    if (!marketId) return;
-    
-    const interval = setInterval(() => {
-      fetchData(); // Regular polling
-    }, pollingInterval);
-    
-    return () => clearInterval(interval);
-  }, [fetchData, pollingInterval]);
+    console.log('useDataFetching: Market ID changed, clearing previous data', {
+      newMarketId: marketId
+    });
+    setData([] as T);
+    setError(null);
+    setInitialLoading(true);
+    initializedRef.current = false;
+    setRetryCount(0); // Reset retry count for new market
+    setLastFetchTime(0); // Reset last fetch time
+  }, [marketId]); // Only depend on marketId to prevent infinite loops
 
-  return { 
-    data, 
-    loading, 
-    initialLoading, 
-    error, 
-    refetch: () => fetchData(true) 
+  // Set up polling - only after initial fetch
+  useEffect(() => {
+    if (!marketId || marketId.trim() === '' || pollingInterval <= 0 || !initializedRef.current) {
+      console.log('useDataFetching: Skipping polling setup:', {
+        hasMarketId: !!marketId,
+        marketId,
+        pollingInterval,
+        initialized: initializedRef.current
+      });
+      return;
+    }
+    
+    // Don't poll if we've exceeded the retry limit
+    if (retryCount >= maxRetries) {
+      console.warn('Max retries exceeded, stopping polling');
+      return;
+    }
+
+    console.log('useDataFetching: Setting up polling for marketId:', marketId);
+    const interval = setInterval(() => {
+      // Only poll if we're not currently loading and enough time has passed
+      if (!loading && (Date.now() - lastFetchTime) >= pollingInterval) {
+        console.log('Polling for new data, last fetch was', Date.now() - lastFetchTime, 'ms ago');
+        fetchData();
+      }
+    }, pollingInterval);
+
+    return () => clearInterval(interval);
+  }, [marketId, pollingInterval, loading, lastFetchTime, fetchData, retryCount, maxRetries]);
+
+  const refetch = useCallback(() => {
+    setRetryCount(0); // Reset retry count on manual retry
+    fetchData();
+  }, [fetchData]);
+
+  // Ensure data is always properly initialized to prevent .map() errors
+  const safeData = data || ([] as T);
+
+  return {
+    data: safeData,
+    loading,
+    initialLoading,
+    error,
+    refetch,
+    lastFetchTime
   };
 } 
