@@ -8,6 +8,7 @@ export const WalletButton: React.FC = () => {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const [modalOpen, setModalOpen] = useState(false)
+  const { open } = useWeb3Modal()
   
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -43,8 +44,6 @@ export const WalletButton: React.FC = () => {
       </div>
     )
   }
-
-  const { open } = useWeb3Modal()
   
   return (
     <Button onClick={() => open()}>

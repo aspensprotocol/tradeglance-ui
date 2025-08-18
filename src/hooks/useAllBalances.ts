@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { readContract } from 'viem/actions';
 import { createPublicClient, http } from 'viem';
@@ -61,14 +61,14 @@ export const useAllBalances = () => {
   const { config } = useConfig();
 
   // Helper function to create a custom public client with the correct RPC URL
-  const createCustomPublicClient = (rpcUrl: string) => {
+  const createCustomPublicClient = useCallback((rpcUrl: string) => {
     return createPublicClient({
       transport: http(rpcUrl),
     });
-  };
+  }, []);
 
   // Helper function to format balance with decimals
-  const formatBalance = (balance: bigint, decimals: number): string => {
+  const formatBalance = useCallback((balance: bigint, decimals: number): string => {
     const divisor = BigInt(10 ** decimals);
     const wholePart = balance / divisor;
     const fractionalPart = balance % divisor;
@@ -79,10 +79,10 @@ export const useAllBalances = () => {
     
     const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
     return `${wholePart}.${fractionalStr}`;
-  };
+  }, []);
 
   // Check balances for a specific token
-  const checkTokenBalances = async (
+  const checkTokenBalances = useCallback(async (
     tokenSymbol: string,
     chainId: number,
     network: string,
@@ -153,9 +153,9 @@ export const useAllBalances = () => {
         hasAnyBalance: false,
       };
     }
-  };
+  }, [address, createCustomPublicClient, formatBalance]);
 
-  const fetchAllBalances = async () => {
+  const fetchAllBalances = useCallback(async () => {
     if (!isConnected || !address || !config) {
       setBalances([]);
       return;
@@ -201,11 +201,11 @@ export const useAllBalances = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isConnected, address, config, checkTokenBalances]);
 
   useEffect(() => {
     fetchAllBalances();
-  }, [isConnected, address, config]);
+  }, [fetchAllBalances]);
 
   const refreshBalances = () => {
     fetchAllBalances();

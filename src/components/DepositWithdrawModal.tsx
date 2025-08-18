@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { getEtherscanLink, shortenTxHash, triggerBalanceRefresh } from "@/lib/utils";
 import { configUtils } from "@/lib/config-utils";
+import { Chain } from "@/protos/gen/arborter_config_pb";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ const NetworkSwitcher = ({ onNetworkSwitch }: { onNetworkSwitch: () => void }) =
 
   const supportedChains = getSupportedNetworks();
 
-  const handleNetworkSwitch = async (chainConfig: any) => {
+  const handleNetworkSwitch = async (chainConfig: Chain) => {
     const success = await switchToNetwork(chainConfig);
     if (success) {
       onNetworkSwitch();
@@ -99,12 +100,14 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
   
   // Get available tokens from the current connected chain
   const currentChain = chains.find(chain => chain.chainId === currentChainId);
-  const availableTokens = currentChain ? Object.entries(currentChain.tokens).map(([symbol, token]) => ({
-    value: symbol,
-    label: `${token.symbol} (${symbol})`,
-    address: token.address,
-    decimals: token.decimals
-  })) : [];
+  const availableTokens = useMemo(() => {
+    return currentChain ? Object.entries(currentChain.tokens).map(([symbol, token]) => ({
+      value: symbol,
+      label: `${token.symbol} (${symbol})`,
+      address: token.address,
+      decimals: token.decimals
+    })) : [];
+  }, [currentChain]);
 
   // Auto-select first token if available and none selected
   useEffect(() => {
@@ -175,36 +178,48 @@ const DepositWithdrawModal = ({ isOpen, onClose, type: initialType = "deposit", 
       setAmount("");
       setSelectedToken("");
       
-      // Add a delay before calling success callback to allow blockchain state to update
+      // Trigger immediate balance refresh
+      triggerBalanceRefresh();
+      
+      // Add a delay and trigger another refresh to ensure blockchain state has updated
       setTimeout(() => {
-        // Trigger global balance refresh for all components
+        console.log('DepositWithdrawModal: Triggering delayed balance refresh');
         triggerBalanceRefresh();
         
         // Call success callback
         if (onSuccess) {
           onSuccess();
         }
-      }, 1000); // Wait 1 second for blockchain state to update
+      }, 2000); // Wait 2 seconds for blockchain state to update
+      
+      // Add another refresh after a longer delay to catch any delayed updates
+      setTimeout(() => {
+        console.log('DepositWithdrawModal: Triggering final balance refresh');
+        triggerBalanceRefresh();
+      }, 5000); // Wait 5 seconds for final blockchain state update
       
       // Close modal
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`${activeType} failed:`, err);
       
       let errorMessage = `${activeType} failed`;
       
-      if (err.message?.includes('Internal JSON-RPC error')) {
-        errorMessage = 'RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.';
-      } else if (err.message?.includes('insufficient funds')) {
-        errorMessage = `Insufficient funds for ${activeType}. Please check your balance.`;
-      } else if (err.message?.includes('user rejected')) {
-        errorMessage = 'Transaction was rejected by user.';
-      } else if (err.message?.includes('reverted')) {
-        errorMessage = `Transaction was reverted on the blockchain. This usually means the ${activeType} failed due to insufficient balance or other contract constraints.`;
-      } else if (err.message?.includes('network')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      // Type guard to check if err is an Error object
+      if (err instanceof Error) {
+        if (err.message?.includes('Internal JSON-RPC error')) {
+          errorMessage = 'RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.';
+        } else if (err.message?.includes('insufficient funds')) {
+          errorMessage = `Insufficient funds for ${activeType}. Please check your balance.`;
+        } else if (err.message?.includes('user rejected')) {
+          errorMessage = 'Transaction was rejected by user.';
+        } else if (err.message?.includes('reverted')) {
+          errorMessage = `Transaction was reverted on the blockchain. This usually means the ${activeType} failed due to insufficient balance or other contract constraints.`;
+        } else if (err.message?.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
       }
       
       toast({

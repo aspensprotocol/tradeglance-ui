@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Settings, History, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { triggerBalanceRefresh } from "@/lib/utils";
+import { BaseOrQuote } from '../protos/gen/arborter_config_pb';
 
 interface SimpleFormProps {
   selectedPair?: string;
@@ -139,11 +140,12 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
         chainId
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error switching network:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to switch network in MetaMask";
       toast({
         title: "Network switch failed",
-        description: error.message || "Failed to switch network in MetaMask",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -201,11 +203,12 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
           // setReceiverAmount(oldReceiverAmount);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error switching network during swap:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to switch network during swap";
       toast({
         title: "Network switch failed",
-        description: error.message || "Failed to switch network during swap",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -347,7 +350,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
         
         if (tokenConfig) {
           const tokenAddress = tokenConfig.address;
-          const tradeContractAddress = chainConfig.tradeContractAddress;
+                          const tradeContractAddress = chainConfig.tradeContract?.address;
           
           console.log('Manual check - Token address:', tokenAddress);
           console.log('Manual check - Trade contract address:', tradeContractAddress);
@@ -406,7 +409,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
       // Determine order side based on current chain
       // Base chain (anvil-1) = SELL, Quote chain (anvil-2) = BUY
       const currentChain = configUtils.getChainByChainId(currentChainId);
-      const isBaseChain = currentChain?.baseOrQuote === "BASE_OR_QUOTE_BASE";
+      const isBaseChain = currentChain?.baseOrQuote === BaseOrQuote.BASE;
       const orderSide = isBaseChain ? "SIDE_ASK" : "SIDE_BID"; // SELL for base chain, BUY for quote chain
       
       console.log('Order side determination:', {
@@ -488,12 +491,13 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
       setReceiverAmount("");
       setPercentageValue(null);
 
-    } catch (error: any) {
-              console.error('Error submitting simple order:', error);
+    } catch (error: unknown) {
+      console.error('Error submitting simple order:', error);
       
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit simple order. Please try again.";
       toast({
-                  title: "Simple order submission failed",
-          description: error.message || "Failed to submit simple order. Please try again.",
+        title: "Simple order submission failed",
+        description: errorMessage,
         variant: "destructive",
       });
       
@@ -730,7 +734,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
               (() => {
                 if (!currentChainId) return "bg-blue-600 hover:bg-blue-700";
                 const currentChain = configUtils.getChainByChainId(currentChainId);
-                const isBaseChain = currentChain?.baseOrQuote === "BASE_OR_QUOTE_BASE";
+                const isBaseChain = currentChain?.baseOrQuote === BaseOrQuote.BASE;
                 return isBaseChain 
                   ? "bg-red-600 hover:bg-red-700" // Sell (red)
                   : "bg-green-600 hover:bg-green-700"; // Buy (green)
@@ -747,7 +751,7 @@ const SimpleForm = ({ selectedPair, tradingPair }: SimpleFormProps) => {
             ) : (() => {
               if (!currentChainId) return "Simple Tokens";
               const currentChain = configUtils.getChainByChainId(currentChainId);
-              const isBaseChain = currentChain?.baseOrQuote === "BASE_OR_QUOTE_BASE";
+              const isBaseChain = currentChain?.baseOrQuote === BaseOrQuote.BASE;
               return isBaseChain ? "Sell" : "Buy";
             })()}
           </Button>

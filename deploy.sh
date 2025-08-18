@@ -11,9 +11,11 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Build the Docker image
+# Build the Docker image with gRPC proxy URL
 echo "📦 Building Docker image..."
-docker build -t tradeglance-ui:latest .
+docker build \
+  --build-arg VITE_GRPC_WEB_PROXY_URL=/api \
+  -t tradeglance-ui:latest .
 
 # Stop and remove existing container if it exists
 echo "🛑 Stopping existing container..."

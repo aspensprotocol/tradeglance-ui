@@ -11,6 +11,10 @@ static_resources:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 codec_type: AUTO
                 stat_prefix: ingress_http
+                # Add timeout settings for long-running gRPC streams
+                stream_idle_timeout: 0s
+                request_timeout: 0s
+                drain_timeout: 30s
                 access_log:
                   - name: envoy.access_loggers.stdout
                     typed_config:
@@ -101,6 +105,9 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
                       start_child_span: true
+                      # Add streaming optimizations
+                      stream_idle_timeout: 0s
+                      request_timeout: 0s
   clusters:
     - name: arborter 
       type: STRICT_DNS
@@ -109,9 +116,21 @@ static_resources:
         envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
           "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
           explicit_http_config:
-            http2_protocol_options: {}
+            http2_protocol_options:
+              max_concurrent_streams: 100
+              initial_stream_window_size: 65536
+              initial_connection_window_size: 1048576
+              stream_error_on_invalid_http_messaging: false
+            # Add buffer limits for streaming
+      buffer_limits:
+        - name: "http2.max_concurrent_streams"
+          value: "100"
+        - name: "http2.initial_stream_window_size"
+          value: "65536"
+        - name: "http2.initial_connection_window_size"
+          value: "1048576"
       load_assignment:
-        cluster_name: arborter 
+        cluster_name: arborter
         endpoints:
           - lb_endpoints:
               - endpoint:

@@ -18,9 +18,27 @@ export function getEtherscanLink(txHash: string, chainId: number): string {
   
   // Get explorer URL from gRPC configuration
   const chainConfig = configUtils.getChainByChainId(chainId);
+  console.log('getEtherscanLink debug:', {
+    chainId,
+    chainConfig: chainConfig ? {
+      network: chainConfig.network,
+      chainId: chainConfig.chainId,
+      explorerUrl: chainConfig.explorerUrl,
+      hasExplorerUrl: !!chainConfig.explorerUrl,
+      allChainFields: Object.keys(chainConfig).filter(k => !k.startsWith('_'))
+    } : null,
+    allConfigChains: configUtils.getAllChains().map(c => ({
+      network: c.network,
+      chainId: c.chainId,
+      explorerUrl: c.explorerUrl,
+      hasExplorerUrl: !!c.explorerUrl
+    }))
+  });
+  
   if (chainConfig && chainConfig.explorerUrl) {
     // Remove trailing slash from explorer URL if present
     const baseUrl = chainConfig.explorerUrl.replace(/\/$/, '');
+    console.log('Using config explorer URL:', baseUrl);
     return `${baseUrl}/tx/${cleanHash}`;
   }
   

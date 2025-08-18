@@ -59,7 +59,8 @@ export const ConfigTest: React.FC = () => {
             <div><strong>Chain ID:</strong> {chain.chainId}</div>
             <div><strong>RPC URL:</strong> {chain.rpcUrl}</div>
             <div><strong>Service Address:</strong> {chain.serviceAddress}</div>
-            <div><strong>Trade Contract:</strong> {chain.tradeContract.address}</div>
+            <div><strong>Trade Contract:</strong> {chain.tradeContract?.address || 'Not configured'}</div>
+            <div><strong>Base or Quote:</strong> {chain.baseOrQuote || 'Not set'}</div>
             {chain.explorerUrl && (
               <div>
                 <strong>Scanner:</strong> <a href={chain.explorerUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">{chain.explorerUrl}</a>
@@ -85,7 +86,7 @@ export const ConfigTest: React.FC = () => {
             <div><strong>Quote Chain:</strong> {market.quoteChainNetwork}</div>
             <div><strong>Base Token:</strong> {market.baseChainTokenSymbol}</div>
             <div><strong>Quote Token:</strong> {market.quoteChainTokenSymbol}</div>
-            <div><strong>Market ID:</strong> {market.marketId}</div>
+            <div><strong>Market ID:</strong> {market.marketId || 'Not assigned'}</div>
           </div>
         ))}
       </div>
@@ -100,4 +101,4 @@ export const ConfigTest: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

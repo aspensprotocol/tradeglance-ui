@@ -3,6 +3,7 @@ import { WagmiProvider, createConfig, http } from 'wagmi'
 import { mainnet, sepolia, polygon, base, baseSepolia } from 'wagmi/chains'
 import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors'
 import { defineChain } from 'viem'
+import { Chain } from '../protos/gen/arborter_config_pb'
 
 // Your WalletConnect project ID
 const projectId = 'c3690594c774dccbd4a0272ae38f1953'
@@ -11,11 +12,11 @@ const projectId = 'c3690594c774dccbd4a0272ae38f1953'
 const defaultChains = [mainnet, sepolia, polygon, base, baseSepolia] as const
 
 // Create initial wagmi config with default chains only
-const createWagmiConfig = (customChains: any[] = []) => {
+const createWagmiConfig = (customChains: ReturnType<typeof defineChain>[] = []) => {
   const allChains = [...defaultChains, ...customChains] as const;
   
   // Create transports object dynamically
-  const transports: any = {};
+  const transports: Record<number, ReturnType<typeof http>> = {};
   allChains.forEach(chain => {
     transports[chain.id] = http();
   });
@@ -51,7 +52,7 @@ let web3Modal = createWeb3Modal({
 export { wagmiConfig, createWagmiConfig }
 
 // Utility function to create dynamic chains from gRPC config
-export const createDynamicChains = (grpcChains: any[]) => {
+export const createDynamicChains = (grpcChains: Chain[]) => {
   return grpcChains.map(chain => defineChain({
     id: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
     name: chain.network,
@@ -71,8 +72,17 @@ export const createDynamicChains = (grpcChains: any[]) => {
   }));
 };
 
+// Track if we've already updated the config to prevent multiple initializations
+let hasUpdatedConfig = false;
+
 // Function to update the wagmi config with chains from gRPC config
-export const updateWagmiConfig = (grpcChains: any[]) => {
+export const updateWagmiConfig = (grpcChains: Chain[]) => {
+  // Prevent multiple updates
+  if (hasUpdatedConfig) {
+    console.log('Wagmi config already updated, skipping duplicate update');
+    return wagmiConfig;
+  }
+  
   const dynamicChains = createDynamicChains(grpcChains);
   const newConfig = createWagmiConfig(dynamicChains);
   
@@ -89,6 +99,7 @@ export const updateWagmiConfig = (grpcChains: any[]) => {
     }
   });
   
+  hasUpdatedConfig = true;
   console.log('Updated wagmi config with chains:', dynamicChains.map(c => ({ id: c.id, name: c.name })));
   
   return newConfig;

@@ -44,7 +44,14 @@ const Mint = () => {
     // Get chain config from gRPC config
     const chainConfig = configUtils.getChainByChainId(id);
     if (chainConfig) {
-      const chainObj: any = {
+      const chainObj: {
+        id: number;
+        name: string;
+        network: string;
+        nativeCurrency: { decimals: number; name: string; symbol: string };
+        rpcUrls: { default: { http: string[] }; public: { http: string[] } };
+        blockExplorers?: { default: { name: string; url: string } };
+      } = {
         id: typeof chainConfig.chainId === 'string' ? parseInt(chainConfig.chainId, 10) : chainConfig.chainId,
         name: chainConfig.network,
         network: chainConfig.network,
@@ -115,10 +122,11 @@ const Mint = () => {
 
         // Wait a bit for the switch to complete
         await new Promise(resolve => setTimeout(resolve, 2000));
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to switch network";
         toast({
           title: "Network switch failed",
-          description: error.message || "Failed to switch network",
+          description: errorMessage,
           variant: "destructive",
         });
         return;
@@ -154,7 +162,7 @@ const Mint = () => {
             "stateMutability": "nonpayable",
             "type": "function"
           }
-        ] as any,
+        ],
       };
 
       const hash = await walletClient!.writeContract({
@@ -189,19 +197,21 @@ const Mint = () => {
         ),
       });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Mint failed:', err);
       
       let errorMessage = 'Mint failed';
       
-      if (err.message?.includes('Internal JSON-RPC error')) {
-        errorMessage = 'RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.';
-      } else if (err.message?.includes('insufficient funds')) {
-        errorMessage = 'Insufficient funds for transaction. Please check your balance.';
-      } else if (err.message?.includes('user rejected')) {
-        errorMessage = 'Transaction was rejected by user.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      if (err instanceof Error) {
+        if (err.message?.includes('Internal JSON-RPC error')) {
+          errorMessage = 'RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.';
+        } else if (err.message?.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds for transaction. Please check your balance.';
+        } else if (err.message?.includes('user rejected')) {
+          errorMessage = 'Transaction was rejected by user.';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
       }
       
       toast({

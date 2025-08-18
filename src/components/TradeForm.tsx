@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { TradingPair } from "@/hooks/useTradingPairs";
 import { useAccount } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
-import { signOrderWithGlobalProtobuf } from "../lib/signing-utils";
+import { signOrderWithGlobalProtobuf, OrderData } from "../lib/signing-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
+import { BaseOrQuote } from '../protos/gen/arborter_config_pb';
 
 interface TradeFormProps {
   selectedPair: string;
@@ -34,19 +35,34 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   // Get trading balances for the current trading pair
   const { availableBalance, lockedBalance, balanceLoading, refreshBalance } = useBalanceManager(tradingPair);
 
+  // Debug logging for balance manager
+  console.log('TradeForm: Balance manager debug:', {
+    tradingPair: tradingPair ? {
+      id: tradingPair.id,
+      baseSymbol: tradingPair.baseSymbol,
+      marketId: tradingPair.marketId,
+      baseChainId: tradingPair.baseChainId
+    } : null,
+    availableBalance,
+    lockedBalance,
+    balanceLoading
+  });
+
   // Helper function to determine the correct side based on current chain
   const getCorrectSideForChain = (chainId: number): "buy" | "sell" => {
     const chainConfig = configUtils.getChainByChainId(chainId);
     if (!chainConfig) return "buy";
     
-    // Base chain = Sell, Quote chain = Buy
-    return chainConfig.baseOrQuote === "BASE_OR_QUOTE_BASE" ? "sell" : "buy";
+    // Base chain = Sell (ASK), Quote chain = Buy (BID)
+    // This matches the aspens project logic: base chain for selling, quote chain for buying
+    return chainConfig.baseOrQuote === BaseOrQuote.BASE ? "sell" : "buy";
   };
 
   // Helper function to get the target chain for a given side
   const getTargetChainForSide = (side: "buy" | "sell"): number | null => {
     const allChains = configUtils.getAllChains();
-    const targetBaseOrQuote = side === "sell" ? "BASE_OR_QUOTE_BASE" : "BASE_OR_QUOTE_QUOTE";
+    // Buy orders (BID) go on quote chain, Sell orders (ASK) go on base chain
+    const targetBaseOrQuote = side === "buy" ? BaseOrQuote.QUOTE : BaseOrQuote.BASE;
     
     const targetChain = allChains.find(chain => chain.baseOrQuote === targetBaseOrQuote);
     return targetChain ? (typeof targetChain.chainId === 'string' ? parseInt(targetChain.chainId, 10) : targetChain.chainId) : null;
@@ -56,11 +72,28 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
   useEffect(() => {
     if (currentChainId) {
       const correctSide = getCorrectSideForChain(currentChainId);
+      const chainConfig = configUtils.getChainByChainId(currentChainId);
+      const targetChainForBuy = getTargetChainForSide("buy");
+      const targetChainForSell = getTargetChainForSide("sell");
+      
       console.log('TradeForm: Auto-update effect:', {
         currentChainId,
         currentSide: activeTab,
         correctSide,
-        chainConfig: configUtils.getChainByChainId(currentChainId)
+        chainConfig: chainConfig ? {
+          network: chainConfig.network,
+          chainId: chainConfig.chainId,
+          baseOrQuote: chainConfig.baseOrQuote,
+          baseOrQuoteValue: chainConfig.baseOrQuote
+        } : null,
+        targetChainForBuy,
+        targetChainForSell,
+        allChains: configUtils.getAllChains().map(c => ({
+          network: c.network,
+          chainId: c.chainId,
+          baseOrQuote: c.baseOrQuote,
+          baseOrQuoteValue: c.baseOrQuote
+        }))
       });
       
       if (activeTab !== correctSide) {
@@ -136,11 +169,12 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error switching network:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to switch network";
       toast({
         title: "Network switch failed",
-        description: error.message || "Failed to switch network",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -269,25 +303,61 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
         ? (parseFloat(price) * Math.pow(10, pairDecimals)).toString()
         : ""; // Use empty string for market orders instead of undefined for consistency
 
+      // Determine order side based on target chain (matching aspens SDK logic)
+      // Buy orders (BID) go on quote chain, Sell orders (ASK) go on base chain
+      const targetChainId = getTargetChainForSide(activeTab);
+      if (!targetChainId) {
+        throw new Error(`No target chain found for ${activeTab} side`);
+      }
+      
+      const targetChain = configUtils.getChainByChainId(targetChainId);
+      const isBaseChain = targetChain?.baseOrQuote === BaseOrQuote.BASE;
+      const orderSide = isBaseChain ? "SIDE_ASK" : "SIDE_BID"; // SELL for base chain, BUY for quote chain
+      
+      console.log('Order side determination:', {
+        activeTab,
+        targetChainId,
+        targetChainNetwork: targetChain?.network,
+        targetChainBaseOrQuote: targetChain?.baseOrQuote,
+        isBaseChain,
+        orderSide
+      });
+
       // Create order data for signing (using pair decimals to match what we send to server)
-      const orderData = {
-        side: (activeTab === "buy" ? "SIDE_BID" : "SIDE_ASK") as "SIDE_BID" | "SIDE_ASK",
+      const orderData: OrderData = {
+        side: (orderSide === "SIDE_BID" ? 1 : 2), // 1 = BID (buy), 2 = ASK (sell)
         quantity: orderQuantity,
         price: orderPrice,
         marketId: tradingPair.marketId, // Use the actual marketId from the trading pair
         baseAccountAddress: address,
         quoteAccountAddress: address, // Using same address for both for now
-        executionType: "EXECUTION_TYPE_UNSPECIFIED" as "EXECUTION_TYPE_UNSPECIFIED" | "EXECUTION_TYPE_DISCRETIONARY",
+        executionType: 0, // Use numeric value like the working Rust client
         matchingOrderIds: [], // Add missing field
       };
+
+      // Debug: Log the account addresses being used
+      console.log('Account addresses for order:', {
+        activeTab,
+        address,
+        baseAccountAddress: orderData.baseAccountAddress,
+        quoteAccountAddress: orderData.quoteAccountAddress,
+        tradingPair: {
+          baseChainId: tradingPair.baseChainId,
+          quoteChainId: tradingPair.quoteChainId,
+          baseSymbol: tradingPair.baseSymbol,
+          quoteSymbol: tradingPair.quoteSymbol
+        }
+      });
 
       console.log('Signing order with data:', {
         ...orderData,
         chainId: currentChainId,
+        activeTab,
         baseTokenDecimals,
         quoteTokenDecimals,
         pairDecimals,
-        tradingPair
+        tradingPair,
+        currentChainConfig: configUtils.getChainByChainId(currentChainId)
       });
 
       console.log('Decimal conversions:', {
@@ -302,19 +372,44 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
       });
 
       console.log(`About to call signOrderWithGlobalProtobuf for ${activeOrderType} order...`);
-      // Sign the order with MetaMask using global protobuf encoding (matching aspens SDK)
-      const signatureHash = await signOrderWithGlobalProtobuf(orderData, currentChainId);
+      console.log('Final order data for signing:', {
+        orderData,
+        currentChainId,
+        activeTab,
+        expectedChainForSide: getTargetChainForSide(activeTab)
+      });
+      
+      // Debug: Log chain selection details
+      const targetChainConfig = configUtils.getChainByChainId(targetChainId);
+      const currentChainConfig = configUtils.getChainByChainId(currentChainId);
+      console.log('Chain selection for signing:', {
+        activeTab,
+        currentChainId,
+        currentChainNetwork: currentChainConfig?.network,
+        currentChainBaseOrQuote: currentChainConfig?.baseOrQuote,
+        targetChainId,
+        targetChainNetwork: targetChainConfig?.network,
+        targetChainBaseOrQuote: targetChainConfig?.baseOrQuote,
+        orderData: {
+          ...orderData,
+          baseAccountAddress: orderData.baseAccountAddress,
+          quoteAccountAddress: orderData.quoteAccountAddress
+        }
+      });
+      
+      // Sign the order with MetaMask using the target chain ID (not current chain ID)
+      const signatureHash = await signOrderWithGlobalProtobuf(orderData, targetChainId);
 
       // Create the order object for gRPC (matching aspens SDK structure)
       // Use pair decimals for both signing and transaction (they should match)
       const orderForGrpc = {
-        side: orderData.side === "SIDE_BID" ? 1 : 2,
+        side: orderData.side, // Already numeric from orderData
         quantity: orderQuantity, // Use pair decimals (same as signing)
         price: orderPrice, // Use pair decimals (same as signing)
         marketId: orderData.marketId,
         baseAccountAddress: orderData.baseAccountAddress,
         quoteAccountAddress: orderData.quoteAccountAddress,
-        executionType: 0, // EXECUTION_TYPE_UNSPECIFIED
+        executionType: orderData.executionType, // Already numeric from orderData
         matchingOrderIds: [],
       };
 
@@ -325,8 +420,8 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
 
       console.log('Order sent successfully:', response);
 
-      // Check if response contains transaction hash
-      const txHash = response?.data?.txHash || response?.txHash || response?.transactionHash;
+      // Extract transaction hash if available
+      const txHash = response?.transactionHashes?.[0]?.hashValue;
       
       if (txHash) {
         const etherscanLink = getEtherscanLink(txHash, currentChainId);
@@ -366,12 +461,13 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
       // Trigger global balance refresh for all components
       triggerBalanceRefresh();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting order:', error);
       
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit order. Please try again.";
       toast({
         title: "Order submission failed",
-        description: error.message || "Failed to submit order. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       

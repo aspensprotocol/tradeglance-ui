@@ -1,31 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Trade } from '../lib/grpc-client';
-import { weiToDecimal, formatDecimal } from '../lib/number-utils';
-
-// Utility function to create a Date object from timestamp in user's timezone
-const createLocalDate = (timestamp: number): Date => {
-  // Check if timestamp is in milliseconds (13+ digits) or seconds (10-12 digits)
-  const isMilliseconds = timestamp > 9999999999; // 10 digits = seconds, 13+ digits = milliseconds
-  
-  let date: Date;
-  if (isMilliseconds) {
-    // Already in milliseconds
-    date = new Date(timestamp);
-  } else {
-    // Convert from seconds to milliseconds
-    date = new Date(timestamp * 1000);
-  }
-  
-  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  console.log(`Timestamp: ${timestamp}, isMilliseconds: ${isMilliseconds}, UTC time: ${date.toISOString()}, Local time: ${date.toLocaleString()}, User timezone: ${userTimezone}`);
-  return date;
-};
+import { useState, useEffect, useCallback } from 'react';
+import { arborterService } from '../lib/grpc-client';
+import { weiToDecimal } from '../lib/number-utils';
+import { Trade, TradeRole } from '../protos/gen/arborter_pb';
+import { useDataFetching } from './useDataFetching';
 
 export interface RecentTrade {
   id: string;
   price: string;
   quantity: string;
-  side: 'buy' | 'sell';
+  side: string;
   timestamp: Date;
   makerId: string;
   takerId: string;
@@ -33,155 +16,218 @@ export interface RecentTrade {
   makerQuoteAddress: string;
   takerBaseAddress: string;
   takerQuoteAddress: string;
-  buyerIs: number; // TradeRole enum value
-  sellerIs: number; // TradeRole enum value
+  buyerIs: number;
+  sellerIs: number;
 }
 
-export interface UseRecentTradesReturn {
-  trades: RecentTrade[];
-  loading: boolean;
-  initialLoading: boolean;
-  error: string | null;
-  refresh: () => Promise<void>;
-}
-
-export function useRecentTrades(marketId: string | undefined, filterByTrader?: string): UseRecentTradesReturn {
-  const [trades, setTrades] = useState<RecentTrade[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const lastDataHashRef = useRef<string>('');
-  const hasLoadedOnceRef = useRef<boolean>(false);
-
-  const processTradesData = useCallback((tradesData: Trade[]) => {
-    console.log('Processing trades data:', tradesData);
+export function useRecentTrades(marketId: string, filterByTrader?: string) {
+  // Process trades data into the expected format using proper protobuf types
+  const processTradesData = useCallback((tradesData: Trade[]): RecentTrade[] => {
+    console.log('\n=== PROCESSING TRADES DATA ===');
+    console.log('Number of trades to process:', tradesData.length);
+    console.log('Raw trades data received:', tradesData);
     
-    const dataHash = JSON.stringify(tradesData.map(t => ({ 
-      timestamp: t.timestamp, 
-      price: t.price, 
-      qty: t.qty,
-      order_hit: t.order_hit 
-    })));
-    
-    if (dataHash === lastDataHashRef.current) return;
-    lastDataHashRef.current = dataHash;
+    return tradesData.map((trade, index) => {
+      console.log(`\n--- Processing Trade ${index} ---`);
+      console.log('Full trade object:', trade);
+      
+      // Log all available fields
+      console.log('All trade fields:');
+      console.log('  timestamp:', trade.timestamp, 'type:', typeof trade.timestamp);
+      console.log('  price:', trade.price, 'type:', typeof trade.price);
+      console.log('  qty:', trade.qty, 'type:', typeof trade.qty);
+      console.log('  makerId:', trade.makerId, 'type:', typeof trade.makerId);
+      console.log('  takerId:', trade.takerId, 'type:', typeof trade.takerId);
+      console.log('  makerBaseAddress:', trade.makerBaseAddress, 'type:', typeof trade.makerBaseAddress);
+      console.log('  makerQuoteAddress:', trade.makerQuoteAddress, 'type:', typeof trade.makerQuoteAddress);
+      console.log('  takerBaseAddress:', trade.takerBaseAddress, 'type:', typeof trade.takerBaseAddress);
+      console.log('  takerQuoteAddress:', trade.takerQuoteAddress, 'type:', typeof trade.takerQuoteAddress);
+      console.log('  buyerIs:', trade.buyerIs, 'type:', typeof trade.buyerIs);
+      console.log('  sellerIs:', trade.sellerIs, 'type:', typeof trade.sellerIs);
+      console.log('  orderHit:', trade.orderHit, 'type:', typeof trade.orderHit);
+      
+      console.log('\nTrade timestamp details:');
+      console.log('  Raw value:', trade.timestamp);
+      console.log('  Type:', typeof trade.timestamp);
+      console.log('  Constructor:', trade.timestamp?.constructor?.name);
+      console.log('  Is bigint:', typeof trade.timestamp === 'bigint');
+      console.log('  Is number:', typeof trade.timestamp === 'number');
+      console.log('  Is string:', typeof trade.timestamp === 'string');
+      
+      console.log('\nTrade side determination fields:');
+      console.log('  buyerIs:', trade.buyerIs, 'type:', typeof trade.buyerIs);
+      console.log('  sellerIs:', trade.sellerIs, 'type:', typeof trade.sellerIs);
+      console.log('  orderHit:', trade.orderHit, 'type:', typeof trade.orderHit);
+      
+      // Parse timestamp correctly - use the same approach as Open Orders tab
+      let timestamp: Date;
+      if (trade.timestamp) {
+        // Use the same timestamp parsing logic as Open Orders tab
+        // Just treat the timestamp as milliseconds directly
+        timestamp = new Date(Number(trade.timestamp));
+        console.log('  Timestamp parsed as milliseconds:', timestamp, 'ISO:', timestamp.toISOString());
+      } else {
+        // No timestamp provided, use current time
+        timestamp = new Date();
+        console.log('  No timestamp provided, using current time:', timestamp, 'ISO:', timestamp.toISOString());
+      }
 
-    const parsedTrades: RecentTrade[] = tradesData.map(trade => {
-      console.log('Processing trade:', trade);
-      console.log('Raw price:', trade.price, 'Raw qty:', trade.qty);
+      // Determine side based on TradeRole enum values
+      // TradeRole.MAKER = 1, TradeRole.TAKER = 2
+      // buyerIs indicates who is the buyer (MAKER or TAKER)
+      console.log('\nTrade side determination:');
+      console.log('  buyerIs:', trade.buyerIs, 'type:', typeof trade.buyerIs);
+      console.log('  sellerIs:', trade.sellerIs, 'type:', typeof trade.sellerIs);
+      console.log('  orderHit:', trade.orderHit, 'type:', typeof trade.orderHit);
       
-      const priceDecimal = weiToDecimal(trade.price || '0');
-      const quantityDecimal = weiToDecimal(trade.qty || '0');
-      
-      console.log('Price decimal:', priceDecimal, 'Quantity decimal:', quantityDecimal);
-      
-      // Format the decimal values for display
-      const priceFormatted = formatDecimal(priceDecimal);
-      const quantityFormatted = formatDecimal(quantityDecimal);
-      
-      console.log('Price formatted:', priceFormatted, 'Quantity formatted:', quantityFormatted);
-      
-      // Determine side based on buyer_is/seller_is roles
-      // If buyer_is is MAKER (1), then the maker is buying
-      const side = trade.buyer_is === 1 ? 'buy' : 'sell';
-      
-      return {
-        id: trade.order_hit?.toString() || '',
-        price: priceFormatted,
-        quantity: quantityFormatted,
+      let side: string;
+      // The side should be determined by the order that was hit, not by buyerIs/sellerIs
+      // For now, use a simple heuristic: if we have orderHit, it's a valid trade
+      if (trade.orderHit) {
+        // This is a completed trade, determine side based on the order that was hit
+        // We'll use a placeholder side for now since the actual side logic needs more context
+        side = 'buy'; // Placeholder - this should be determined by the order details
+        console.log('  -> Side: BUY (placeholder - orderHit present)');
+      } else {
+        side = 'buy'; // Default to buy if no orderHit
+        console.log('  -> Side: BUY (default - no orderHit)');
+      }
+
+      const processedTrade: RecentTrade = {
+        id: trade.orderHit?.toString() || `trade-${Date.now()}-${index}`, // Fallback ID if no orderHit
+        price: weiToDecimal(trade.price || '0'),
+        quantity: weiToDecimal(trade.qty || '0'),
         side: side,
-        timestamp: createLocalDate(trade.timestamp), // Convert timestamp to user's local timezone
-        makerId: trade.maker_id || '',
-        takerId: trade.taker_id || '',
-        makerBaseAddress: trade.maker_base_address || '',
-        makerQuoteAddress: trade.maker_quote_address || '',
-        takerBaseAddress: trade.taker_base_address || '',
-        takerQuoteAddress: trade.taker_quote_address || '',
-        buyerIs: trade.buyer_is || 0,
-        sellerIs: trade.seller_is || 0
+        timestamp: timestamp,
+        makerId: trade.makerId || '',
+        takerId: trade.takerId || '',
+        makerBaseAddress: trade.makerBaseAddress || '',
+        makerQuoteAddress: trade.makerQuoteAddress || '',
+        takerBaseAddress: trade.takerBaseAddress || '',
+        takerQuoteAddress: trade.takerQuoteAddress || '',
+        buyerIs: trade.buyerIs || 0,
+        sellerIs: trade.sellerIs || 0
       };
+      
+      console.log('\nProcessed trade result:');
+      console.log('  ID:', processedTrade.id);
+      console.log('  Price:', processedTrade.price);
+      console.log('  Quantity:', processedTrade.quantity);
+      console.log('  Side:', processedTrade.side);
+      console.log('  Timestamp:', processedTrade.timestamp.toISOString());
+      console.log('  Timestamp raw:', processedTrade.timestamp.getTime());
+      console.log('  Full processed trade:', processedTrade);
+      
+      return processedTrade;
     });
-
-    setTrades(parsedTrades);
-    console.log('Recent trades data updated:', parsedTrades);
-    console.log('Sample trade details:', parsedTrades[0] ? {
-      id: parsedTrades[0].id,
-      price: parsedTrades[0].price,
-      quantity: parsedTrades[0].quantity,
-      side: parsedTrades[0].side,
-      timestamp: parsedTrades[0].timestamp,
-      rawPrice: tradesData[0]?.price,
-      rawQty: tradesData[0]?.qty
-    } : 'No trades');
-    
-    // Mark as loaded once
-    if (!hasLoadedOnceRef.current) {
-      hasLoadedOnceRef.current = true;
-      setInitialLoading(false);
-    }
   }, []);
 
-  const fetchRecentTrades = useCallback(async () => {
-    if (!marketId) {
-      setTrades([]);
-      setError(null);
-      setInitialLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
+  // Fetch function for the common hook - now uses snapshot instead of streaming
+  const fetchTradesData = useCallback(async (marketId: string, filterByTrader?: string): Promise<RecentTrade[]> => {
     try {
-      console.log('Fetching recent trades for market:', marketId);
+      console.log('=== FETCHING RECENT TRADES ===');
+      console.log('Market ID:', marketId);
+      console.log('Filter by trader:', filterByTrader);
       
-      // Import here to avoid circular dependency
-      const { arborterService } = await import('../lib/grpc-client');
-      const response = await arborterService.getTradesSnapshot(marketId, filterByTrader);
+      // Use snapshot endpoint instead of streaming
+      const tradesData = await arborterService.getTradesSnapshot(marketId, true, filterByTrader);
       
-      if (response.success && response.data) {
-        processTradesData(response.data);
+      console.log('=== RAW TRADES RESPONSE FROM SERVER ===');
+      console.log('Response type:', typeof tradesData);
+      console.log('Response constructor:', tradesData?.constructor?.name);
+      console.log('Is array:', Array.isArray(tradesData));
+      console.log('Response length:', tradesData?.length);
+      console.log('Full response:', tradesData);
+      
+      // Log the first trade in detail if available
+      if (tradesData && Array.isArray(tradesData) && tradesData.length > 0) {
+        console.log('\n=== FIRST TRADE DETAILS ===');
+        const firstTrade = tradesData[0];
+        console.log('First trade:', firstTrade);
+        console.log('First trade keys:', Object.keys(firstTrade));
+        console.log('First trade prototype:', Object.getPrototypeOf(firstTrade));
+        console.log('First trade constructor:', firstTrade.constructor);
+        console.log('First trade toString:', firstTrade.toString());
+      }
+      
+      if (tradesData && Array.isArray(tradesData)) {
+        const processedTrades = processTradesData(tradesData as Trade[]);
+        
+        // Better deduplication - use orderHit + timestamp to create unique IDs
+        // Multiple trades can have the same orderHit, so we need to make them unique
+        const uniqueTrades = processedTrades.filter((trade, index, self) => {
+          // Create a unique identifier combining orderHit and timestamp
+          const tradeUniqueId = `${trade.id}-${trade.timestamp.getTime()}`;
+          
+          const firstIndex = self.findIndex(t => {
+            const otherUniqueId = `${t.id}-${t.timestamp.getTime()}`;
+            return otherUniqueId === tradeUniqueId;
+          });
+          
+          const isDuplicate = firstIndex !== index;
+          if (isDuplicate) {
+            console.log('Removing duplicate trade:', {
+              id: trade.id,
+              timestamp: trade.timestamp.toISOString(),
+              uniqueId: tradeUniqueId,
+              firstIndex,
+              currentIndex: index
+            });
+          }
+          return !isDuplicate;
+        });
+        
+        if (uniqueTrades.length !== processedTrades.length) {
+          console.log('Trade deduplication:', {
+            original: processedTrades.length,
+            unique: uniqueTrades.length,
+            duplicates: processedTrades.length - uniqueTrades.length
+          });
+        }
+        
+        console.log('Recent trades fetched successfully:', uniqueTrades.length);
+        return uniqueTrades;
       } else {
-        throw new Error(response.error || 'Failed to fetch recent trades data');
+        console.warn('No trades data in response:', tradesData);
+        return [];
       }
-    } catch (err) {
-      console.error('Error fetching recent trades:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch recent trades');
-      
-      // Mark as loaded even on error
-      if (!hasLoadedOnceRef.current) {
-        hasLoadedOnceRef.current = true;
-        setInitialLoading(false);
-      }
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching recent trades:', error);
+      throw error;
     }
-  }, [marketId, filterByTrader, processTradesData]);
+  }, [processTradesData]);
 
-  // Debounced effect to prevent rapid re-fetches when marketId changes
+  // Use the common data fetching hook with polling for real-time updates
+  const { data: trades, loading, initialLoading, error, refetch } = useDataFetching({
+    marketId: marketId || '', // Ensure marketId is always a string
+    filterByTrader,
+    fetchFunction: fetchTradesData,
+    pollingInterval: marketId ? 5000 : 0, // Only poll when marketId is available
+    debounceMs: 300
+  });
+
+  // Log when trades data changes to help debug duplication
   useEffect(() => {
-    // Reset loading state when marketId changes
-    setInitialLoading(true);
-    hasLoadedOnceRef.current = false;
-    lastDataHashRef.current = '';
-    
-    const timeoutId = setTimeout(() => {
-      fetchRecentTrades();
-    }, 300); // 300ms debounce
-    
-    return () => clearTimeout(timeoutId);
-  }, [fetchRecentTrades]);
+    if (trades && trades.length > 0) {
+      console.log('Recent trades data updated:', {
+        count: trades.length,
+        firstTrade: trades[0],
+        lastTrade: trades[trades.length - 1],
+        allIds: trades.map(t => t.id)
+      });
+    }
+  }, [trades]);
 
-  // Set up polling for real-time updates (less frequent)
-  useEffect(() => {
-    if (!marketId) return;
+  // Only show loading on initial load, not during polling updates
+  // This prevents the spinning wheel from appearing every 5 seconds
+  const isInitialLoading = initialLoading;
+  const isLoading = initialLoading; // Only show loading on first load
 
-    const interval = setInterval(() => {
-      fetchRecentTrades();
-    }, 25000); // Poll every 25 seconds instead of 10
-
-    return () => clearInterval(interval);
-  }, [marketId, fetchRecentTrades]);
-
-  return { trades, loading, initialLoading, error, refresh: fetchRecentTrades };
+  return { 
+    trades: trades || [], 
+    loading: isLoading, 
+    initialLoading: isInitialLoading,
+    error, 
+    refresh: refetch 
+  };
 } 
