@@ -3,7 +3,7 @@ import { configUtils } from '../lib/config-utils';
 import { Configuration, Market, Chain } from '../protos/gen/arborter_config_pb';
 
 // Use proto-generated types instead of custom interfaces
-export type TradingPair = {
+export interface TradingPair {
   id: string;
   displayName: string;
   baseSymbol: string;
@@ -14,7 +14,7 @@ export type TradingPair = {
   baseTokenDecimals: number;
   quoteTokenDecimals: number;
   pairDecimals: number;
-};
+}
 
 export const useTradingPairs = () => {
   const { config, loading, error } = useConfig();

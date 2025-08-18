@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { configService } from '../lib/grpc-client';
 import { configUtils } from '../lib/config-utils';
 import { updateWagmiConfig } from '../lib/web3modal-config';
@@ -18,7 +18,7 @@ export const useConfig = (): UseConfigReturn => {
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState<boolean>(false);
   const [hasUpdatedWagmi, setHasUpdatedWagmi] = useState<boolean>(false);
 
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     // Prevent multiple fetch attempts
     if (hasAttemptedFetch) {
       return;
@@ -88,11 +88,11 @@ export const useConfig = (): UseConfigReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [hasAttemptedFetch, hasUpdatedWagmi]);
 
   useEffect(() => {
     fetchConfig();
-  }, []); // Only run once on mount
+  }, [fetchConfig]); // Include fetchConfig in dependencies
 
   return {
     config,

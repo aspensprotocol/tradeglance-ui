@@ -1,6 +1,15 @@
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import { createClient } from "@connectrpc/connect";
 import { create } from "@bufbuild/protobuf";
+import { OrderData } from "./signing-utils";
+
+// Interface for cancel order data
+interface CancelOrderData {
+  marketId: string;
+  side: number;
+  tokenAddress: string;
+  orderId: number;
+}
 import { 
   ArborterService,
   SendOrderRequestSchema,
@@ -46,16 +55,20 @@ import {
   MarketSchema,
   TokenSchema,
   DeployContractRequestSchema,
+  DeployContractResponse,
+  AddChainRequestSchema,
+  AddChainResponse,
+  AddTokenRequestSchema,
+  AddTokenResponse,
+  AddMarketRequestSchema,
+  AddMarketResponse,
   type Configuration,
   type Chain,
   type Market,
-  type Token,
-  AddChainRequestSchema,
-  AddTokenRequestSchema,
-  AddMarketRequestSchema
+  type Token
 } from "../protos/gen/arborter_config_pb";
 
-// Response interfaces for backward compatibility
+// Response interfaces for backward compatibility - using proper protobuf types
 export interface OrderbookResponse {
   data: OrderbookEntry[];
   error?: string;
@@ -128,7 +141,7 @@ export function createOrderToCancelFromData(cancelData: {
 // Arborter Service functions using the generated client
 export const arborterService = {
   // Send order
-  async sendOrder(order: any, signatureHash: Uint8Array): Promise<SendOrderResponse> {
+  async sendOrder(order: OrderData, signatureHash: Uint8Array): Promise<SendOrderResponse> {
     try {
       const orderMessage = createOrderFromData(order);
       const request = create(SendOrderRequestSchema, {
@@ -145,7 +158,7 @@ export const arborterService = {
   },
 
   // Cancel order
-  async cancelOrder(cancelData: any, signatureHash: Uint8Array): Promise<CancelOrderResponse> {
+  async cancelOrder(cancelData: CancelOrderData, signatureHash: Uint8Array): Promise<CancelOrderResponse> {
     try {
       const orderToCancel = createOrderToCancelFromData(cancelData);
       const request = create(CancelOrderRequestSchema, {
@@ -357,7 +370,7 @@ export const configService = {
   },
 
   // Deploy contract
-  async deployContract(chainNetwork: string, baseOrQuote: string): Promise<any> {
+  async deployContract(chainNetwork: string, baseOrQuote: string): Promise<DeployContractResponse> {
     try {
       const request = create(DeployContractRequestSchema, {
         chainNetwork: chainNetwork,
@@ -373,7 +386,7 @@ export const configService = {
   },
 
   // Add chain
-  async addChain(chain: Chain): Promise<any> {
+  async addChain(chain: Chain): Promise<AddChainResponse> {
     try {
       const request = create(AddChainRequestSchema, { chain: chain });
       const response = await configClient.addChain(request);
@@ -385,7 +398,7 @@ export const configService = {
   },
 
   // Add token
-  async addToken(chainNetwork: string, token: Token): Promise<any> {
+  async addToken(chainNetwork: string, token: Token): Promise<AddTokenResponse> {
     try {
       const request = create(AddTokenRequestSchema, {
         chainNetwork: chainNetwork,
@@ -411,7 +424,7 @@ export const configService = {
     baseChainTokenDecimals: number;
     quoteChainTokenDecimals: number;
     pairDecimals: number;
-  }): Promise<any> {
+  }): Promise<AddMarketResponse> {
     try {
       const request = create(AddMarketRequestSchema, {
         baseChainNetwork: marketData.baseChainNetwork,

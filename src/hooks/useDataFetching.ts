@@ -109,11 +109,8 @@ export function useDataFetching<T>({
 
   // Clear data when marketId changes to prevent stale data
   useEffect(() => {
-    const dataLength = Array.isArray(data) ? data.length : 0;
     console.log('useDataFetching: Market ID changed, clearing previous data', {
-      oldMarketId: dataLength > 0 ? 'had-data' : 'no-data',
-      newMarketId: marketId,
-      dataLength: dataLength
+      newMarketId: marketId
     });
     setData([] as T);
     setError(null);
@@ -121,7 +118,7 @@ export function useDataFetching<T>({
     initializedRef.current = false;
     setRetryCount(0); // Reset retry count for new market
     setLastFetchTime(0); // Reset last fetch time
-  }, [marketId]);
+  }, [marketId]); // Only depend on marketId to prevent infinite loops
 
   // Set up polling - only after initial fetch
   useEffect(() => {

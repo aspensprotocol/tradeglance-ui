@@ -11,9 +11,10 @@ import { configUtils } from "@/lib/config-utils";
 import { useConfig } from "@/hooks/useConfig";
 import { useAllBalances } from "@/hooks/useAllBalances";
 import { triggerBalanceRefresh } from '../lib/utils';
+import { TradingPair } from "@/hooks/useTradingPairs";
 
 interface ActivityPanelProps {
-  tradingPair?: any;
+  tradingPair?: TradingPair;
 }
 
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {

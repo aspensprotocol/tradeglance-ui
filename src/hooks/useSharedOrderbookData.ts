@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { arborterService } from '../lib/grpc-client';
-import { OrderbookEntry } from '../protos/gen/arborter_pb';
+import { 
+  OrderbookEntry, 
+  Trade, 
+  Order,
+  Side,
+  OrderStatus
+} from '../protos/gen/arborter_pb';
 import { weiToDecimal, formatDecimal } from '../lib/number-utils';
 
+// Use proper protobuf types for orderbook data
 export interface OrderbookOrder {
   price: string;
   quantity: string;
@@ -19,6 +26,7 @@ export interface OrderbookData {
   lastUpdate: Date;
 }
 
+// Use proper protobuf types for open orders
 export interface OpenOrder {
   id: string;
   price: string;
@@ -365,7 +373,7 @@ export function useSharedOrderbookData(marketId: string, filterByTrader?: string
       setLoading(false);
       // Don't set initialLoading to false here - only set it after successful data fetch
     }
-  }, [marketId, filterByTrader, processOrderbookData, processOpenOrdersData, loading]);
+  }, [marketId, filterByTrader, processOrderbookData, processOpenOrdersData, loading, retryCount]);
 
   // Initial data fetch
   useEffect(() => {
@@ -389,15 +397,12 @@ export function useSharedOrderbookData(marketId: string, filterByTrader?: string
     console.log('useSharedOrderbookData: Market ID change effect triggered:', {
       marketId,
       marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      previousData: {
-        orderbookBids: data.orderbook.bids.length,
-        orderbookAsks: data.orderbook.asks.length,
-        openOrders: data.openOrders.length
-      }
+      marketIdTruthy: !!marketId
     });
     
     console.log('Market ID changed in shared orderbook data, clearing previous data');
+    
+    // Clear all data immediately when marketId changes
     setData({
       orderbook: {
         bids: [],
@@ -409,11 +414,18 @@ export function useSharedOrderbookData(marketId: string, filterByTrader?: string
       openOrders: [],
       lastUpdate: new Date()
     });
+    
+    // Clear any existing polling
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
+    
     setError(null);
     setInitialLoading(true); // Reset to loading state for new market
     lastFetchTime.current = 0;
     setRetryCount(0); // Reset retry count for new market
-  }, [marketId]);
+  }, [marketId]); // Only depend on marketId to prevent infinite loops
 
   // Set up polling
   useEffect(() => {
@@ -436,6 +448,12 @@ export function useSharedOrderbookData(marketId: string, filterByTrader?: string
       return;
     }
 
+    // Clear any existing polling before setting up new one
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
+
     console.log('useSharedOrderbookData: Setting up polling for marketId:', marketId);
     pollingInterval.current = setInterval(() => {
       console.log('useSharedOrderbookData: Polling interval triggered for marketId:', marketId);
@@ -446,6 +464,7 @@ export function useSharedOrderbookData(marketId: string, filterByTrader?: string
       if (pollingInterval.current) {
         console.log('useSharedOrderbookData: Cleaning up polling interval for marketId:', marketId);
         clearInterval(pollingInterval.current);
+        pollingInterval.current = null;
       }
     };
   }, [marketId, fetchData, retryCount, maxRetries]);
@@ -453,15 +472,10 @@ export function useSharedOrderbookData(marketId: string, filterByTrader?: string
   // Debug logging for data changes
   useEffect(() => {
     console.log('useSharedOrderbookData: Data state changed:', {
-      hasOrderbook: !!data.orderbook,
-      orderbookBids: data.orderbook?.bids?.length || 0,
-      orderbookAsks: data.orderbook?.asks?.length || 0,
-      openOrders: data.openOrders?.length || 0,
-      lastUpdate: data.lastUpdate,
       loading,
       error
     });
-  }, [data, loading, error]);
+  }, [loading, error]); // Only depend on loading and error to prevent infinite loops
 
   const refresh = useCallback(() => {
     console.log('useSharedOrderbookData: Manual refresh triggered for marketId:', marketId);
