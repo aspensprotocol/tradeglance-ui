@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
@@ -32,7 +31,7 @@ export default {
           dark: "#388E3C",
         },
         ask: {
-          soft: "#FFDEE2", 
+          soft: "#FFDEE2",
           DEFAULT: "#F44336",
           dark: "#D32F2F",
         },

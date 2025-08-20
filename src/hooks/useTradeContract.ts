@@ -1,25 +1,23 @@
-import { useConfig } from './useConfig';
-import { configUtils } from '../lib/config-utils';
+import { configUtils } from "../lib/config-utils";
+import { Chain } from "../protos/gen/arborter_config_pb";
+import { TradingPair } from "./useTradingPairs";
 
-export const useTradeContracts = () => {
-  const { config, loading, error } = useConfig();
-  
-  const getAllChains = () => {
-    const chains = configUtils.getAllChains();
-    console.log('useTradeContracts: getAllChains returned:', chains);
+export const useTradeContracts = (): {
+  getAllChains: () => Chain[];
+  getTradingPairs: () => TradingPair[];
+} => {
+  const getAllChains = (): Chain[] => {
+    const chains: Chain[] = configUtils.getAllChains();
     return chains;
   };
-  
-  const getTradingPairs = () => {
-    // This function doesn't exist in configUtils, so we'll return an empty array
-    console.log('useTradeContracts: getTradingPairs not implemented');
+
+  const getTradingPairs = (): TradingPair[] => {
+    // This would return trading pairs if needed
     return [];
   };
-  
+
   return {
     getAllChains,
     getTradingPairs,
-    loading,
-    error,
   };
-}; 
+};

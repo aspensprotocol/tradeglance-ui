@@ -1,42 +1,52 @@
 import { create, toBinary } from "@bufbuild/protobuf";
 import { OrderSchema, Side, ExecutionType } from "../protos/gen/arborter_pb";
 
-declare global {
-  interface Window {
-    ethereum?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  }
+// Define proper types for MetaMask ethereum object
+interface MetaMaskEthereumProvider {
+  request: (args: { method: string; params: string[] }) => Promise<string>;
+  isMetaMask?: boolean;
+  selectedAddress?: string;
+  networkVersion?: string;
+  chainId?: string;
 }
 
-export interface OrderData {
-  side: 1 | 2; // Numeric values: 1 = BID (buy), 2 = ASK (sell)
+// Type assertion for the ethereum object
+const getEthereumProvider = (): MetaMaskEthereumProvider => {
+  if (typeof window !== "undefined" && window.ethereum) {
+    return window.ethereum as MetaMaskEthereumProvider;
+  }
+  throw new Error("MetaMask is not installed");
+};
+
+// Use proto-generated types instead of custom interfaces
+export interface OrderCreationData {
+  side: Side;
   quantity: string;
   price?: string;
   marketId: string;
   baseAccountAddress: string;
   quoteAccountAddress: string;
-  executionType: 0 | 1; // Numeric values: 0 = UNSPECIFIED, 1 = DISCRETIONARY
+  executionType: ExecutionType;
   matchingOrderIds: number[];
 }
 
 export async function signOrderWithGlobalProtobuf(
-  orderData: OrderData,
-  chainId: number
+  orderData: OrderCreationData,
+  chainId: number,
 ): Promise<Uint8Array> {
-  console.log('=== CALLING signOrderWithGlobalProtobuf ===');
+  console.log("=== CALLING signOrderWithGlobalProtobuf ===");
 
   // Check if MetaMask is available
-  if (typeof window.ethereum === 'undefined') {
-    throw new Error('MetaMask is not installed');
-  }
+  const ethereum: MetaMaskEthereumProvider = getEthereumProvider();
 
   try {
-    // Use numeric values directly (already converted in orderData)
-    const side = orderData.side;
-    const executionType = orderData.executionType;
+    // Use proto enum values directly
+    const side: Side = orderData.side;
+    const executionType: ExecutionType = orderData.executionType;
 
-    console.log('Execution type conversion:', {
+    console.log("Execution type conversion:", {
       original: orderData.executionType,
-      converted: executionType
+      converted: executionType,
     });
 
     // Create the protobuf Order message exactly like the CLI does
@@ -48,58 +58,68 @@ export async function signOrderWithGlobalProtobuf(
       baseAccountAddress: orderData.baseAccountAddress,
       quoteAccountAddress: orderData.quoteAccountAddress,
       executionType: executionType,
-      matchingOrderIds: [] as bigint[] // Always empty array like the working Rust client
+      matchingOrderIds: orderData.matchingOrderIds.map((id) => BigInt(id)), // Convert number[] to bigint[]
     });
 
-    console.log('Created protobuf message:', orderMessage);
+    console.log("Created protobuf message:", orderMessage);
 
     // Serialize the order to bytes exactly like the CLI does using toBinary
-    const protobufBytes = toBinary(OrderSchema, orderMessage);
-    
-    console.log('Protobuf encoded bytes length:', protobufBytes.length);
-    console.log('Protobuf encoded bytes:', Array.from(protobufBytes));
-    const hexString = Array.from(protobufBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-    console.log('Protobuf encoded bytes (hex):', hexString);
+    const protobufBytes: Uint8Array = toBinary(OrderSchema, orderMessage);
 
-    console.log('=== MESSAGE TO BE SIGNED ===');
-    console.log('Chain ID for signing:', chainId);
-    console.log('Protobuf length:', protobufBytes.length, 'bytes');
-    
-    console.log('Order details:');
-    console.log('  Side:', orderData.side, `(${side === 1 ? 'BID' : 'ASK'})`);
-    console.log('  Quantity:', orderData.quantity);
-    console.log('  Price:', orderData.price || 'None');
-    console.log('  Market ID:', orderData.marketId);
-    console.log('  Base Account:', orderData.baseAccountAddress);
-    console.log('  Quote Account:', orderData.quoteAccountAddress);
-    console.log('  Execution Type:', orderData.executionType, `(${executionType === 0 ? 'UNSPECIFIED' : 'DISCRETIONARY'})`);
-    console.log('  Matching Order IDs:', orderData.matchingOrderIds);
-    console.log('=== END MESSAGE DETAILS ===');
+    console.log("Protobuf encoded bytes length:", protobufBytes.length);
+    console.log("Protobuf encoded bytes:", Array.from(protobufBytes));
+    const hexString: string = Array.from(protobufBytes)
+      .map((b: number) => b.toString(16).padStart(2, "0"))
+      .join("");
+    console.log("Protobuf encoded bytes (hex):", hexString);
+
+    console.log("=== MESSAGE TO BE SIGNED ===");
+    console.log("Chain ID for signing:", chainId);
+    console.log("Protobuf length:", protobufBytes.length, "bytes");
+
+    console.log("Order details:");
+    console.log("  Side:", orderData.side, `(${side === 1 ? "BID" : "ASK"})`);
+    console.log("  Quantity:", orderData.quantity);
+    console.log("  Price:", orderData.price || "None");
+    console.log("  Market ID:", orderData.marketId);
+    console.log("  Base Account:", orderData.baseAccountAddress);
+    console.log("  Quote Account:", orderData.quoteAccountAddress);
+    console.log(
+      "  Execution Type:",
+      orderData.executionType,
+      `(${executionType === 0 ? "UNSPECIFIED" : "DISCRETIONARY"})`,
+    );
+    console.log("  Matching Order IDs:", orderData.matchingOrderIds);
+    console.log("=== END MESSAGE DETAILS ===");
 
     // Sign the protobuf bytes using MetaMask
-    const hexStringForSigning = '0x' + hexString;
-    const signature = await window.ethereum.request({
-      method: 'personal_sign',
+    const hexStringForSigning: string = "0x" + hexString;
+    const signature: string = await ethereum.request({
+      method: "personal_sign",
       params: [hexStringForSigning, orderData.baseAccountAddress],
     });
 
-    console.log('MetaMask signature received:', signature);
-    
+    console.log("MetaMask signature received:", signature);
+
     // Convert hex signature to bytes
-    const signatureBytes = new Uint8Array(
-      signature.slice(2).match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+    const signatureBytes: Uint8Array = new Uint8Array(
+      signature
+        .slice(2)
+        .match(/.{1,2}/g)!
+        .map((byte: string) => parseInt(byte, 16)),
     );
-    
-    console.log('Signature length:', signature.length);
-    console.log('Signature bytes length:', signatureBytes.length);
-    console.log('Signature bytes:', Array.from(signatureBytes));
+
+    console.log("Signature converted to bytes:", Array.from(signatureBytes));
+    console.log("=== SIGNING COMPLETE ===");
 
     return signatureBytes;
-  } catch (error) {
-    console.error('Protobuf signing error:', error);
+  } catch (error: unknown) {
+    console.error("Error signing order:", error);
     throw error;
   }
 }
 
 // Export for testing
-(window as { testWithGlobalProtobuf?: typeof signOrderWithGlobalProtobuf }).testWithGlobalProtobuf = signOrderWithGlobalProtobuf; 
+(
+  window as { testWithGlobalProtobuf?: typeof signOrderWithGlobalProtobuf }
+).testWithGlobalProtobuf = signOrderWithGlobalProtobuf;

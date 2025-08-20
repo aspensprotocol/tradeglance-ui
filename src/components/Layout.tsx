@@ -8,18 +8,20 @@ interface LayoutProps {
   footerPosition?: "fixed" | "absolute";
 }
 
-export const Layout = ({ children, className = "", footerPosition = "fixed" }: LayoutProps) => {
+export const Layout = ({
+  children,
+  className = "",
+  footerPosition = "fixed",
+}: LayoutProps): JSX.Element => {
   return (
-    <div className={`min-h-screen bg-neutral-soft/30 relative ${className}`}>
-      <div className="container min-h-screen flex flex-col">
-        <div className="p-4">
+    <main className={`min-h-screen bg-neutral-soft/30 relative ${className}`}>
+      <section className="container min-h-screen flex flex-col">
+        <header className="p-2 sm:p-4">
           <Navigation />
-        </div>
-        <div className="flex-1 px-4 pb-16">
-          {children}
-        </div>
-      </div>
+        </header>
+        <section className="flex-1 px-2 sm:px-4 pb-16">{children}</section>
+      </section>
       <Footer className={`${footerPosition} bottom-0 left-0 right-0`} />
-    </div>
+    </main>
   );
-}; 
+};

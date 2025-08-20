@@ -98,32 +98,49 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom ordered list styling to override prose classes */
+  .custom-ordered-list {
+    list-style-type: decimal !important;
+    list-style: decimal !important;
+  }
+
+  .custom-ordered-list-item {
+    list-style-type: decimal !important;
+    list-style: decimal !important;
+  }
 }
 
 @layer components {
   /* Documentation specific styles */
-  .prose h1, .prose h2, .prose h3 {
+  .prose h1,
+  .prose h2,
+  .prose h3 {
     scroll-margin-top: 2rem;
   }
-  
-  .prose h1 a, .prose h2 a, .prose h3 a {
+
+  .prose h1 a,
+  .prose h2 a,
+  .prose h3 a {
     transition: all 0.2s ease-in-out;
   }
-  
-  .prose h1:hover a, .prose h2:hover a, .prose h3:hover a {
+
+  .prose h1:hover a,
+  .prose h2:hover a,
+  .prose h3:hover a {
     opacity: 0.8;
   }
-  
+
   /* Copy link button positioning and styling */
   .prose h1 .copy-link {
     right: -3rem;
   }
-  
+
   .prose h2 .copy-link,
   .prose h3 .copy-link {
     right: -2.5rem;
   }
-  
+
   .copy-link {
     transition: all 0.2s ease-in-out;
     cursor: pointer;
@@ -135,19 +152,19 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .copy-link:hover {
     transform: scale(1.1);
     background-color: rgba(59, 130, 246, 0.1);
   }
-  
+
   /* Make copy button more visible for debugging */
   .copy-link {
     opacity: 0.7;
     background-color: rgba(59, 130, 246, 0.1);
     border: 1px solid rgba(59, 130, 246, 0.3);
   }
-  
+
   .prose h1:hover .copy-link,
   .prose h2:hover .copy-link,
   .prose h3:hover .copy-link {
@@ -155,17 +172,20 @@
     background-color: rgba(59, 130, 246, 0.2);
     border-color: rgba(59, 130, 246, 0.5);
   }
-  
+
   /* Improve ordered list styling */
   .prose ol {
     counter-reset: list-counter;
+    list-style: none;
+    padding-left: 0;
   }
-  
+
   .prose ol > li {
     position: relative;
     padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
   }
-  
+
   .prose ol > li::before {
     counter-increment: list-counter;
     content: counter(list-counter) ".";

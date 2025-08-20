@@ -4,12 +4,12 @@ import path from "path";
 import { execSync } from "child_process";
 
 // Get git commit hash
-const getGitCommitHash = () => {
+const getGitCommitHash = (): string => {
   try {
-    return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+    return execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
   } catch (error) {
-    console.warn('Could not get git commit hash:', error);
-    return 'unknown';
+    console.warn("Could not get git commit hash:", error);
+    return "unknown";
   }
 };
 
@@ -19,33 +19,31 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   optimizeDeps: {
-    include: ['google-protobuf', 'grpc-web'],
+    include: ["google-protobuf", "grpc-web"],
     esbuildOptions: {
       define: {
-        global: 'globalThis'
-      }
-    }
+        global: "globalThis",
+      },
+    },
   },
   build: {
     rollupOptions: {
-      external: ['google-protobuf/google-protobuf.js'],
+      external: ["google-protobuf/google-protobuf.js"],
     },
   },
   define: {
-    global: 'globalThis',
+    global: "globalThis",
     // Inject git commit hash as environment variable
-    'import.meta.env.VITE_GIT_COMMIT_HASH': JSON.stringify(getGitCommitHash()),
+    "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(getGitCommitHash()),
   },
   ssr: {
-    noExternal: ['google-protobuf', 'grpc-web']
+    noExternal: ["google-protobuf", "grpc-web"],
   },
 }));

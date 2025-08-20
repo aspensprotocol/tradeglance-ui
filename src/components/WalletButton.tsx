@@ -1,53 +1,68 @@
-import React, { useState } from 'react'
-import { useAccount, useDisconnect } from 'wagmi'
-import { Button } from './ui/button'
-import { useWeb3Modal } from '@web3modal/wagmi/react'
-import DepositWithdrawModal from './DepositWithdrawModal'
+import { useState } from "react";
+import { useAccount, useDisconnect, useConnect } from "wagmi";
+import { Button } from "./ui/button";
+import DepositWithdrawModal from "./DepositWithdrawModal";
 
-export const WalletButton: React.FC = () => {
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
-  const [modalOpen, setModalOpen] = useState(false)
-  const { open } = useWeb3Modal()
-  
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
+export default function WalletButton(): JSX.Element {
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { connect, connectors } = useConnect();
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
 
-  const handleAddressClick = () => {
-    setModalOpen(true)
-  }
+  const formatAddress = (address: string): string => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const handleAddressClick = (): void => {
+    setModalOpen(true);
+  };
 
   if (isConnected && address) {
     return (
-      <div className="flex items-center gap-2">
-        <div 
-          className="text-sm border border-gray-300 rounded px-2 py-0.5 bg-white/60 text-gray-900 cursor-pointer hover:bg-white/80 transition-colors"
+      <section className="flex items-center gap-2">
+        <button
+          className="text-sm border border-gray-300 rounded px-2 py-1 sm:py-0.5 bg-white/60 text-gray-900 cursor-pointer hover:bg-white/80 transition-colors"
           onClick={handleAddressClick}
           title="Click to deposit/withdraw funds"
         >
-          <div className="font-medium">{formatAddress(address)}</div>
-        </div>
-        <Button 
-          variant="outline" 
+          <span className="font-medium">{formatAddress(address)}</span>
+        </button>
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => disconnect()}
+          className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-1"
         >
           Disconnect
         </Button>
-        
+
         <DepositWithdrawModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           onSuccess={() => {}} // No refreshBalance here as it's removed
         />
-      </div>
-    )
+      </section>
+    );
   }
-  
+
+  // Find MetaMask connector
+  const metaMaskConnector = connectors.find(
+    (connector) => connector.name === "MetaMask",
+  );
+
   return (
-    <Button onClick={() => open()}>
+    <Button
+      onClick={() => {
+        if (metaMaskConnector) {
+          connect({ connector: metaMaskConnector });
+        } else {
+          console.error("MetaMask connector not found");
+        }
+      }}
+      disabled={!metaMaskConnector}
+      className="text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-2"
+    >
       Connect Wallet
     </Button>
-  )
+  );
 }

@@ -1,163 +1,221 @@
-import { useConfig } from './useConfig';
-import { configUtils } from '../lib/config-utils';
-import { Configuration, Market, Chain } from '../protos/gen/arborter_config_pb';
+import { useConfig } from "./useConfig";
+import { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
 
-// Use proto-generated types instead of custom interfaces
 export interface TradingPair {
   id: string;
-  displayName: string;
   baseSymbol: string;
   quoteSymbol: string;
+  displayName: string;
+  baseChainNetwork: string;
+  quoteChainNetwork: string;
+  baseChainTokenAddress: string;
+  quoteChainTokenAddress: string;
+  baseChainTokenDecimals: number;
+  quoteChainTokenDecimals: number;
+  pairDecimals: number;
   baseChainId: number;
   quoteChainId: number;
-  marketId: string;
-  baseTokenDecimals: number;
-  quoteTokenDecimals: number;
-  pairDecimals: number;
 }
 
-export const useTradingPairs = () => {
-  const { config, loading, error } = useConfig();
-  
-  // Debug logging for config
-  console.log('useTradingPairs: Config received:', {
+export const useTradingPairs = (): {
+  tradingPairs: TradingPair[];
+  loading: boolean;
+  error: string | null;
+  getTradingPairById: (id: string) => TradingPair | null;
+  getTradingPairByMarketId: (marketId: string) => TradingPair | null;
+} => {
+  const { config, loading: configLoading, error: configError } = useConfig();
+
+  // Add comprehensive logging
+  console.log("🔍 useTradingPairs hook called:", {
     hasConfig: !!config,
-    configType: typeof config,
+    configLoading,
+    configError,
     configKeys: config ? Object.keys(config) : [],
     chainsCount: config?.chains?.length || 0,
     marketsCount: config?.markets?.length || 0,
-    loading,
-    error
   });
-  
+
   const getTradingPairs = (): TradingPair[] => {
-    if (!config) {
+    if (!config || !config.chains || !config.markets) {
+      console.log("❌ No config, chains, or markets available:", {
+        hasConfig: !!config,
+        hasChains: !!config?.chains,
+        hasMarkets: !!config?.markets,
+      });
       return [];
     }
 
-    // The config is a plain JavaScript object, not a protobuf object
-    const chains = config.chains || [];
-    const markets = config.markets || [];
+    const chains: Chain[] = config.chains || [];
+    const markets: Market[] = config.markets || [];
 
-    if (chains.length === 0 || markets.length === 0) {
-      return [];
-    }
-
-    const tradingPairs: TradingPair[] = [];
-
-    // Create trading pairs from markets
-    markets.forEach((market: Market) => {
-      console.log('Processing market:', {
-        slug: market.slug,
-        name: market.name,
-        marketId: market.marketId,
-        marketIdType: typeof market.marketId,
-        marketIdTruthy: !!market.marketId,
-        baseChainNetwork: market.baseChainNetwork,
-        quoteChainNetwork: market.quoteChainNetwork,
-        fullMarket: market,
-        marketKeys: Object.keys(market)
-      });
-      
-      // Find base and quote chains by network name
-      const baseChain = chains.find((chain: Chain) => chain.network === market.baseChainNetwork);
-      const quoteChain = chains.find((chain: Chain) => chain.network === market.quoteChainNetwork);
-      
-      console.log('Found chains:', {
-        baseChain: baseChain ? {
-          network: baseChain.network,
-          chainId: baseChain.chainId,
-          baseOrQuote: baseChain.baseOrQuote
-        } : null,
-        quoteChain: quoteChain ? {
-          network: quoteChain.network,
-          chainId: quoteChain.chainId,
-          baseOrQuote: quoteChain.baseOrQuote
-        } : null
-      });
-      
-      if (!baseChain || !quoteChain) {
-        console.log('Skipping market - chain not found:', {
-          baseChainNetwork: market.baseChainNetwork,
-          quoteChainNetwork: market.quoteChainNetwork,
-          availableChains: chains.map(c => c.network)
-        });
-        return;
-      }
-
-      // Skip markets without valid marketId
-      if (!market.marketId || market.marketId.trim() === '') {
-        console.warn('Skipping market - no valid marketId:', {
-          slug: market.slug,
-          name: market.name,
-          marketId: market.marketId
-        });
-        return;
-      }
-
-      // Helper function to get chain prefix for trading pairs
-      const getChainPrefix = (network: string): string => {
-        if (network.includes('flare')) return 'f'; // flare-coston2
-        if (network.includes('base')) return 'b';  // base-sepolia
-        if (network.includes('mainnet')) return 'm';
-        if (network.includes('goerli')) return 'g';
-        if (network.includes('sepolia')) return 's';
-        return network.charAt(0).toLowerCase(); // fallback to first letter
-      };
-
-      // Get chain prefixes
-      const basePrefix = getChainPrefix(baseChain.network);
-      const quotePrefix = getChainPrefix(quoteChain.network);
-
-      // Convert chain IDs to numbers for consistency
-      const baseChainId = typeof baseChain.chainId === 'string' ? parseInt(baseChain.chainId, 10) : baseChain.chainId;
-      const quoteChainId = typeof quoteChain.chainId === 'string' ? parseInt(quoteChain.chainId, 10) : quoteChain.chainId;
-
-      // Create trading pair with chain prefixes
-      const tradingPair: TradingPair = {
-        id: `${basePrefix}${market.baseChainTokenSymbol}-${quotePrefix}${market.quoteChainTokenSymbol}`,
-        displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
-        baseSymbol: market.baseChainTokenSymbol,
-        quoteSymbol: market.quoteChainTokenSymbol,
-        baseChainId: baseChainId,
-        quoteChainId: quoteChainId,
-        marketId: market.marketId || `${baseChain.network}-${market.baseChainTokenSymbol}-${quoteChain.network}-${market.quoteChainTokenSymbol}`,
-        baseTokenDecimals: market.baseChainTokenDecimals || 18,
-        quoteTokenDecimals: market.quoteChainTokenDecimals || 18,
-        pairDecimals: market.pairDecimals || 8,
-      };
-
-      tradingPairs.push(tradingPair);
-      console.log('Created trading pair:', {
-        id: tradingPair.id,
-        displayName: tradingPair.displayName,
-        marketId: tradingPair.marketId,
-        marketIdType: typeof tradingPair.marketId,
-        marketIdTruthy: !!tradingPair.marketId,
-        baseChainId: tradingPair.baseChainId,
-        quoteChainId: tradingPair.quoteChainId,
-        baseChainBaseOrQuote: baseChain.baseOrQuote,
-        quoteChainBaseOrQuote: quoteChain.baseOrQuote
-      });
+    console.log("🔍 Processing trading pairs:", {
+      chainsCount: chains.length,
+      marketsCount: markets.length,
+      chainNetworks: chains.map((c) => c.network),
+      marketSlugs: markets.map((m) => m.slug),
     });
 
-    console.log('Final trading pairs:', tradingPairs.map(p => ({ id: p.id, marketId: p.marketId })));
+    if (chains.length === 0 || markets.length === 0) {
+      console.warn("No chains or markets found in config:", {
+        chainsCount: chains.length,
+        marketsCount: markets.length,
+      });
+      return [];
+    }
+
+    const tradingPairs: TradingPair[] = markets
+      .map((market: Market) => {
+        console.log("🔍 Processing market:", {
+          slug: market.slug,
+          marketId: market.marketId,
+          baseChainNetwork: market.baseChainNetwork,
+          quoteChainNetwork: market.quoteChainNetwork,
+          baseTokenSymbol: market.baseChainTokenSymbol,
+          quoteTokenSymbol: market.quoteChainTokenSymbol,
+        });
+
+        // Find the base and quote chains for this market
+        const baseChain: Chain | undefined = chains.find(
+          (chain: Chain) => chain.network === market.baseChainNetwork,
+        );
+        const quoteChain: Chain | undefined = chains.find(
+          (chain: Chain) => chain.network === market.quoteChainNetwork,
+        );
+
+        if (!baseChain || !quoteChain) {
+          console.warn("Market references non-existent chain:", {
+            marketSlug: market.slug,
+            baseChainNetwork: market.baseChainNetwork,
+            quoteChainNetwork: market.quoteChainNetwork,
+            availableChains: chains.map((c) => c.network),
+          });
+          return null;
+        }
+
+        // Find the base and quote tokens
+        const baseToken: Token | undefined =
+          baseChain.tokens[market.baseChainTokenSymbol];
+        const quoteToken: Token | undefined =
+          quoteChain.tokens[market.quoteChainTokenSymbol];
+
+        if (!baseToken || !quoteToken) {
+          console.warn("Market references non-existent token:", {
+            marketSlug: market.slug,
+            baseChainTokenSymbol: market.baseChainTokenSymbol,
+            quoteTokenSymbol: market.quoteChainTokenSymbol,
+            availableBaseTokens: Object.keys(baseChain.tokens),
+            availableQuoteTokens: Object.keys(quoteChain.tokens),
+          });
+          return null;
+        }
+
+        // Get chain prefixes for display
+        const getChainPrefix = (network: string): string => {
+          if (network.includes("flare")) return "f";
+          if (network.includes("base")) return "b";
+          if (network.includes("mainnet")) return "m";
+          if (network.includes("goerli")) return "g";
+          if (network.includes("sepolia")) return "s";
+          return network.charAt(0).toLowerCase();
+        };
+
+        const basePrefix: string = getChainPrefix(baseChain.network);
+        const quotePrefix: string = getChainPrefix(quoteChain.network);
+
+        // Create the trading pair ID
+        const baseChainId: number =
+          typeof baseChain.chainId === "string"
+            ? parseInt(baseChain.chainId, 10)
+            : baseChain.chainId;
+        const quoteChainId: number =
+          typeof quoteChain.chainId === "string"
+            ? parseInt(quoteChain.chainId, 10)
+            : quoteChain.chainId;
+
+        const tradingPair: TradingPair = {
+          id:
+            market.marketId ||
+            `${baseChainId}::${baseToken.address}::${quoteChainId}::${quoteToken.address}`,
+          baseSymbol: market.baseChainTokenSymbol,
+          quoteSymbol: market.quoteChainTokenSymbol,
+          displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
+          baseChainNetwork: market.baseChainNetwork,
+          quoteChainNetwork: market.quoteChainNetwork,
+          baseChainTokenAddress: baseToken.address,
+          quoteChainTokenAddress: quoteToken.address,
+          baseChainTokenDecimals: market.baseChainTokenDecimals,
+          quoteChainTokenDecimals: market.quoteChainTokenDecimals,
+          pairDecimals: market.pairDecimals,
+          baseChainId,
+          quoteChainId,
+        };
+
+        console.log("✅ Created trading pair:", {
+          id: tradingPair.id,
+          displayName: tradingPair.displayName,
+          baseSymbol: tradingPair.baseSymbol,
+          quoteSymbol: tradingPair.quoteSymbol,
+        });
+
+        return tradingPair;
+      })
+      .filter(Boolean) as TradingPair[];
+
+    console.log("🎯 Final trading pairs result:", {
+      totalPairs: tradingPairs.length,
+      pairs: tradingPairs.map((p) => ({
+        id: p.id,
+        displayName: p.displayName,
+      })),
+    });
+
     return tradingPairs;
   };
 
+  const tradingPairs: TradingPair[] = getTradingPairs();
+  const loading: boolean =
+    configLoading || (!!config && tradingPairs.length === 0);
+  const error: string | null =
+    configError ||
+    (!!config && tradingPairs.length === 0 ? "No trading pairs found" : null);
+
+  console.log("🔍 useTradingPairs final state:", {
+    tradingPairsCount: tradingPairs.length,
+    loading,
+    error,
+    selectedPairs: tradingPairs.map((p) => ({
+      id: p.id,
+      displayName: p.displayName,
+    })),
+  });
+
   const getTradingPairById = (id: string): TradingPair | null => {
-    return getTradingPairs().find(pair => pair.id === id) || null;
+    const result =
+      tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
+    console.log("🔍 getTradingPairById:", {
+      id,
+      result: result ? result.displayName : "not found",
+    });
+    return result;
   };
 
   const getTradingPairByMarketId = (marketId: string): TradingPair | null => {
-    return getTradingPairs().find(pair => pair.marketId === marketId) || null;
+    const result =
+      tradingPairs.find((pair: TradingPair) => pair.id.includes(marketId)) ||
+      null;
+    console.log("🔍 getTradingPairByMarketId:", {
+      marketId,
+      result: result ? result.displayName : "not found",
+    });
+    return result;
   };
 
   return {
-    tradingPairs: getTradingPairs(),
-    getTradingPairById,
-    getTradingPairByMarketId,
+    tradingPairs,
     loading,
     error,
+    getTradingPairById,
+    getTradingPairByMarketId,
   };
-}; 
+};

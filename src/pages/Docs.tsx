@@ -3,7 +3,7 @@ import { DocumentationViewer } from "@/components/DocumentationViewer";
 import { renderMarkdown } from "@/lib/markdown-utils";
 import { useState, useEffect } from "react";
 
-const Docs = () => {
+const Docs = (): JSX.Element => {
   const [markdownContent, setMarkdownContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +12,7 @@ const Docs = () => {
     const loadDocumentation = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/docs/README.md');
+        const response = await fetch("/docs/README.md");
         if (response.ok) {
           const content = await response.text();
           setMarkdownContent(content);
@@ -47,8 +47,10 @@ Some examples we thought about that can be built on top of Aspens include:
 We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧`);
         }
       } catch (error) {
-        console.error('Error loading documentation:', error);
-        setMarkdownContent('# Error Loading Documentation\n\nPlease check the docs/README.md file.');
+        console.error("Error loading documentation:", error);
+        setMarkdownContent(
+          "# Error Loading Documentation\n\nPlease check the docs/README.md file.",
+        );
       } finally {
         setLoading(false);
       }
@@ -60,25 +62,25 @@ We're currently looking for partner projects, so if you're a builder, and this s
   if (loading) {
     return (
       <Layout footerPosition="fixed">
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <main className="flex items-center justify-center h-full">
+          <section className="text-center">
+            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></span>
             <p className="text-gray-600">Loading documentation...</p>
-          </div>
-        </div>
+          </section>
+        </main>
       </Layout>
     );
   }
 
   return (
     <Layout footerPosition="fixed">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         <DocumentationViewer>
           {renderMarkdown(markdownContent)}
         </DocumentationViewer>
-      </div>
+      </main>
     </Layout>
   );
 };
 
-export default Docs; 
+export default Docs;

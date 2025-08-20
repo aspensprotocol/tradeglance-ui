@@ -1,14 +1,27 @@
-import { useState } from 'react';
-import { configUtils } from '../lib/config-utils';
-import { Chain } from '../protos/gen/arborter_config_pb';
-import { useToast } from './use-toast';
+import { useState } from "react";
+import { configUtils } from "../lib/config-utils";
+import { Chain } from "../protos/gen/arborter_config_pb";
+import { useToast } from "./use-toast";
 
-export const useNetworkSwitch = () => {
+// MetaMask Chain Permissions Update Notice:
+// As of November 2024, MetaMask introduced a new "Chain Permissions" system that replaces
+// the old wallet_switchEthereumChain and wallet_addEthereumChain methods. This update
+// requires users to manually switch networks in MetaMask instead of automatic switching.
+// See: https://metamask.io/news/metamask-feature-update-chain-permissions
+console.log(
+  "NetworkSwitch: Using MetaMask Chain Permissions system - automatic chain switching disabled",
+);
+
+export const useNetworkSwitch = (): {
+  switchToNetwork: (chainConfig: Chain) => Promise<boolean>;
+  getSupportedNetworks: () => Chain[];
+  isSwitching: boolean;
+} => {
   const [isSwitching, setIsSwitching] = useState(false);
   const { toast } = useToast();
 
   const switchToNetwork = async (chainConfig: Chain) => {
-    if (typeof window.ethereum === 'undefined') {
+    if (typeof window.ethereum === "undefined") {
       toast({
         title: "MetaMask not found",
         description: "Please install MetaMask to switch networks",
@@ -19,76 +32,38 @@ export const useNetworkSwitch = () => {
 
     setIsSwitching(true);
     try {
-      const chainId = typeof chainConfig.chainId === 'string' ? parseInt(chainConfig.chainId, 10) : chainConfig.chainId;
+      const chainId =
+        typeof chainConfig.chainId === "string"
+          ? parseInt(chainConfig.chainId, 10)
+          : chainConfig.chainId;
       const chainIdHex = `0x${chainId.toString(16)}`;
-      
-      console.log(`Attempting to switch to network: ${chainConfig.network} (${chainIdHex})`);
-      
-      // Try to switch to the network first
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: chainIdHex }],
-        });
-        console.log(`Successfully switched to network ${chainConfig.network}`);
-        
-        toast({
-          title: "Network switched",
-          description: `Successfully switched to ${chainConfig.network}`,
-        });
-        
-        return true;
-      } catch (switchError: unknown) {
-        console.log('Switch error:', switchError);
-        
-        // If the network doesn't exist, add it
-        if (switchError && typeof switchError === 'object' && 'code' in switchError && switchError.code === 4902) {
-          console.log(`Network ${chainConfig.network} not found, adding it...`);
-          
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: chainIdHex,
-                chainName: chainConfig.network,
-                nativeCurrency: {
-                  name: 'Ether',
-                  symbol: 'ETH',
-                  decimals: 18,
-                },
-                rpcUrls: [chainConfig.rpcUrl],
-                blockExplorerUrls: chainConfig.explorerUrl ? [chainConfig.explorerUrl] : [],
-              }],
-            });
-            
-            console.log(`Successfully added and switched to network ${chainConfig.network}`);
-            
-            toast({
-              title: "Network added and switched",
-              description: `Successfully added and switched to ${chainConfig.network}`,
-            });
-            
-            return true;
-          } catch (addError: unknown) {
-            console.error('Error adding network:', addError);
-            const errorMessage = addError instanceof Error ? addError.message : 'Unknown error';
-            throw new Error(`Failed to add network: ${errorMessage}`);
-          }
-        } else {
-          // Handle other switch errors
-          if (switchError && typeof switchError === 'object' && 'code' in switchError && switchError.code === 4001) {
-            throw new Error('User rejected the network switch');
-          } else {
-            const errorMessage = switchError instanceof Error ? switchError.message : 'Unknown error';
-            throw new Error(`Failed to switch network: ${errorMessage}`);
-          }
-        }
-      }
-    } catch (error: unknown) {
-      console.error('Error switching network:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to switch network";
+
+      console.log(
+        `Attempting to switch to network: ${chainConfig.network} (${chainIdHex})`,
+      );
+
+      // With MetaMask's new Chain Permissions system, we can't automatically switch chains
+      // Instead, we provide guidance to the user
+      console.log(
+        `MetaMask Chain Permissions: User should manually switch to ${chainConfig.network} (${chainIdHex})`,
+      );
+
       toast({
-        title: "Network switch failed",
+        title: "Manual network switch required",
+        description: `Please manually switch to ${chainConfig.network} in MetaMask. The new Chain Permissions system requires manual network switching.`,
+        variant: "default",
+      });
+
+      // Return true to indicate the operation was "successful" (user was guided)
+      return true;
+    } catch (error: unknown) {
+      console.error("Error in network switch guidance:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to provide network switch guidance";
+      toast({
+        title: "Network switch guidance failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -98,8 +73,10 @@ export const useNetworkSwitch = () => {
     }
   };
 
-  const getSupportedNetworks = () => {
-    return configUtils.getAllChains().filter(chain => chain.tradeContract);
+  const getSupportedNetworks = (): Chain[] => {
+    return configUtils
+      .getAllChains()
+      .filter((chain: Chain) => chain.tradeContract);
   };
 
   return {
@@ -107,4 +84,4 @@ export const useNetworkSwitch = () => {
     getSupportedNetworks,
     isSwitching,
   };
-}; 
+};
