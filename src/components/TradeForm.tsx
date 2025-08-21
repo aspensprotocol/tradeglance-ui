@@ -38,17 +38,17 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
     getCurrentChainConfig,
   } = useNetworkManagement();
 
-  // Auto-update active tab based on current chain
-  useEffect(() => {
-    if (currentChainId) {
-      const correctSide = getCorrectSideForChain(currentChainId);
-      
-      if (activeTab !== correctSide) {
-        console.log(`TradeForm: Auto-updating side from ${activeTab} to ${correctSide} based on chain ${currentChainId}`);
-        setActiveTab(correctSide);
-      }
-    }
-  }, [currentChainId, activeTab, getCorrectSideForChain]);
+  // Auto-update active tab based on current chain (disabled to allow manual selection)
+  // useEffect(() => {
+  //   if (currentChainId) {
+  //     const correctSide = getCorrectSideForChain(currentChainId);
+  //     
+  //     if (activeTab !== correctSide) {
+  //       console.log(`TradeForm: Auto-updating side from ${activeTab} to ${correctSide} based on chain ${currentChainId}`);
+  //       setActiveTab(correctSide);
+  //     }
+  //   }
+  // }, [currentChainId, activeTab, getCorrectSideForChain]);
 
   // Handle side change with network switching
   const handleSideChange = async (newSide: "buy" | "sell") => {
@@ -61,42 +61,16 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
     
     if (newSide === activeTab) return; // No change needed
     
+    // Always allow tab switching - let the user choose the side
+    setActiveTab(newSide);
+    
+    // Optional: Handle network switching in the background if needed
     const targetChainId = getTargetChainForSide(newSide);
     console.log('TradeForm: Target chain for side:', {
       newSide,
       targetChainId,
       targetChainConfig: targetChainId ? getCurrentChainConfig() : null
     });
-    
-    if (!targetChainId) {
-      // Use the toast from trading logic hook
-      return;
-    }
-
-    if (targetChainId === currentChainId) {
-      // Same chain, just update the side
-      console.log('TradeForm: Same chain, just updating side');
-      setActiveTab(newSide);
-      return;
-    }
-
-    // Different chain, need to switch
-    console.log('TradeForm: Different chain, switching networks');
-    try {
-      const chainConfig = getCurrentChainConfig();
-      if (!chainConfig) {
-        // Use the toast from trading logic hook
-        return;
-      }
-
-      // For now, we'll just update the side since network switching is handled by the shared hook
-      // In a real implementation, we'd need to integrate with the network switching logic
-      setActiveTab(newSide);
-      
-    } catch (error: unknown) {
-      console.error('Error switching network:', error);
-      // Use the toast from trading logic hook
-    }
   };
 
   const handleSubmitOrder = async () => {
@@ -119,7 +93,7 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
                   ? tab === "buy"
                     ? "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] text-white"
                     : "bg-gradient-to-r from-red-500 to-red-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                  : "text-gray-400 hover:text-white bg-[#2a2d3a]"
               )}
             >
               {tab.toUpperCase()}
@@ -235,14 +209,10 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
             </div>
           ) : (
             <div className="mb-6">
-              <div className="p-3 rounded-lg bg-blue-900/20 border border-blue-500/30">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-blue-300 font-medium">Market Order</span>
-                </div>
-                <p className="text-xs text-blue-200 mt-1">
-                  Will execute at the best available price
-                </p>
+              <div className="block text-sm font-medium text-gray-300 mb-2">Market Order</div>
+              <div className="w-full px-3 py-3 rounded-lg bg-blue-900/20 border border-blue-500/30 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-blue-300 font-medium">Will execute at the best available price</span>
               </div>
             </div>
           )}
@@ -273,6 +243,29 @@ const TradeForm = ({ selectedPair, tradingPair }: TradeFormProps) => {
                   const fee = amountValue * 0.01; // 1% fee
                   return fee.toFixed(2);
                 })()} {tradingPair?.quoteSymbol || "UST2"}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs pt-2 border-t border-gray-600">
+              <span className="text-gray-400 font-medium">Total</span>
+              <span className="text-white font-medium">
+                {(() => {
+                  const amountValue = parseFloat(formState.amount.replace(',', '.'));
+                  const priceValue = activeOrderType === "limit" ? parseFloat(formState.price || '0') : 0;
+                  
+                  if (isNaN(amountValue) || !amountValue) return `- ${tradingPair?.quoteSymbol || "UST2"}`;
+                  
+                  if (activeOrderType === "market") {
+                    return `Market Price + Fee ${tradingPair?.quoteSymbol || "UST2"}`;
+                  }
+                  
+                  if (isNaN(priceValue) || !priceValue) return `- ${tradingPair?.quoteSymbol || "UST2"}`;
+                  
+                  const subtotal = amountValue * priceValue;
+                  const fee = amountValue * 0.01; // 1% fee
+                  const total = subtotal + fee;
+                  
+                  return `${total.toFixed(2)} ${tradingPair?.quoteSymbol || "UST2"}`;
+                })()}
               </span>
             </div>
           </div>
