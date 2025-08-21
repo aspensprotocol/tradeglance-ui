@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home, ArrowLeft } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Home, ArrowLeft } from "lucide-react";
 
 const NotFound = (): JSX.Element => {
   return (
@@ -9,8 +9,12 @@ const NotFound = (): JSX.Element => {
       <section className="text-center">
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="text-6xl font-bold text-gray-900 mb-4">404</CardTitle>
-            <h1 className="text-2xl font-semibold text-gray-700 mb-2">Page Not Found</h1>
+            <CardTitle className="text-6xl font-bold text-gray-900 mb-4">
+              404
+            </CardTitle>
+            <h1 className="text-2xl font-semibold text-gray-700 mb-2">
+              Page Not Found
+            </h1>
             <p className="text-gray-500">
               The page you're looking for doesn't exist or has been moved.
             </p>
@@ -22,8 +26,8 @@ const NotFound = (): JSX.Element => {
                 Go Home
               </Button>
             </Link>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.history.back()}
               className="w-full"
             >

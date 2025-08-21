@@ -60,7 +60,9 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   // Filter open orders by trader if needed
   const orders =
     showMineOnly && address
-      ? openOrders.filter((order: OrderbookEntry) => order.makerBaseAddress === address)
+      ? openOrders.filter(
+          (order: OrderbookEntry) => order.makerBaseAddress === address,
+        )
       : openOrders;
 
   // Debug logging
@@ -239,7 +241,9 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               <header className="grid grid-cols-4 sm:grid-cols-5 text-xs text-gray-500 py-2 border-b gap-1 sm:gap-2">
                 <span className="text-right truncate">Price</span>
                 <span className="text-right truncate">Amount</span>
-                <span className="text-right truncate hidden sm:block">Maker</span>
+                <span className="text-right truncate hidden sm:block">
+                  Maker
+                </span>
                 <span className="text-right truncate">Taker</span>
                 <span className="text-right truncate">Time</span>
               </header>

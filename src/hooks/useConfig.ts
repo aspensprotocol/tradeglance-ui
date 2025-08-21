@@ -35,17 +35,24 @@ export function useConfig(): UseConfigReturn {
           chainsCount: response.config.chains?.length || 0,
           hasMarkets: !!response.config.markets,
           marketsCount: response.config.markets?.length || 0,
-          sampleMarket: response.config.markets?.[0] ? {
-            marketId: response.config.markets[0].marketId,
-            baseChainTokenSymbol: response.config.markets[0].baseChainTokenSymbol,
-            quoteChainTokenSymbol: response.config.markets[0].quoteChainTokenSymbol,
-            baseChainTokenDecimals: response.config.markets[0].baseChainTokenDecimals,
-            quoteChainTokenDecimals: response.config.markets[0].quoteChainTokenDecimals,
-            pairDecimals: response.config.markets[0].pairDecimals,
-            pairDecimalsType: typeof response.config.markets[0].pairDecimals,
-          } : null,
+          sampleMarket: response.config.markets?.[0]
+            ? {
+                marketId: response.config.markets[0].marketId,
+                baseChainTokenSymbol:
+                  response.config.markets[0].baseChainTokenSymbol,
+                quoteChainTokenSymbol:
+                  response.config.markets[0].quoteChainTokenSymbol,
+                baseChainTokenDecimals:
+                  response.config.markets[0].baseChainTokenDecimals,
+                quoteChainTokenDecimals:
+                  response.config.markets[0].quoteChainTokenDecimals,
+                pairDecimals: response.config.markets[0].pairDecimals,
+                pairDecimalsType:
+                  typeof response.config.markets[0].pairDecimals,
+              }
+            : null,
         });
-        
+
         setConfig(response.config);
         // Update the global configUtils instance so other parts of the app can access it
         configUtils.setConfig(response.config);

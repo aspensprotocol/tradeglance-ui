@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
-import type {
-  OrderCreationData} from "@/lib/signing-utils";
-import {
-  signOrderWithGlobalProtobuf,
-} from "@/lib/signing-utils";
+import type { OrderCreationData } from "@/lib/signing-utils";
+import { signOrderWithGlobalProtobuf } from "@/lib/signing-utils";
 import { ExecutionType, OrderSchema, Side } from "@/protos/gen/arborter_pb";
 import { create } from "@bufbuild/protobuf";
 import { useToast } from "@/hooks/use-toast";
@@ -216,7 +213,7 @@ export const useTradingLogic = ({
     }
 
     const quantity: number = parseFloat(formState.amount);
-    const {pairDecimals} = tradingPair;
+    const { pairDecimals } = tradingPair;
 
     // Use pair decimals for both signing and transaction
     const orderQuantity: string = (

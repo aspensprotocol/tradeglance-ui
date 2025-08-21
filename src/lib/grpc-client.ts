@@ -62,7 +62,8 @@ import type {
   ExecutionType,
   OrderStatus,
   Side,
-  TradeRole} from "../protos/gen/arborter_pb";
+  TradeRole,
+} from "../protos/gen/arborter_pb";
 import {
   type AddOrderbookRequest,
   AddOrderbookRequestSchema,
@@ -100,14 +101,16 @@ import {
 } from "../protos/gen/arborter_pb";
 
 // Create a logger for gRPC operations
-const logger = createLogger('gRPC');
+const logger = createLogger("gRPC");
 
 // Create the gRPC-Web transport for unary calls
 const transport = createGrpcWebTransport({
   baseUrl: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
 });
 
-logger.info(`Transport created with baseUrl: ${import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api"}`);
+logger.info(
+  `Transport created with baseUrl: ${import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api"}`,
+);
 logger.debug("Environment variables:", {
   VITE_GRPC_WEB_PROXY_URL: import.meta.env.VITE_GRPC_WEB_PROXY_URL,
   BASE_URL: import.meta.env.BASE_URL,
@@ -379,7 +382,7 @@ export const arborterService = {
     historicalOpenOrders?: boolean,
     filterByTrader?: string,
   ): Promise<OrderbookEntry[]> {
-    const orderbookLogger = createLogger('Orderbook');
+    const orderbookLogger = createLogger("Orderbook");
     try {
       orderbookLogger.info(`Getting orderbook for market: ${marketId}`);
       orderbookLogger.debug("Request parameters:", {
@@ -410,20 +413,20 @@ export const arborterService = {
       });
 
       orderbookLogger.info("Calling orderbook API...");
-      
+
       // Create a timeout promise to handle connection issues
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           reject(new Error("Orderbook request timed out after 15 seconds"));
         }, 15000);
       });
-      
+
       // Race the actual request against the timeout
       const response = await Promise.race([
         arborterClient.orderbook(request),
-        timeoutPromise
+        timeoutPromise,
       ]);
-      
+
       console.log("📡 arborterClient.orderbook response received:", {
         hasResponse: !!response,
         responseType: typeof response,
@@ -437,13 +440,13 @@ export const arborterService = {
       try {
         console.log("🔄 Starting to iterate over orderbook stream...");
         let entryCount = 0;
-        
+
         for await (const entry of response) {
           // Only log every 10th entry to reduce console spam
           if (entryCount % 10 === 0) {
             console.log(`🔍 Orderbook Entry ${entryCount + 1} received`);
           }
-          
+
           entries.push(entry);
           entryCount++;
 
@@ -461,14 +464,19 @@ export const arborterService = {
           "⚠️ Orderbook stream error, returning collected data:",
           streamError,
         );
-        
+
         // Handle specific gRPC errors
         if (streamError instanceof ConnectError) {
           handleApiError(streamError, "Orderbook Stream", async () => {
-            await this.getOrderbook(marketId, continueStream, historicalOpenOrders, filterByTrader);
+            await this.getOrderbook(
+              marketId,
+              continueStream,
+              historicalOpenOrders,
+              filterByTrader,
+            );
           });
         }
-        
+
         if (entries.length > 0) {
           console.log(
             `⚡ Returning ${entries.length} collected orderbook entries despite error`,
@@ -481,9 +489,14 @@ export const arborterService = {
     } catch (error) {
       // Use our centralized error handling
       handleApiError(error, "Orderbook API", async () => {
-        await this.getOrderbook(marketId, continueStream, historicalOpenOrders, filterByTrader);
+        await this.getOrderbook(
+          marketId,
+          continueStream,
+          historicalOpenOrders,
+          filterByTrader,
+        );
       });
-      
+
       // Return empty array instead of throwing to prevent UI crashes
       return [];
     }
@@ -554,13 +567,15 @@ export const arborterService = {
             takerId: trade?.takerId,
             priceType: typeof trade?.price,
             qtyType: typeof trade?.qty,
-            priceLength: typeof trade?.price === 'string' ? trade?.price.length : 'N/A',
-            qtyLength: typeof trade?.qty === 'string' ? trade?.qty.length : 'N/A',
+            priceLength:
+              typeof trade?.price === "string" ? trade?.price.length : "N/A",
+            qtyLength:
+              typeof trade?.qty === "string" ? trade?.qty.length : "N/A",
             priceValue: trade?.price,
             qtyValue: trade?.qty,
             rawTrade: trade,
           });
-          
+
           trades.push(trade);
           tradeCount++;
 

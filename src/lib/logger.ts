@@ -5,10 +5,10 @@
 
 // Log levels
 export enum LogLevel {
-  DEBUG = 'debug',
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error'
+  DEBUG = "debug",
+  INFO = "info",
+  WARN = "warn",
+  ERROR = "error",
 }
 
 // Logger configuration
@@ -23,8 +23,8 @@ interface LoggerConfig {
 const DEFAULT_CONFIG: LoggerConfig = {
   minLevel: LogLevel.DEBUG,
   enableConsole: true,
-  prefix: '🌲 TradeGlance',
-  enableTimestamp: true
+  prefix: "🌲 TradeGlance",
+  enableTimestamp: true,
 };
 
 // Current configuration
@@ -35,7 +35,7 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   [LogLevel.DEBUG]: 0,
   [LogLevel.INFO]: 1,
   [LogLevel.WARN]: 2,
-  [LogLevel.ERROR]: 3
+  [LogLevel.ERROR]: 3,
 };
 
 /**
@@ -43,26 +43,28 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
  */
 function formatLogMessage(message: string, level: LogLevel): string {
   const parts: string[] = [];
-  
+
   if (currentConfig.enableTimestamp) {
     parts.push(`[${new Date().toISOString()}]`);
   }
-  
+
   if (currentConfig.prefix) {
     parts.push(`${currentConfig.prefix}`);
   }
-  
+
   parts.push(`[${level.toUpperCase()}]`);
   parts.push(message);
-  
-  return parts.join(' ');
+
+  return parts.join(" ");
 }
 
 /**
  * Check if a log level should be displayed based on the current configuration
  */
 function shouldLog(level: LogLevel): boolean {
-  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[currentConfig.minLevel];
+  return (
+    LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[currentConfig.minLevel]
+  );
 }
 
 /**
@@ -77,7 +79,7 @@ export function configureLogger(config: Partial<LoggerConfig>): void {
  */
 export function debug(message: string, ...args: unknown[]): void {
   if (!shouldLog(LogLevel.DEBUG)) return;
-  
+
   const formattedMessage = formatLogMessage(message, LogLevel.DEBUG);
   if (currentConfig.enableConsole) {
     console.debug(formattedMessage, ...args);
@@ -89,7 +91,7 @@ export function debug(message: string, ...args: unknown[]): void {
  */
 export function info(message: string, ...args: unknown[]): void {
   if (!shouldLog(LogLevel.INFO)) return;
-  
+
   const formattedMessage = formatLogMessage(message, LogLevel.INFO);
   if (currentConfig.enableConsole) {
     console.info(formattedMessage, ...args);
@@ -101,7 +103,7 @@ export function info(message: string, ...args: unknown[]): void {
  */
 export function warn(message: string, ...args: unknown[]): void {
   if (!shouldLog(LogLevel.WARN)) return;
-  
+
   const formattedMessage = formatLogMessage(message, LogLevel.WARN);
   if (currentConfig.enableConsole) {
     console.warn(formattedMessage, ...args);
@@ -113,7 +115,7 @@ export function warn(message: string, ...args: unknown[]): void {
  */
 export function error(message: string, ...args: unknown[]): void {
   if (!shouldLog(LogLevel.ERROR)) return;
-  
+
   const formattedMessage = formatLogMessage(message, LogLevel.ERROR);
   if (currentConfig.enableConsole) {
     console.error(formattedMessage, ...args);
@@ -125,10 +127,14 @@ export function error(message: string, ...args: unknown[]): void {
  */
 export function createLogger(context: string) {
   return {
-    debug: (message: string, ...args: unknown[]) => debug(`[${context}] ${message}`, ...args),
-    info: (message: string, ...args: unknown[]) => info(`[${context}] ${message}`, ...args),
-    warn: (message: string, ...args: unknown[]) => warn(`[${context}] ${message}`, ...args),
-    error: (message: string, ...args: unknown[]) => error(`[${context}] ${message}`, ...args),
+    debug: (message: string, ...args: unknown[]) =>
+      debug(`[${context}] ${message}`, ...args),
+    info: (message: string, ...args: unknown[]) =>
+      info(`[${context}] ${message}`, ...args),
+    warn: (message: string, ...args: unknown[]) =>
+      warn(`[${context}] ${message}`, ...args),
+    error: (message: string, ...args: unknown[]) =>
+      error(`[${context}] ${message}`, ...args),
   };
 }
 

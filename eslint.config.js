@@ -8,7 +8,7 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   // Ignore generated files and build artifacts - keep protobuf files excluded
   { ignores: ["dist", "node_modules", "src/protos/gen/**"] },
-  
+
   // Simple base configuration for all TypeScript/TSX files
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -65,7 +65,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-declaration-merging": "error",
 
       // ===== GENERAL JAVASCRIPT RULES =====
-      "no-debugger": "error", 
+      "no-debugger": "error",
       "no-alert": "error",
       "no-eval": "error",
       "no-implied-eval": "error",
@@ -76,7 +76,7 @@ export default tseslint.config(
       "object-shorthand": "error",
       "array-callback-return": "error",
       "consistent-return": "error",
-      "eqeqeq": "error",
+      eqeqeq: "error",
       "no-else-return": "error",
       "no-empty": "error",
       "no-fallthrough": "error",
@@ -119,7 +119,7 @@ export default tseslint.config(
       "no-void": "error",
       "no-with": "error",
       "prefer-promise-reject-errors": "error",
-      "radix": "error",
+      radix: "error",
       "require-await": "error",
       "use-isnan": "error",
       "valid-typeof": "error",

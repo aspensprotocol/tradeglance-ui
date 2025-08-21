@@ -1,7 +1,7 @@
-import React from 'react';
-import { Layout } from '@/components/Layout';
-import SimpleForm from '@/components/SimpleForm';
-import { useTradingPairs } from '@/hooks/useTradingPairs';
+import React from "react";
+import { Layout } from "@/components/Layout";
+import SimpleForm from "@/components/SimpleForm";
+import { useTradingPairs } from "@/hooks/useTradingPairs";
 
 const Simple = (): JSX.Element => {
   const { tradingPairs } = useTradingPairs();

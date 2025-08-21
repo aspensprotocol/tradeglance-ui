@@ -1,11 +1,11 @@
-import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
-import { 
-  usePerformanceMeasure, 
-  debounce, 
-  throttle, 
+import { useCallback, useMemo, useRef, useEffect, useState } from "react";
+import {
+  usePerformanceMeasure,
+  debounce,
+  throttle,
   measureOperation,
-  batchUpdates as existingBatchUpdates
-} from '@/lib/performance-utils';
+  batchUpdates as existingBatchUpdates,
+} from "@/lib/performance-utils";
 
 /**
  * Hook for performance optimizations in React components
@@ -13,14 +13,14 @@ import {
  */
 export function usePerformanceOptimization(componentName: string) {
   const renderCount = useRef(0);
-  
+
   // Use existing performance measurement hook
   usePerformanceMeasure(componentName);
 
   // Track render count
   useEffect(() => {
     renderCount.current += 1;
-    
+
     // Log performance metrics in development
     if (import.meta.env.DEV) {
       console.log(`🚀 ${componentName}: Render #${renderCount.current}`);
@@ -28,41 +28,50 @@ export function usePerformanceOptimization(componentName: string) {
   });
 
   // Debounced callback helper using existing debounce utility
-  const createDebouncedCallback = useCallback(<T extends (...args: unknown[]) => unknown>(
-    callback: T,
-    delay: number,
-    callbackName: string
-  ) => {
-    return debounce((...args: unknown[]) => {
-      measureOperation(`${componentName}-${callbackName}`, () => {
-        (callback as (...args: unknown[]) => unknown)(...args);
-      });
-    }, delay);
-  }, [componentName]);
+  const createDebouncedCallback = useCallback(
+    <T extends (...args: unknown[]) => unknown>(
+      callback: T,
+      delay: number,
+      callbackName: string,
+    ) => {
+      return debounce((...args: unknown[]) => {
+        measureOperation(`${componentName}-${callbackName}`, () => {
+          (callback as (...args: unknown[]) => unknown)(...args);
+        });
+      }, delay);
+    },
+    [componentName],
+  );
 
   // Throttled callback helper using existing throttle utility
-  const createThrottledCallback = useCallback(<T extends (...args: unknown[]) => unknown>(
-    callback: T,
-    delay: number,
-    callbackName: string
-  ) => {
-    return throttle((...args: unknown[]) => {
-      measureOperation(`${componentName}-${callbackName}`, () => {
-        (callback as (...args: unknown[]) => unknown)(...args);
-      });
-    }, delay);
-  }, [componentName]);
+  const createThrottledCallback = useCallback(
+    <T extends (...args: unknown[]) => unknown>(
+      callback: T,
+      delay: number,
+      callbackName: string,
+    ) => {
+      return throttle((...args: unknown[]) => {
+        measureOperation(`${componentName}-${callbackName}`, () => {
+          (callback as (...args: unknown[]) => unknown)(...args);
+        });
+      }, delay);
+    },
+    [componentName],
+  );
 
   // Batch updates helper using existing utility
-  const batchUpdates = useCallback(<T>(
-    updates: (() => T)[],
-    batchSize = 10,
-    operationName: string
-  ): Promise<T[]> => {
-    return measureOperation(`${componentName}-${operationName}`, () => 
-      existingBatchUpdates(updates, batchSize)
-    );
-  }, [componentName]);
+  const batchUpdates = useCallback(
+    <T>(
+      updates: (() => T)[],
+      batchSize = 10,
+      operationName: string,
+    ): Promise<T[]> => {
+      return measureOperation(`${componentName}-${operationName}`, () =>
+        existingBatchUpdates(updates, batchSize),
+      );
+    },
+    [componentName],
+  );
 
   return {
     renderCount: renderCount.current,
@@ -79,17 +88,20 @@ export function useVirtualizedList<T>(
   items: T[],
   itemHeight: number,
   containerHeight: number,
-  overscan = 5
+  overscan = 5,
 ) {
   const [scrollTop, setScrollTop] = useState(0);
-  
+
   const visibleRange = useMemo(() => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / itemHeight) - overscan,
+    );
     const endIndex = Math.min(
       items.length - 1,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
     );
-    
+
     return { startIndex, endIndex };
   }, [scrollTop, itemHeight, containerHeight, overscan, items.length]);
 
@@ -116,12 +128,14 @@ export function useVirtualizedList<T>(
 export function useDataTransformation<T, R>(
   data: T,
   transform: (data: T) => R,
-  transformName = 'transform'
+  transformName = "transform",
 ) {
   const memoizedTransform = useCallback(transform, [transform]);
-  
+
   return useMemo(() => {
-    return measureOperation(`data-${transformName}`, () => memoizedTransform(data));
+    return measureOperation(`data-${transformName}`, () =>
+      memoizedTransform(data),
+    );
   }, [data, memoizedTransform, transformName]);
 }
 

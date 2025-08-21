@@ -47,10 +47,10 @@ export function getLoadingStates<T>(
   data: T | T[] | null,
   loading: boolean,
   initialLoading: boolean,
-  error: string | null
+  error: string | null,
 ): LoadingStates {
   const isEmpty = Array.isArray(data) ? data.length === 0 : !data;
-  
+
   return {
     isLoading: loading,
     isInitialLoading: initialLoading,
@@ -92,5 +92,5 @@ export interface PollingConfig {
 export const DEFAULT_POLLING_CONFIG: PollingConfig = {
   enabled: true,
   interval: 20000, // 20 seconds
-  maxAge: 60000,   // 1 minute
+  maxAge: 60000, // 1 minute
 };

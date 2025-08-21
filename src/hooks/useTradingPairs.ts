@@ -42,22 +42,28 @@ export const useTradingPairs = (): {
 
     // Create a map for faster chain lookup
     const chainMap = new Map<string, Chain>();
-    chains.forEach(chain => chainMap.set(chain.network, chain));
+    chains.forEach((chain) => chainMap.set(chain.network, chain));
 
     const results: TradingPair[] = [];
 
     markets.forEach((market: Market, index: number) => {
       // Find the base and quote chains for this market
-      const baseChain: Chain | undefined = chainMap.get(market.baseChainNetwork);
-      const quoteChain: Chain | undefined = chainMap.get(market.quoteChainNetwork);
+      const baseChain: Chain | undefined = chainMap.get(
+        market.baseChainNetwork,
+      );
+      const quoteChain: Chain | undefined = chainMap.get(
+        market.quoteChainNetwork,
+      );
 
       if (!baseChain || !quoteChain) {
         return;
       }
 
       // Find the base and quote tokens
-      const baseToken: Token | undefined = baseChain.tokens[market.baseChainTokenSymbol];
-      const quoteToken: Token | undefined = quoteChain.tokens[market.quoteChainTokenSymbol];
+      const baseToken: Token | undefined =
+        baseChain.tokens[market.baseChainTokenSymbol];
+      const quoteToken: Token | undefined =
+        quoteChain.tokens[market.quoteChainTokenSymbol];
 
       if (!baseToken || !quoteToken) {
         return;
@@ -125,24 +131,31 @@ export const useTradingPairs = (): {
     return results;
   }, [config]);
 
-  const loading: boolean = configLoading || (!!config && tradingPairs.length === 0);
+  const loading: boolean =
+    configLoading || (!!config && tradingPairs.length === 0);
   const error: string | null =
     configError ||
     (!!config && tradingPairs.length === 0 ? "No trading pairs found" : null);
 
   // Memoize the lookup functions to prevent recreation on every render
-  const getTradingPairById = useMemo(() => 
-    (id: string): TradingPair | null => {
-      return tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
-    },
-    [tradingPairs]
+  const getTradingPairById = useMemo(
+    () =>
+      (id: string): TradingPair | null => {
+        return tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
+      },
+    [tradingPairs],
   );
 
-  const getTradingPairByMarketId = useMemo(() => 
-    (marketId: string): TradingPair | null => {
-      return tradingPairs.find((pair: TradingPair) => pair.id.includes(marketId)) || null;
-    },
-    [tradingPairs]
+  const getTradingPairByMarketId = useMemo(
+    () =>
+      (marketId: string): TradingPair | null => {
+        return (
+          tradingPairs.find((pair: TradingPair) =>
+            pair.id.includes(marketId),
+          ) || null
+        );
+      },
+    [tradingPairs],
   );
 
   return {

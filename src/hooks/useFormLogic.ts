@@ -335,11 +335,7 @@ export const useFormLogic = ({
         );
       }
     },
-    [
-      activeTab,
-      getAllChains,
-      tradingPair,
-    ],
+    [activeTab, getAllChains, tradingPair],
   );
 
   // Smart side detection based on current network

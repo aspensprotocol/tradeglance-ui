@@ -60,15 +60,15 @@ export const PERFORMANCE_THRESHOLDS = {
   // Render performance
   maxRenderTime: 16, // 16ms (60fps target)
   maxComponentRenderTime: 8, // 8ms per component
-  
+
   // Data processing
   maxDataProcessingTime: 50, // 50ms
   maxOrderbookProcessingTime: 100, // 100ms
-  
+
   // Network
   maxNetworkRequestTime: 2000, // 2 seconds
   maxNetworkResponseTime: 5000, // 5 seconds
-  
+
   // Memory
   maxMemoryUsage: 100 * 1024 * 1024, // 100MB
   maxHeapSize: 50 * 1024 * 1024, // 50MB
@@ -77,7 +77,7 @@ export const PERFORMANCE_THRESHOLDS = {
 // Performance monitoring configuration
 export const MONITORING_CONFIG = {
   enabled: import.meta.env.DEV,
-  logLevel: 'info' as 'debug' | 'info' | 'warn' | 'error',
+  logLevel: "info" as "debug" | "info" | "warn" | "error",
   metrics: {
     renderTime: true,
     dataProcessingTime: true,

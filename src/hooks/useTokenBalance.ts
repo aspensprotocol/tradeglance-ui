@@ -119,7 +119,7 @@ export const useTokenBalance = (
 
         // Convert balance to human readable format using token decimals
         const balanceDecimal = Number(balanceResult);
-        const {decimals} = tokenConfig;
+        const { decimals } = tokenConfig;
         const formattedBalance = (
           balanceDecimal / Math.pow(10, decimals)
         ).toFixed(6);
@@ -281,7 +281,7 @@ export const useTradingBalance = (
       });
 
       // Convert to decimal format
-      const {decimals} = tokenConfig;
+      const { decimals } = tokenConfig;
       const depositedDecimal = Number(depositedResult);
       const lockedDecimal = Number(lockedResult);
 

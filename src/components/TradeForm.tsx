@@ -109,9 +109,9 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                 {balanceLoading ? (
                   <span className="text-blue-400">Loading...</span>
                 ) : (
-                                  <span className="text-blue-400">
-                  {availableBalance} {tradingPair?.baseSymbol || "ATOM"}
-                </span>
+                  <span className="text-blue-400">
+                    {availableBalance} {tradingPair?.baseSymbol || "ATOM"}
+                  </span>
                 )}
               </span>
             </section>
@@ -235,8 +235,8 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                     className={cn(
                       "font-medium",
                       tradingState.activeTab === BaseOrQuote.BASE
-                                        ? "text-green-400"
-                : "text-red-400",
+                        ? "text-green-400"
+                        : "text-red-400",
                     )}
                   >
                     {

@@ -34,18 +34,18 @@ const createWagmiConfig = (
       // Injected wallets (MetaMask, Rabby, etc.) - FIRST
       injected({ shimDisconnect: true }),
       // WalletConnect - SECOND
-      walletConnect({ 
-        projectId, 
+      walletConnect({
+        projectId,
         showQrModal: true,
         metadata: {
-          name: 'TradeGlance',
-          description: 'TradeGlance Trading Platform',
+          name: "TradeGlance",
+          description: "TradeGlance Trading Platform",
           url: window.location.origin,
-          icons: [`${window.location.origin}/favicon.png`]
-        }
+          icons: [`${window.location.origin}/favicon.png`],
+        },
       }),
       // Coinbase Wallet - THIRD
-      coinbaseWallet({ 
+      coinbaseWallet({
         appName: "TradeGlance",
         headlessMode: false, // Ensure UI is shown
       }),

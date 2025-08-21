@@ -42,8 +42,8 @@ export async function signOrderWithGlobalProtobuf(
 
   try {
     // Use proto enum values directly
-    const {side} = orderData;
-    const {executionType} = orderData;
+    const { side } = orderData;
+    const { executionType } = orderData;
 
     console.log("Execution type conversion:", {
       original: orderData.executionType,
@@ -94,7 +94,7 @@ export async function signOrderWithGlobalProtobuf(
     console.log("=== END MESSAGE DETAILS ===");
 
     // Sign the protobuf bytes using MetaMask
-    const hexStringForSigning = `0x${  hexString}`;
+    const hexStringForSigning = `0x${hexString}`;
     const signature: string = await ethereum.request({
       method: "personal_sign",
       params: [hexStringForSigning, orderData.baseAccountAddress],
@@ -108,7 +108,7 @@ export async function signOrderWithGlobalProtobuf(
       throw new Error("Invalid signature format");
     }
     const signatureBytes: Uint8Array = new Uint8Array(
-      hexPairs.map((byte: string) => parseInt(byte, 16))
+      hexPairs.map((byte: string) => parseInt(byte, 16)),
     );
 
     console.log("Signature converted to bytes:", Array.from(signatureBytes));

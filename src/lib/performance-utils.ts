@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // Performance monitoring utilities for the application
 
@@ -44,7 +44,10 @@ class PerformanceMonitor {
 
     // Log performance metrics in development
     if (import.meta.env.DEV) {
-      console.log(`⏱️ Performance: ${name} took ${metric.duration.toFixed(2)}ms`, metric.metadata);
+      console.log(
+        `⏱️ Performance: ${name} took ${metric.duration.toFixed(2)}ms`,
+        metric.metadata,
+      );
     }
 
     return metric.duration;
@@ -56,7 +59,7 @@ class PerformanceMonitor {
   async measureAsync<T>(
     name: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<T> {
     this.start(name, metadata);
     try {
@@ -75,7 +78,7 @@ class PerformanceMonitor {
   measureSync<T>(
     name: string,
     fn: () => T,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): T {
     this.start(name, metadata);
     try {
@@ -117,7 +120,7 @@ export const performanceMonitor = new PerformanceMonitor();
 export const usePerformanceMeasure = (componentName: string) => {
   React.useEffect(() => {
     performanceMonitor.start(`${componentName}-render`);
-    
+
     return () => {
       performanceMonitor.end(`${componentName}-render`);
     };
@@ -128,7 +131,7 @@ export const usePerformanceMeasure = (componentName: string) => {
 export const measureOperation = <T>(
   name: string,
   operation: () => T,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): T => {
   return performanceMonitor.measureSync(name, operation, metadata);
 };
@@ -137,7 +140,7 @@ export const measureOperation = <T>(
 export const measureAsyncOperation = <T>(
   name: string,
   operation: () => Promise<T>,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): Promise<T> => {
   return performanceMonitor.measureAsync(name, operation, metadata);
 };
@@ -145,10 +148,10 @@ export const measureAsyncOperation = <T>(
 // Debounce utility for performance optimization
 export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
-  wait: number
+  wait: number,
 ): ((...args: Parameters<T>) => void) => {
   let timeout: ReturnType<typeof setTimeout>;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -158,10 +161,10 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
 // Throttle utility for performance optimization
 export const throttle = <T extends (...args: unknown[]) => unknown>(
   func: T,
-  wait: number
+  wait: number,
 ): ((...args: Parameters<T>) => void) => {
   let inThrottle: boolean;
-  
+
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args);
@@ -174,17 +177,17 @@ export const throttle = <T extends (...args: unknown[]) => unknown>(
 // Memoization utility for expensive calculations
 export const memoize = <T extends (...args: unknown[]) => unknown>(
   func: T,
-  getKey?: (...args: Parameters<T>) => string
+  getKey?: (...args: Parameters<T>) => string,
 ): T => {
   const cache = new Map<string, ReturnType<T>>();
-  
+
   return ((...args: Parameters<T>) => {
     const key = getKey ? getKey(...args) : JSON.stringify(args);
-    
+
     if (cache.has(key)) {
       return cache.get(key);
     }
-    
+
     const result = func(...args) as ReturnType<T>;
     cache.set(key, result);
     return result;
@@ -194,7 +197,7 @@ export const memoize = <T extends (...args: unknown[]) => unknown>(
 // Batch updates utility for performance
 export const batchUpdates = <T>(
   updates: (() => T)[],
-  batchSize = 10
+  batchSize = 10,
 ): Promise<T[]> => {
   return new Promise((resolve) => {
     const results: T[] = [];
@@ -208,13 +211,13 @@ export const batchUpdates = <T>(
         try {
           results.push(update());
         } catch (error) {
-          console.error('Error in batch update:', error);
+          console.error("Error in batch update:", error);
         }
       });
 
       if (currentIndex < updates.length) {
         // Use requestIdleCallback for better performance
-        if ('requestIdleCallback' in window) {
+        if ("requestIdleCallback" in window) {
           requestIdleCallback(processBatch);
         } else {
           setTimeout(processBatch, 0);

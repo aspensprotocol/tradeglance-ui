@@ -1,21 +1,21 @@
-import React, { useState } from 'react'
-import { useAccount, useDisconnect, useConnect } from 'wagmi'
-import { Button } from './ui/button'
-import DepositWithdrawModal from './DepositWithdrawModal'
+import React, { useState } from "react";
+import { useAccount, useDisconnect, useConnect } from "wagmi";
+import { Button } from "./ui/button";
+import DepositWithdrawModal from "./DepositWithdrawModal";
 
 export default function WalletButton(): JSX.Element {
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
-  const { connect, connectors } = useConnect()
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { connect, connectors } = useConnect();
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const formatAddress = (addr: string): string => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
 
   const handleAddressClick = (): void => {
-    setModalOpen(true)
-  }
+    setModalOpen(true);
+  };
 
   if (isConnected && address) {
     return (
@@ -28,15 +28,15 @@ export default function WalletButton(): JSX.Element {
         >
           <span className="font-medium">{formatAddress(address)}</span>
         </button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => disconnect()}
           className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-1"
         >
           Disconnect
         </Button>
-        
+
         <DepositWithdrawModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
@@ -45,19 +45,21 @@ export default function WalletButton(): JSX.Element {
           }}
         />
       </section>
-    )
+    );
   }
 
   // Find MetaMask connector
-  const metaMaskConnector = connectors.find((connector) => connector.name === 'MetaMask')
+  const metaMaskConnector = connectors.find(
+    (connector) => connector.name === "MetaMask",
+  );
 
   return (
-    <Button 
+    <Button
       onClick={() => {
         if (metaMaskConnector) {
-          connect({ connector: metaMaskConnector })
+          connect({ connector: metaMaskConnector });
         } else {
-          console.error('MetaMask connector not found')
+          console.error("MetaMask connector not found");
         }
       }}
       disabled={!metaMaskConnector}
@@ -65,5 +67,5 @@ export default function WalletButton(): JSX.Element {
     >
       Connect Wallet
     </Button>
-  )
+  );
 }

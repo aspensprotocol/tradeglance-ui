@@ -29,37 +29,42 @@ export default defineConfig(({ mode }) => ({
         rewrite: (requestPath) => requestPath.replace(/^\/api/, ""),
         configure: (proxy) => {
           // Enhanced error logging
-          proxy.on('error', (err, req, res) => {
-            console.error('🔴 PROXY ERROR:', err);
-            console.error('🔴 Request details:', {
+          proxy.on("error", (err, req, res) => {
+            console.error("🔴 PROXY ERROR:", err);
+            console.error("🔴 Request details:", {
               method: req.method,
               url: req.url,
               headers: req.headers,
             });
-            
+
             // Send a more helpful error response
             if (!res.headersSent) {
               res.writeHead(500, {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json",
               });
-              res.end(JSON.stringify({
-                error: 'Proxy Error',
-                message: err.message,
-                name: err.name
-              }));
+              res.end(
+                JSON.stringify({
+                  error: "Proxy Error",
+                  message: err.message,
+                  name: err.name,
+                }),
+              );
             }
           });
-          
+
           // Detailed request logging
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log('🔵 PROXY REQUEST:', req.method, req.url);
-            console.log('🔵 Headers:', JSON.stringify(req.headers, null, 2));
+          proxy.on("proxyReq", (proxyReq, req) => {
+            console.log("🔵 PROXY REQUEST:", req.method, req.url);
+            console.log("🔵 Headers:", JSON.stringify(req.headers, null, 2));
           });
-          
+
           // Detailed response logging
-          proxy.on('proxyRes', (proxyRes, req) => {
-            console.log('🟢 PROXY RESPONSE:', proxyRes.statusCode, req.url);
-            console.log('🟢 Response headers:', JSON.stringify(proxyRes.headers, null, 2));
+          proxy.on("proxyRes", (proxyRes, req) => {
+            console.log("🟢 PROXY RESPONSE:", proxyRes.statusCode, req.url);
+            console.log(
+              "🟢 Response headers:",
+              JSON.stringify(proxyRes.headers, null, 2),
+            );
           });
         },
         // Important settings for gRPC-Web streaming
@@ -77,7 +82,11 @@ export default defineConfig(({ mode }) => ({
           vendor: ["react", "react-dom"],
           router: ["react-router-dom"],
           web3: ["wagmi", "viem"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-select", "@radix-ui/react-toast"],
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-select",
+            "@radix-ui/react-toast",
+          ],
           utils: ["clsx", "class-variance-authority", "tailwind-merge"],
         },
         chunkFileNames: "assets/[name]-[hash].js",

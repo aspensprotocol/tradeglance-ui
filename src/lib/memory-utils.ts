@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { formatBytes } from './number-utils';
+import { useState, useEffect, useCallback } from "react";
+import { formatBytes } from "./number-utils";
 
 /**
  * Memory management utilities for performance optimization
@@ -33,7 +33,7 @@ class MemoryManager {
    * Get current memory usage
    */
   getMemoryInfo(): MemoryInfo | null {
-    if ('memory' in performance) {
+    if ("memory" in performance) {
       const memory = (performance as { memory: MemoryInfo }).memory;
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
@@ -56,7 +56,7 @@ class MemoryManager {
       this.checkMemoryUsage();
     }, intervalMs);
 
-    console.log('🧠 Memory monitoring started');
+    console.log("🧠 Memory monitoring started");
   }
 
   /**
@@ -68,7 +68,7 @@ class MemoryManager {
       this.monitoringInterval = null;
     }
     this.isMonitoring = false;
-    console.log('🧠 Memory monitoring stopped');
+    console.log("🧠 Memory monitoring stopped");
   }
 
   /**
@@ -87,17 +87,19 @@ class MemoryManager {
     const usageRatio = memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit;
 
     // Log memory usage
-    console.log(`🧠 Memory usage: ${(usageRatio * 100).toFixed(1)}% (${formatBytes(memoryInfo.usedJSHeapSize)} / ${formatBytes(memoryInfo.jsHeapSizeLimit)})`);
+    console.log(
+      `🧠 Memory usage: ${(usageRatio * 100).toFixed(1)}% (${formatBytes(memoryInfo.usedJSHeapSize)} / ${formatBytes(memoryInfo.jsHeapSizeLimit)})`,
+    );
 
     // Take action based on thresholds
     if (usageRatio >= this.thresholds.criticalThreshold) {
-      console.warn('🚨 CRITICAL: Memory usage is very high!');
+      console.warn("🚨 CRITICAL: Memory usage is very high!");
       this.emergencyCleanup();
     } else if (usageRatio >= this.thresholds.warningThreshold) {
-      console.warn('⚠️ WARNING: Memory usage is high');
+      console.warn("⚠️ WARNING: Memory usage is high");
       this.cleanup();
     } else if (usageRatio >= this.thresholds.cleanupThreshold) {
-      console.info('🧹 Memory usage is moderate, performing light cleanup');
+      console.info("🧹 Memory usage is moderate, performing light cleanup");
       this.lightCleanup();
     }
   }
@@ -112,12 +114,12 @@ class MemoryManager {
     }
 
     // Suggest garbage collection if available
-    if ('gc' in window) {
+    if ("gc" in window) {
       try {
         (window as { gc: () => void }).gc();
-        console.log('🧹 Light cleanup completed');
+        console.log("🧹 Light cleanup completed");
       } catch {
-        console.log('🧹 Light cleanup completed (GC not available)');
+        console.log("🧹 Light cleanup completed (GC not available)");
       }
     }
   }
@@ -135,17 +137,17 @@ class MemoryManager {
     }
 
     // Force garbage collection if available
-    if ('gc' in window) {
+    if ("gc" in window) {
       try {
         (window as { gc: () => void }).gc();
-        console.log('🧹 Cleanup completed with GC');
+        console.log("🧹 Cleanup completed with GC");
       } catch {
-        console.log('🧹 Cleanup completed (GC not available)');
+        console.log("🧹 Cleanup completed (GC not available)");
       }
     }
 
     // Dispatch custom event for components to clean up
-    window.dispatchEvent(new CustomEvent('memory-cleanup'));
+    window.dispatchEvent(new CustomEvent("memory-cleanup"));
   }
 
   /**
@@ -173,7 +175,7 @@ class MemoryManager {
     }
 
     // Force garbage collection multiple times
-    if ('gc' in window) {
+    if ("gc" in window) {
       for (let i = 0; i < 3; i++) {
         try {
           (window as { gc: () => void }).gc();
@@ -183,7 +185,7 @@ class MemoryManager {
       }
     }
 
-    console.log('🚨 Emergency cleanup completed');
+    console.log("🚨 Emergency cleanup completed");
   }
 
   /**
@@ -193,24 +195,30 @@ class MemoryManager {
     current: MemoryInfo | null;
     average: number;
     peak: number;
-    trend: 'increasing' | 'decreasing' | 'stable';
+    trend: "increasing" | "decreasing" | "stable";
   } {
     const current = this.getMemoryInfo();
     if (!current || this.memoryHistory.length === 0) {
-      return { current, average: 0, peak: 0, trend: 'stable' };
+      return { current, average: 0, peak: 0, trend: "stable" };
     }
 
-    const usageRatios = this.memoryHistory.map(info => info.usedJSHeapSize / info.jsHeapSizeLimit);
-    const average = usageRatios.reduce((sum, ratio) => sum + ratio, 0) / usageRatios.length;
+    const usageRatios = this.memoryHistory.map(
+      (info) => info.usedJSHeapSize / info.jsHeapSizeLimit,
+    );
+    const average =
+      usageRatios.reduce((sum, ratio) => sum + ratio, 0) / usageRatios.length;
     const peak = Math.max(...usageRatios);
 
     // Determine trend based on recent history
     const recent = usageRatios.slice(-10);
-    const trend = recent.length >= 2 
-      ? recent[recent.length - 1] > recent[0] + 0.05 ? 'increasing'
-      : recent[recent.length - 1] < recent[0] - 0.05 ? 'decreasing'
-      : 'stable'
-      : 'stable';
+    const trend =
+      recent.length >= 2
+        ? recent[recent.length - 1] > recent[0] + 0.05
+          ? "increasing"
+          : recent[recent.length - 1] < recent[0] - 0.05
+            ? "decreasing"
+            : "stable"
+        : "stable";
 
     return { current, average, peak, trend };
   }
@@ -236,14 +244,19 @@ export const memoryManager = new MemoryManager();
 /**
  * Hook for memory monitoring in React components
  */
-export function useMemoryMonitoring(enabled = true, intervalMs = 5000): {
+export function useMemoryMonitoring(
+  enabled = true,
+  intervalMs = 5000,
+): {
   memoryInfo: MemoryInfo | null;
   memoryStats: ReturnType<typeof memoryManager.getMemoryStats>;
   startMonitoring: () => void;
   stopMonitoring: () => void;
 } {
   const [memoryInfo, setMemoryInfo] = useState<MemoryInfo | null>(null);
-  const [memoryStats, setMemoryStats] = useState(memoryManager.getMemoryStats());
+  const [memoryStats, setMemoryStats] = useState(
+    memoryManager.getMemoryStats(),
+  );
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -265,11 +278,11 @@ export function useMemoryMonitoring(enabled = true, intervalMs = 5000): {
     const handleMemoryCleanup = () => {
       updateMemoryInfo();
     };
-    window.addEventListener('memory-cleanup', handleMemoryCleanup);
+    window.addEventListener("memory-cleanup", handleMemoryCleanup);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('memory-cleanup', handleMemoryCleanup);
+      window.removeEventListener("memory-cleanup", handleMemoryCleanup);
     };
   }, [enabled, intervalMs]);
 
@@ -296,12 +309,12 @@ export function useMemoryCleanup(threshold = 0.8): void {
   useEffect(() => {
     const handleMemoryCleanup = () => {
       // Component-specific cleanup logic
-      console.log('🧹 Component memory cleanup triggered');
+      console.log("🧹 Component memory cleanup triggered");
     };
 
-    window.addEventListener('memory-cleanup', handleMemoryCleanup);
+    window.addEventListener("memory-cleanup", handleMemoryCleanup);
     return () => {
-      window.removeEventListener('memory-cleanup', handleMemoryCleanup);
+      window.removeEventListener("memory-cleanup", handleMemoryCleanup);
     };
   }, [threshold]);
 }

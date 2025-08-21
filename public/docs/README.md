@@ -6,7 +6,6 @@ This is a simple cross chain limit order dex built to demonstrate what is possib
 
 ![video demo](/vids/vid-demo.mp4)
 
-
 And here is a step by step guide on how to use it:
 
 ### 🛬 Landing page:

@@ -49,7 +49,6 @@ export function useRecentTrades(
   const [retryCount, setRetryCount] = useState<number>(0);
   const maxRetries = 5; // Increased to 5 for better reliability with streaming
 
-
   // Process trades data into the expected format
   const processTradesData = useCallback(
     (tradesData: Trade[]): RecentTrade[] => {
@@ -64,16 +63,23 @@ export function useRecentTrades(
         // The backend sends values in pair decimal format, not wei format
         // So we need to divide by 10^pairDecimals, not 10^tokenDecimals
         const pairDecimals = currentTradingPair?.pairDecimals || 8;
-        
+
+        // Convert from pair decimal format to human-readable format
         const priceDecimal = parseFloat(
           formatDecimalConsistent(
-            (parseFloat(trade.price?.toString() || "0") / Math.pow(10, pairDecimals)).toString(),
+            (
+              parseFloat(trade.price?.toString() || "0") /
+              Math.pow(10, pairDecimals)
+            ).toString(),
           ),
         );
-        
+
         const quantityDecimal = parseFloat(
           formatDecimalConsistent(
-            (parseFloat(trade.qty?.toString() || "0") / Math.pow(10, pairDecimals)).toString(),
+            (
+              parseFloat(trade.qty?.toString() || "0") /
+              Math.pow(10, pairDecimals)
+            ).toString(),
           ),
         );
 

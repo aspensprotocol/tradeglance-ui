@@ -19,7 +19,10 @@ export const LoadingSpinner = ({
 
   return (
     <section
-      className={cn("flex items-center justify-center py-8 sm:py-12", className)}
+      className={cn(
+        "flex items-center justify-center py-8 sm:py-12",
+        className,
+      )}
     >
       <article className="text-center px-4 sm:px-6">
         <span

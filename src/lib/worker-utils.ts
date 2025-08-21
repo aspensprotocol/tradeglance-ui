@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Utility for creating and managing web workers for heavy computations
@@ -19,7 +19,10 @@ interface WorkerResponse<T = unknown> {
 
 class WorkerManager {
   private workers: Map<string, Worker> = new Map();
-  private messageHandlers: Map<string, (response: WorkerResponse<unknown>) => void> = new Map();
+  private messageHandlers: Map<
+    string,
+    (response: WorkerResponse<unknown>) => void
+  > = new Map();
   private messageId = 0;
 
   /**
@@ -30,13 +33,13 @@ class WorkerManager {
       this.workers.get(name)?.terminate();
     }
 
-    const blob = new Blob([script], { type: 'application/javascript' });
+    const blob = new Blob([script], { type: "application/javascript" });
     const worker = new Worker(URL.createObjectURL(blob));
-    
+
     worker.onmessage = (event) => {
       const response: WorkerResponse = event.data;
       const handler = this.messageHandlers.get(response.id);
-      
+
       if (handler) {
         handler(response);
         this.messageHandlers.delete(response.id);
@@ -54,26 +57,25 @@ class WorkerManager {
   /**
    * Send a message to a worker and wait for response
    */
-  sendMessage<T, R>(
-    workerName: string,
-    type: string,
-    data: T
-  ): Promise<R> {
+  sendMessage<T, R>(workerName: string, type: string, data: T): Promise<R> {
     const worker = this.workers.get(workerName);
     if (!worker) {
       throw new Error(`Worker ${workerName} not found`);
     }
 
     const messageId = `msg_${++this.messageId}`;
-    
+
     return new Promise((resolve, reject) => {
-      this.messageHandlers.set(messageId, (response: WorkerResponse<unknown>) => {
-        if (response.error) {
-          reject(new Error(response.error));
-        } else {
-          resolve(response.data as R);
-        }
-      });
+      this.messageHandlers.set(
+        messageId,
+        (response: WorkerResponse<unknown>) => {
+          if (response.error) {
+            reject(new Error(response.error));
+          } else {
+            resolve(response.data as R);
+          }
+        },
+      );
 
       const message: WorkerMessage<T> = {
         id: messageId,
@@ -198,7 +200,7 @@ export function createOrderbookWorker(): Worker {
     }
   `;
 
-  return workerManager.createWorker('orderbook', script);
+  return workerManager.createWorker("orderbook", script);
 }
 
 /**
@@ -263,7 +265,7 @@ export function createTradeWorker(): Worker {
     }
   `;
 
-  return workerManager.createWorker('trade', script);
+  return workerManager.createWorker("trade", script);
 }
 
 /**
@@ -272,7 +274,7 @@ export function createTradeWorker(): Worker {
 export function useWorker<T, R>(
   workerName: string,
   type: string,
-  data: T
+  data: T,
 ): { result: R | null; loading: boolean; error: string | null } {
   const [result, setResult] = useState<R | null>(null);
   const [loading, setLoading] = useState(false);

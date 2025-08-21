@@ -12,7 +12,7 @@ const Docs = (): JSX.Element => {
     const loadDocumentation = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/docs/README.md');
+        const response = await fetch("/docs/README.md");
         if (response.ok) {
           const content = await response.text();
           setMarkdownContent(content);
@@ -47,8 +47,10 @@ Some examples we thought about that can be built on top of Aspens include:
 We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧`);
         }
       } catch (error) {
-        console.error('Error loading documentation:', error);
-        setMarkdownContent('# Error Loading Documentation\n\nPlease check the docs/README.md file.');
+        console.error("Error loading documentation:", error);
+        setMarkdownContent(
+          "# Error Loading Documentation\n\nPlease check the docs/README.md file.",
+        );
       } finally {
         setLoading(false);
       }

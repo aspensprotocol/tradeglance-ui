@@ -24,7 +24,9 @@ export const Layout = ({
         </section>
       </section>
       {/* Hide footer on mobile and tablet, only show on desktop (lg and above) */}
-      <Footer className={`${footerPosition} bottom-0 left-0 right-0 hidden lg:block`} />
+      <Footer
+        className={`${footerPosition} bottom-0 left-0 right-0 hidden lg:block`}
+      />
     </main>
   );
 };
