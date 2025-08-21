@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { configService } from "../lib/grpc-client";
 import { configUtils } from "../lib/config-utils";
-import {
+import type {
   Configuration,
   Chain,
   Market,
@@ -30,6 +30,22 @@ export function useConfig(): UseConfigReturn {
       const response = await configService.getConfig();
 
       if (response.config) {
+        console.log("🔍 useConfig: Received configuration:", {
+          hasChains: !!response.config.chains,
+          chainsCount: response.config.chains?.length || 0,
+          hasMarkets: !!response.config.markets,
+          marketsCount: response.config.markets?.length || 0,
+          sampleMarket: response.config.markets?.[0] ? {
+            marketId: response.config.markets[0].marketId,
+            baseChainTokenSymbol: response.config.markets[0].baseChainTokenSymbol,
+            quoteChainTokenSymbol: response.config.markets[0].quoteChainTokenSymbol,
+            baseChainTokenDecimals: response.config.markets[0].baseChainTokenDecimals,
+            quoteChainTokenDecimals: response.config.markets[0].quoteChainTokenDecimals,
+            pairDecimals: response.config.markets[0].pairDecimals,
+            pairDecimalsType: typeof response.config.markets[0].pairDecimals,
+          } : null,
+        });
+        
         setConfig(response.config);
         // Update the global configUtils instance so other parts of the app can access it
         configUtils.setConfig(response.config);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseDataFetchingParams<T> {
   marketId: string;
@@ -110,7 +110,10 @@ export function useDataFetching<T>({
       fetchData();
     }, debounceMs);
 
-    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line consistent-return
+    return (): void => {
+      clearTimeout(timeoutId);
+    };
   }, [fetchData, debounceMs]);
 
   // Clear data when marketId changes to prevent stale data
@@ -162,7 +165,10 @@ export function useDataFetching<T>({
       }
     }, pollingInterval);
 
-    return () => clearInterval(interval);
+    // eslint-disable-next-line consistent-return
+    return (): void => {
+      clearInterval(interval);
+    };
   }, [
     marketId,
     pollingInterval,

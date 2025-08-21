@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { createPublicClient, http } from "viem";
 import { useConfig } from "./useConfig";
@@ -155,10 +155,10 @@ export const useAllBalances = (): {
           lockedBalance,
           hasAnyBalance,
         };
-      } catch (error) {
+      } catch (err) {
         console.error(
           `Error checking balances for ${tokenSymbol} on ${network}:`,
-          error,
+          err,
         );
         // Return zero balances on error
         return {

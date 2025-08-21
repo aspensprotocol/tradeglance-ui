@@ -28,8 +28,7 @@ import {
   shortenTxHash,
   triggerBalanceRefresh,
 } from "@/lib/utils";
-import { Chain } from "@/protos/gen/arborter_config_pb";
-import { formatDecimalConsistent } from "../lib/number-utils";
+import type { Chain } from "@/protos/gen/arborter_config_pb";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -146,15 +145,14 @@ const DepositWithdrawModal = ({
   const { isConnected } = useAccount();
   const { toast } = useToast();
 
-  // Memoize chains to prevent recreating the array on every render
-  const chains = useMemo(() => getAllChains(), [getAllChains]);
+  const chains = getAllChains();
 
   // Debug: Log the chains data
   console.log("DepositWithdrawModal: Available chains:", chains);
   console.log("DepositWithdrawModal: Current chain ID:", currentChainId);
 
   // Get all tokens from all chains with chain prefixes
-  const allTokens = useMemo((): Array<{
+  const allTokens = useMemo((): {
     value: string;
     label: string;
     address: string;
@@ -162,7 +160,7 @@ const DepositWithdrawModal = ({
     chainId: number;
     network: string;
     symbol: string;
-  }> => {
+  }[] => {
     // Helper function to get chain prefix for tokens (same as mint/trade views)
     const getChainPrefix = (network: string): string => {
       if (network.includes("flare")) return "f"; // flare-coston2
@@ -185,7 +183,7 @@ const DepositWithdrawModal = ({
           decimals: token.decimals,
           chainId: chain.chainId,
           network: chain.network,
-          symbol: symbol,
+          symbol,
         };
       }),
     );
@@ -221,7 +219,7 @@ const DepositWithdrawModal = ({
   const depositedBalance: string =
     depositedBalanceData?.depositedBalance || "0";
   const depositedBalanceLoading: boolean = balancesLoading;
-  const depositedBalanceError: null = null; // useAllBalances doesn't provide per-token errors
+  const depositedBalanceError = null; // useAllBalances doesn't provide per-token errors
 
   // Check if selected chain is supported
   const isSelectedChainSupported: boolean = chains.some(
@@ -280,7 +278,7 @@ const DepositWithdrawModal = ({
     }
 
     // Validate amounts don't exceed available balances
-    const amountNum: number = parseFloat(formatDecimalConsistent(amount));
+    const amountNum: number = parseFloat(amount);
 
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
@@ -293,7 +291,7 @@ const DepositWithdrawModal = ({
 
     if (activeType === "withdraw") {
       // For withdrawals, check against deposited balance (available locked funds)
-      const availableNum: number = parseFloat(formatDecimalConsistent(depositedBalance));
+      const availableNum: number = parseFloat(depositedBalance);
 
       if (isNaN(availableNum)) {
         toast({
@@ -315,7 +313,7 @@ const DepositWithdrawModal = ({
       }
     } else if (activeType === "deposit") {
       // For deposits, check against wallet balance
-      const walletNum: number = parseFloat(formatDecimalConsistent(tokenBalance));
+      const walletNum: number = parseFloat(tokenBalance);
 
       if (isNaN(walletNum)) {
         toast({
@@ -337,9 +335,6 @@ const DepositWithdrawModal = ({
     }
 
     // Check if selected chain is supported
-    const isSelectedChainSupported: boolean = chains.some(
-      (chain: Chain) => chain.chainId === selectedChainId,
-    );
     if (!isSelectedChainSupported) {
       console.error("Selected chain is not supported for deposits/withdrawals");
       return;
@@ -355,7 +350,7 @@ const DepositWithdrawModal = ({
     }
 
     try {
-      let txHash: string | undefined = undefined;
+      let txHash: string | undefined;
 
       if (activeType === "deposit") {
         txHash = await deposit(
@@ -428,7 +423,7 @@ const DepositWithdrawModal = ({
     } catch (err: unknown) {
       console.error(`${activeType} failed:`, err);
 
-      let errorMessage: string = `${activeType} failed`;
+      let errorMessage = `${activeType} failed`;
 
       // Type guard to check if err is an Error object
       if (err instanceof Error) {
@@ -480,17 +475,18 @@ const DepositWithdrawModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>
+          <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <span className="text-lg sm:text-xl">
               {activeType === "deposit" ? "Deposit" : "Withdraw"} Tokens
             </span>
-            <nav className="flex space-x-2 mr-3">
+            <nav className="flex space-x-2 w-full sm:w-auto">
               <Button
                 variant={activeType === "deposit" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveType("deposit")}
+                className="flex-1 sm:flex-none text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
               >
                 Deposit
               </Button>
@@ -498,6 +494,7 @@ const DepositWithdrawModal = ({
                 variant={activeType === "withdraw" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveType("withdraw")}
+                className="flex-1 sm:flex-none text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
               >
                 Withdraw
               </Button>
@@ -520,7 +517,7 @@ const DepositWithdrawModal = ({
         ) : !isSelectedChainSupported ? (
           <NetworkSwitcher onNetworkSwitch={handleNetworkSwitch} />
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             {selectedChainId && (
               <fieldset className="space-y-2">
                 <Label htmlFor="token">Select Token</Label>
@@ -563,7 +560,7 @@ const DepositWithdrawModal = ({
                           Error loading wallet balance
                         </span>
                       ) : (
-                        `Wallet Balance: ${formatDecimalConsistent(tokenBalance)}`
+                        `Wallet Balance: ${tokenBalance}`
                       )
                     ) : // For withdrawals, show deposited balance (available locked funds)
                     depositedBalanceLoading ? (
@@ -573,7 +570,7 @@ const DepositWithdrawModal = ({
                         Error loading available balance
                       </span>
                     ) : (
-                      `Available: ${formatDecimalConsistent(depositedBalance)}`
+                      `Available: ${depositedBalance}`
                     )}
                   </span>
                 )}
@@ -590,7 +587,7 @@ const DepositWithdrawModal = ({
                 />
                 {activeType === "withdraw" &&
                   depositedBalance &&
-                  parseFloat(formatDecimalConsistent(depositedBalance)) > 0 && (
+                  parseFloat(depositedBalance) > 0 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -603,7 +600,7 @@ const DepositWithdrawModal = ({
                   )}
                 {activeType === "deposit" &&
                   tokenBalance &&
-                  parseFloat(formatDecimalConsistent(tokenBalance)) > 0 && (
+                  parseFloat(tokenBalance) > 0 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -619,19 +616,19 @@ const DepositWithdrawModal = ({
 
             {error && <aside className="text-red-600 text-sm">{error}</aside>}
 
-            <footer className="flex gap-2">
+            <footer className="flex gap-2 sm:gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1"
+                className="flex-1 py-2 sm:py-2.5 text-sm sm:text-base"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading || !amount || !selectedToken}
-                className="flex-1"
+                className="flex-1 py-2 sm:py-2.5 text-sm sm:text-base"
               >
                 {isLoading ? (
                   <>

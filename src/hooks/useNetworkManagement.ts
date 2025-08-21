@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
 import { useToast } from "@/hooks/use-toast";
-import { Chain } from "@/protos/gen/arborter_config_pb";
+import type { Chain } from "@/protos/gen/arborter_config_pb";
 
 // MetaMask Chain Permissions Update (November 2024):
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
@@ -86,7 +86,7 @@ export const useNetworkManagement = (): {
     }
   }, [currentChainId, hasInitialized]);
 
-  const handleSenderNetworkChange = async (newNetwork: string) => {
+  const handleSenderNetworkChange = (newNetwork: string): void => {
     try {
       // Get the chain config for the new network
       const newChainConfig = configUtils.getChainByNetwork(newNetwork);
@@ -155,7 +155,7 @@ export const useNetworkManagement = (): {
     setNetworkState((prev) => ({ ...prev, receiverNetwork: newNetwork }));
   };
 
-  const swapNetworks = async () => {
+  const swapNetworks = (): void => {
     // Store current values before swapping
     const oldSenderNetwork = networkState.senderNetwork;
     const oldReceiverNetwork = networkState.receiverNetwork;

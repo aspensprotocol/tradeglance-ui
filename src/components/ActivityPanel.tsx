@@ -5,13 +5,13 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades } from "@/hooks/useRecentTrades";
-import { formatDecimalConsistent, formatLargeNumber } from "../lib/number-utils";
 import { useOrderbookContext } from "../hooks/useOrderbookContext";
+import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
+import { Side } from "@/protos/gen/arborter_pb";
 
 import { useAllBalances } from "@/hooks/useAllBalances";
 import { triggerBalanceRefresh } from "../lib/utils";
-import { TradingPair } from "@/hooks/useTradingPairs";
-import { Side } from "@/protos/gen/arborter_pb";
+import type { TradingPair } from "@/hooks/useTradingPairs";
 
 interface ActivityPanelProps {
   tradingPair?: TradingPair;
@@ -45,7 +45,6 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     openOrders,
     loading: ordersLoading,
     error: ordersError,
-    setFilterByTrader,
   } = useOrderbookContext();
 
   // Only call hooks when their corresponding tab is active to prevent data accumulation
@@ -58,8 +57,11 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     showMineOnly ? address : undefined,
   );
 
-  // Use open orders directly since filtering is handled at the gRPC level
-  const orders = openOrders;
+  // Filter open orders by trader if needed
+  const orders =
+    showMineOnly && address
+      ? openOrders.filter((order: OrderbookEntry) => order.makerBaseAddress === address)
+      : openOrders;
 
   // Debug logging
   console.log("ActivityPanel render:", {
@@ -95,19 +97,6 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
       timestamp: new Date().toISOString(),
     });
   }, [activeTab, marketId]);
-
-  // Update the filter when the toggle changes
-  useEffect(() => {
-    if (setFilterByTrader) {
-      const filterValue = showMineOnly && address ? address : undefined;
-      console.log("ActivityPanel: Updating filter:", {
-        showMineOnly,
-        address,
-        filterValue,
-      });
-      setFilterByTrader(filterValue);
-    }
-  }, [showMineOnly, address, setFilterByTrader]);
 
   // Get trading balances for the current trading pair
   useBalanceManager(tradingPair);
@@ -166,18 +155,18 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
 
   return (
     <main className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
-      <section className="p-4 h-full flex flex-col min-w-0">
-        <nav className="flex border-b mb-4 overflow-x-auto">
+      <section className="p-2 sm:p-3 lg:p-4 h-full flex flex-col min-w-0">
+        <nav className="flex border-b mb-3 sm:mb-4 overflow-x-auto">
           <button
             onClick={() => handleTabChange("trades")}
             className={cn(
-              "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
+              "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
               activeTab === "trades"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark",
             )}
           >
-            Recent Trades
+            <span className="hidden sm:inline">Recent </span>Trades
             {activeTab === "trades" && (
               <span className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
@@ -185,13 +174,13 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => handleTabChange("orders")}
             className={cn(
-              "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
+              "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
               activeTab === "orders"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark",
             )}
           >
-            Open Orders
+            <span className="hidden sm:inline">Open </span>Orders
             {activeTab === "orders" && (
               <span className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
             )}
@@ -199,7 +188,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           <button
             onClick={() => handleTabChange("balances")}
             className={cn(
-              "flex-1 pb-2 text-xs font-medium transition-colors relative whitespace-nowrap",
+              "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
               activeTab === "balances"
                 ? "text-neutral-dark"
                 : "text-neutral hover:text-neutral-dark",
@@ -247,10 +236,10 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               </header>
 
               {/* Header row */}
-              <header className="grid grid-cols-5 text-xs text-gray-500 py-2 border-b gap-2">
+              <header className="grid grid-cols-4 sm:grid-cols-5 text-xs text-gray-500 py-2 border-b gap-1 sm:gap-2">
                 <span className="text-right truncate">Price</span>
                 <span className="text-right truncate">Amount</span>
-                <span className="text-right truncate">Maker</span>
+                <span className="text-right truncate hidden sm:block">Maker</span>
                 <span className="text-right truncate">Taker</span>
                 <span className="text-right truncate">Time</span>
               </header>
@@ -295,7 +284,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                   {trades.map((trade, index) => (
                     <article
                       key={`${trade.timestamp}-${index}`}
-                      className="grid grid-cols-5 text-xs py-2 border-b border-gray-100 gap-2 hover:bg-gray-50"
+                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-2 border-b border-gray-100 gap-1 sm:gap-2 hover:bg-gray-50"
                     >
                       <span className="text-right truncate font-medium">
                         {trade.price} {tradingPair?.quoteSymbol || "TTK"}
@@ -303,7 +292,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                       <span className="text-right truncate">
                         {trade.quantity} {tradingPair?.baseSymbol || "ATOM"}
                       </span>
-                      <span className="text-right truncate text-gray-500">
+                      <span className="text-right truncate text-gray-500 hidden sm:block">
                         {trade.trader
                           ? `${trade.trader.slice(0, 6)}...${trade.trader.slice(-4)}`
                           : "Unknown"}
@@ -399,7 +388,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 </article>
               ) : (
                 <section className="space-y-1">
-                  {orders.map((order) => (
+                  {orders.map((order: OrderbookEntry) => (
                     <article
                       key={
                         order.orderId?.toString() || `order-${Math.random()}`
@@ -548,35 +537,35 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                           </header>
 
                           <section className="space-y-2">
-                            {parseFloat(formatDecimalConsistent(balance.walletBalance)) > 0 && (
+                            {parseFloat(balance.walletBalance) > 0 && (
                               <span className="flex justify-between py-1">
                                 <span className="text-sm text-gray-600">
                                   Wallet Balance:
                                 </span>
                                 <span className="text-sm font-medium text-gray-900">
-                                  {formatDecimalConsistent(balance.walletBalance)} {balance.symbol}
+                                  {balance.walletBalance} {balance.symbol}
                                 </span>
                               </span>
                             )}
 
-                            {parseFloat(formatDecimalConsistent(balance.depositedBalance)) > 0 && (
+                            {parseFloat(balance.depositedBalance) > 0 && (
                               <span className="flex justify-between py-1">
                                 <span className="text-sm text-gray-600">
                                   Deposited (Available):
                                 </span>
                                 <span className="text-sm font-medium text-green-600">
-                                  {formatDecimalConsistent(balance.depositedBalance)} {balance.symbol}
+                                  {balance.depositedBalance} {balance.symbol}
                                 </span>
                               </span>
                             )}
 
-                            {parseFloat(formatDecimalConsistent(balance.lockedBalance)) > 0 && (
+                            {parseFloat(balance.lockedBalance) > 0 && (
                               <span className="flex justify-between py-1">
                                 <span className="text-sm text-gray-600">
                                   Locked in Orders:
                                 </span>
                                 <span className="text-sm font-medium text-orange-600">
-                                  {formatDecimalConsistent(balance.lockedBalance)} {balance.symbol}
+                                  {balance.lockedBalance} {balance.symbol}
                                 </span>
                               </span>
                             )}

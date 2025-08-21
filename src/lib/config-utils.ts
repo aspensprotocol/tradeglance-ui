@@ -1,6 +1,6 @@
-import {
-  Configuration,
+import type {
   Chain,
+  Configuration,
   Market,
   Token,
   TradeContract,

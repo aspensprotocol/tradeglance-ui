@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { parseUnits } from "viem";
 import { configUtils } from "../lib/config-utils";
@@ -49,8 +49,8 @@ export const useContract = (): {
           chainIdNumber,
         );
         setCurrentChainId(chainIdNumber);
-      } catch (error) {
-        console.error("useContract: Error getting chain ID:", error);
+      } catch (err) {
+        console.error("useContract: Error getting chain ID:", err);
         setCurrentChainId(null);
       }
     }
@@ -218,10 +218,10 @@ export const useContract = (): {
         allowanceResult,
       );
       return true;
-    } catch (error) {
+    } catch (err) {
       console.warn(
         "Token contract does not support standard ERC20 allowance:",
-        error,
+        err,
       );
       return false;
     }

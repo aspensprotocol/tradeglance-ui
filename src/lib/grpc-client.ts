@@ -1,131 +1,131 @@
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { createClient } from "@connectrpc/connect";
+import { createClient, ConnectError } from "@connectrpc/connect";
 import { create } from "@bufbuild/protobuf";
+import { handleApiError } from "./error-handling";
+import { createLogger } from "./logger";
 
 // Import ALL protobuf types from arborter_config_pb.ts
 import {
-  ConfigService,
-  GetConfigRequestSchema,
-  GetConfigResponseSchema,
-  ConfigurationSchema,
-  ChainSchema,
-  MarketSchema,
-  TokenSchema,
-  DeployContractRequestSchema,
-  DeployContractResponseSchema,
-  AddChainRequestSchema,
-  AddChainResponseSchema,
-  AddTokenRequestSchema,
-  AddTokenResponseSchema,
-  AddMarketRequestSchema,
-  AddMarketResponseSchema,
-  DeleteMarketRequestSchema,
-  DeleteMarketResponseSchema,
-  DeleteTokenRequestSchema,
-  DeleteTokenResponseSchema,
-  DeleteChainRequestSchema,
-  DeleteChainResponseSchema,
-  DeleteTradeContractRequestSchema,
-  DeleteTradeContractResponseSchema,
-  EmptySchema,
-  VersionInfoSchema,
-  type Configuration,
-  type Chain,
-  type Market,
-  type Token,
-  type DeployContractRequest,
-  type DeployContractResponse,
   type AddChainRequest,
+  AddChainRequestSchema,
   type AddChainResponse,
-  type AddTokenRequest,
-  type AddTokenResponse,
+  AddChainResponseSchema,
   type AddMarketRequest,
+  AddMarketRequestSchema,
   type AddMarketResponse,
-  type DeleteMarketRequest,
-  type DeleteMarketResponse,
-  type DeleteTokenRequest,
-  type DeleteTokenResponse,
+  AddMarketResponseSchema,
+  type AddTokenRequest,
+  AddTokenRequestSchema,
+  type AddTokenResponse,
+  AddTokenResponseSchema,
+  type Chain,
+  ChainSchema,
+  ConfigService,
+  type Configuration,
+  ConfigurationSchema,
   type DeleteChainRequest,
+  DeleteChainRequestSchema,
   type DeleteChainResponse,
+  DeleteChainResponseSchema,
+  type DeleteMarketRequest,
+  DeleteMarketRequestSchema,
+  type DeleteMarketResponse,
+  DeleteMarketResponseSchema,
+  type DeleteTokenRequest,
+  DeleteTokenRequestSchema,
+  type DeleteTokenResponse,
+  DeleteTokenResponseSchema,
   type DeleteTradeContractRequest,
+  DeleteTradeContractRequestSchema,
   type DeleteTradeContractResponse,
+  DeleteTradeContractResponseSchema,
+  type DeployContractRequest,
+  DeployContractRequestSchema,
+  type DeployContractResponse,
+  DeployContractResponseSchema,
   type Empty,
-  type VersionInfo,
+  EmptySchema,
   type GetConfigRequest,
+  GetConfigRequestSchema,
   type GetConfigResponse,
+  GetConfigResponseSchema,
+  type Market,
+  MarketSchema,
+  type Token,
+  TokenSchema,
+  type VersionInfo,
+  VersionInfoSchema,
 } from "../protos/gen/arborter_config_pb";
 
 // Import ALL protobuf types from arborter_pb.ts
+import type {
+  ExecutionType,
+  OrderStatus,
+  Side,
+  TradeRole} from "../protos/gen/arborter_pb";
 import {
+  type AddOrderbookRequest,
+  AddOrderbookRequestSchema,
+  type AddOrderbookResponse,
+  AddOrderbookResponseSchema,
   ArborterService,
-  SendOrderRequestSchema,
-  SendOrderResponseSchema,
+  type CancelOrderRequest,
   CancelOrderRequestSchema,
+  type CancelOrderResponse,
   CancelOrderResponseSchema,
-  OrderbookRequestSchema,
+  type Order,
+  OrderSchema,
+  type OrderToCancel,
+  OrderToCancelSchema,
+  type OrderbookEntry,
   OrderbookEntrySchema,
+  type OrderbookRequest,
+  OrderbookRequestSchema,
+  type RemoveOrderbookRequest,
+  RemoveOrderbookRequestSchema,
+  type RemoveOrderbookResponse,
+  RemoveOrderbookResponseSchema,
+  type SendOrderRequest,
+  SendOrderRequestSchema,
+  type SendOrderResponse,
+  SendOrderResponseSchema,
+  type Trade,
+  type TradeRequest,
   TradeRequestSchema,
   TradeSchema,
-  AddOrderbookRequestSchema,
-  AddOrderbookResponseSchema,
-  RemoveOrderbookRequestSchema,
-  RemoveOrderbookResponseSchema,
-  UnNormalizeDecimalsRequestSchema,
-  UnNormalizeDecimalsResponseSchema,
-  OrderSchema,
-  Side,
-  ExecutionType,
-  OrderToCancelSchema,
-  OrderStatus,
-  TradeRole,
-  type OrderbookEntry,
-  type Trade,
-  type Order,
-  type OrderToCancel,
-  type SendOrderResponse,
-  type CancelOrderRequest,
-  type CancelOrderResponse,
-  type AddOrderbookRequest,
-  type AddOrderbookResponse,
-  type RemoveOrderbookRequest,
-  type RemoveOrderbookResponse,
   type UnNormalizeDecimalsRequest,
+  UnNormalizeDecimalsRequestSchema,
   type UnNormalizeDecimalsResponse,
-  type SendOrderRequest,
-  type OrderbookRequest,
-  type TradeRequest,
+  UnNormalizeDecimalsResponseSchema,
 } from "../protos/gen/arborter_pb";
+
+// Create a logger for gRPC operations
+const logger = createLogger('gRPC');
 
 // Create the gRPC-Web transport for unary calls
 const transport = createGrpcWebTransport({
   baseUrl: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
 });
 
-console.log(
-  "🔧 gRPC: Transport created with baseUrl:",
-  import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
-);
-console.log("🔧 gRPC: Environment variables:", {
+logger.info(`Transport created with baseUrl: ${import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api"}`);
+logger.debug("Environment variables:", {
   VITE_GRPC_WEB_PROXY_URL: import.meta.env.VITE_GRPC_WEB_PROXY_URL,
-  NODE_ENV: import.meta.env.NODE_ENV,
-  MODE: import.meta.env.MODE,
   BASE_URL: import.meta.env.BASE_URL,
 });
-console.log("🔧 gRPC: Transport object:", transport);
-console.log("🔧 gRPC: Current URL:", window.location.href);
-console.log("🔧 gRPC: Current origin:", window.location.origin);
+logger.debug("Transport object:", transport);
+logger.debug("Current URL:", window.location.href);
+logger.debug("Current origin:", window.location.origin);
 
 // Create the gRPC clients
 export const arborterClient = createClient(ArborterService, transport);
 export const configClient = createClient(ConfigService, transport);
 
-console.log("🔧 gRPC: Clients created:", {
+logger.info("Clients created successfully");
+logger.debug("Client details:", {
   hasArborterClient: !!arborterClient,
   hasConfigClient: !!configClient,
   arborterServiceMethods: Object.keys(ArborterService.methods || {}),
   configServiceMethods: Object.keys(ConfigService.methods || {}),
-  arborterServiceType: typeof ArborterService,
-  configServiceType: typeof ConfigService,
 });
 
 // Configuration service
@@ -339,8 +339,8 @@ export const arborterService = {
   ): Promise<SendOrderResponse> {
     try {
       const request: SendOrderRequest = create(SendOrderRequestSchema, {
-        order: order,
-        signatureHash: signatureHash,
+        order,
+        signatureHash,
       });
 
       const response: SendOrderResponse =
@@ -359,8 +359,8 @@ export const arborterService = {
   ): Promise<CancelOrderResponse> {
     try {
       const request: CancelOrderRequest = create(CancelOrderRequestSchema, {
-        order: order,
-        signatureHash: signatureHash,
+        order,
+        signatureHash,
       });
 
       const response: CancelOrderResponse =
@@ -372,15 +372,17 @@ export const arborterService = {
     }
   },
 
-  // Get orderbook - optimized for speed
+  // Get orderbook - optimized for speed with improved error handling
   async getOrderbook(
     marketId: string,
-    continueStream: boolean = true, // Changed default to true for continuous streaming
+    continueStream = true, // Changed default to true for continuous streaming
     historicalOpenOrders?: boolean,
     filterByTrader?: string,
   ): Promise<OrderbookEntry[]> {
+    const orderbookLogger = createLogger('Orderbook');
     try {
-      console.log("🚀 arborterService.getOrderbook called:", {
+      orderbookLogger.info(`Getting orderbook for market: ${marketId}`);
+      orderbookLogger.debug("Request parameters:", {
         marketId,
         marketIdType: typeof marketId,
         marketIdTruthy: !!marketId,
@@ -397,7 +399,7 @@ export const arborterService = {
         filterByTrader,
       });
 
-      console.log("📤 OrderbookRequest created:", {
+      orderbookLogger.debug("Request created:", {
         requestKeys: Object.keys(request),
         requestValues: {
           marketId: request.marketId,
@@ -407,8 +409,21 @@ export const arborterService = {
         },
       });
 
-      console.log("🚀 Calling arborterClient.orderbook...");
-      const response = await arborterClient.orderbook(request);
+      orderbookLogger.info("Calling orderbook API...");
+      
+      // Create a timeout promise to handle connection issues
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("Orderbook request timed out after 15 seconds"));
+        }, 15000);
+      });
+      
+      // Race the actual request against the timeout
+      const response = await Promise.race([
+        arborterClient.orderbook(request),
+        timeoutPromise
+      ]);
+      
       console.log("📡 arborterClient.orderbook response received:", {
         hasResponse: !!response,
         responseType: typeof response,
@@ -418,16 +433,21 @@ export const arborterService = {
 
       const entries: OrderbookEntry[] = [];
 
-      // Proper streaming without aggressive timeouts
+      // Proper streaming with error handling
       try {
         console.log("🔄 Starting to iterate over orderbook stream...");
         let entryCount = 0;
-
+        
         for await (const entry of response) {
+          // Only log every 10th entry to reduce console spam
+          if (entryCount % 10 === 0) {
+            console.log(`🔍 Orderbook Entry ${entryCount + 1} received`);
+          }
+          
           entries.push(entry);
           entryCount++;
 
-          if (entryCount % 10 === 0) {
+          if (entryCount % 50 === 0) {
             console.log(`📊 Processed ${entryCount} orderbook entries...`);
           }
         }
@@ -441,6 +461,14 @@ export const arborterService = {
           "⚠️ Orderbook stream error, returning collected data:",
           streamError,
         );
+        
+        // Handle specific gRPC errors
+        if (streamError instanceof ConnectError) {
+          handleApiError(streamError, "Orderbook Stream", async () => {
+            await this.getOrderbook(marketId, continueStream, historicalOpenOrders, filterByTrader);
+          });
+        }
+        
         if (entries.length > 0) {
           console.log(
             `⚡ Returning ${entries.length} collected orderbook entries despite error`,
@@ -451,22 +479,20 @@ export const arborterService = {
         return [];
       }
     } catch (error) {
-      console.error("❌ Failed to fetch orderbook:", error);
-      console.error("❌ Error details:", {
-        errorType: typeof error,
-        errorConstructor:
-          error instanceof Error ? error.constructor.name : "Unknown",
-        errorMessage: error instanceof Error ? error.message : "No message",
-        errorStack: error instanceof Error ? error.stack : "No stack",
+      // Use our centralized error handling
+      handleApiError(error, "Orderbook API", async () => {
+        await this.getOrderbook(marketId, continueStream, historicalOpenOrders, filterByTrader);
       });
-      throw error;
+      
+      // Return empty array instead of throwing to prevent UI crashes
+      return [];
     }
   },
 
   // Get trades - optimized for speed
   async getTrades(
     marketId: string,
-    continueStream: boolean = true, // Changed default to true for continuous streaming
+    continueStream = true, // Changed default to true for continuous streaming
     historicalClosedTrades?: boolean,
     filterByTrader?: string,
   ): Promise<Trade[]> {
@@ -515,6 +541,26 @@ export const arborterService = {
         let tradeCount = 0;
 
         for await (const trade of response) {
+          // CRITICAL DEBUGGING: Log every single trade as it comes in
+          console.log(`🔍 Trade Entry ${tradeCount + 1}:`, {
+            tradeId: tradeCount + 1,
+            hasTrade: !!trade,
+            tradeType: typeof trade,
+            tradeKeys: trade ? Object.keys(trade) : [],
+            price: trade?.price,
+            qty: trade?.qty,
+            timestamp: trade?.timestamp,
+            makerId: trade?.makerId,
+            takerId: trade?.takerId,
+            priceType: typeof trade?.price,
+            qtyType: typeof trade?.qty,
+            priceLength: typeof trade?.price === 'string' ? trade?.price.length : 'N/A',
+            qtyLength: typeof trade?.qty === 'string' ? trade?.qty.length : 'N/A',
+            priceValue: trade?.price,
+            qtyValue: trade?.qty,
+            rawTrade: trade,
+          });
+          
           trades.push(trade);
           tradeCount++;
 
@@ -561,8 +607,8 @@ export const arborterService = {
   ): Promise<AddOrderbookResponse> {
     try {
       const request: AddOrderbookRequest = create(AddOrderbookRequestSchema, {
-        marketId: marketId,
-        decimalPlaces: decimalPlaces,
+        marketId,
+        decimalPlaces,
       });
 
       const response: AddOrderbookResponse =
@@ -580,7 +626,7 @@ export const arborterService = {
       const request: RemoveOrderbookRequest = create(
         RemoveOrderbookRequestSchema,
         {
-          marketId: marketId,
+          marketId,
         },
       );
 
@@ -604,10 +650,10 @@ export const arborterService = {
       const request: UnNormalizeDecimalsRequest = create(
         UnNormalizeDecimalsRequestSchema,
         {
-          marketId: marketId,
-          side: side,
-          quantity: quantity,
-          price: price,
+          marketId,
+          side,
+          quantity,
+          price,
         },
       );
 
@@ -623,7 +669,7 @@ export const arborterService = {
   // Real-time orderbook streaming for live updates
   async *streamOrderbookRealtime(
     marketId: string,
-    continueStream: boolean = false,
+    continueStream = false,
     historicalOpenOrders?: boolean,
     filterByTrader?: string,
   ): AsyncGenerator<OrderbookEntry[], void, unknown> {
@@ -641,7 +687,7 @@ export const arborterService = {
 
       const response = await arborterClient.orderbook(request);
       const entries: OrderbookEntry[] = [];
-      let hasYieldedData: boolean = false;
+      let hasYieldedData = false;
 
       for await (const entry of response) {
         entries.push(entry);
@@ -682,7 +728,7 @@ export const arborterService = {
   // Real-time trades streaming for live updates
   async *streamTradesRealtime(
     marketId: string,
-    continueStream: boolean = false,
+    continueStream = false,
     historicalClosedTrades?: boolean,
     filterByTrader?: string,
   ): AsyncGenerator<Trade[], void, unknown> {
@@ -697,7 +743,7 @@ export const arborterService = {
 
       const response = await arborterClient.trades(request);
       const trades: Trade[] = [];
-      let hasYieldedData: boolean = false;
+      let hasYieldedData = false;
 
       for await (const trade of response) {
         trades.push(trade);

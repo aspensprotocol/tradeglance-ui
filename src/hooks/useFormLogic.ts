@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
-import { TradingPair } from "./useTradingPairs";
-import { BaseOrQuote, Chain } from "../protos/gen/arborter_config_pb";
+import type { TradingPair } from "./useTradingPairs";
+import type { Chain } from "../protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
 
 // MetaMask Chain Permissions Update Notice:
 // As of November 2024, MetaMask introduced a new "Chain Permissions" system that replaces
@@ -342,7 +343,7 @@ export const useFormLogic = ({
   );
 
   // Smart side detection based on current network
-  const detectAndSetOptimalSide = useCallback(async (): Promise<void> => {
+  const detectAndSetOptimalSide = useCallback((): void => {
     if (!currentChainId) return;
 
     const currentChain = getCurrentChainConfig();

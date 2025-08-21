@@ -5,6 +5,34 @@ import App from "./App.tsx";
 import "./index.css";
 import { PERFORMANCE_CONFIG } from "./lib/optimization-config";
 
+// Add global error handler for unhandled errors
+window.addEventListener('error', (event) => {
+  console.error('GLOBAL ERROR:', event.error);
+  console.error('Error details:', {
+    message: event.error?.message,
+    stack: event.error?.stack,
+    type: event.error?.constructor?.name
+  });
+});
+
+// Add global promise rejection handler
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('UNHANDLED PROMISE REJECTION:', event.reason);
+  console.error('Rejection details:', {
+    message: event.reason?.message,
+    stack: event.reason?.stack,
+    type: event.reason?.constructor?.name
+  });
+});
+
+// Log application startup
+console.log('🚀 Application starting up...');
+console.log('📊 Environment:', {
+  NODE_ENV: import.meta.env.MODE,
+  BASE_URL: import.meta.env.BASE_URL,
+  VITE_GRPC_WEB_PROXY_URL: import.meta.env.VITE_GRPC_WEB_PROXY_URL || '/api'
+});
+
 // Create a client with performance-optimized settings
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,18 +61,18 @@ if (PERFORMANCE_CONFIG.ui.enablePerformanceMonitoring) {
     }
   });
 
-  // Monitor memory usage
-  if ('memory' in performance) {
-    setInterval(() => {
-      const memory = (performance as unknown as { memory: { usedJSHeapSize: number } }).memory;
-      if (memory.usedJSHeapSize > PERFORMANCE_CONFIG.bundle.chunkSizeWarningLimit * 1024 * 1024) {
-        console.warn(`⚠️ High memory usage: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`);
-      }
-    }, 30000); // Check every 30 seconds
-  }
+  // Start memory monitoring using the centralized memory manager
+  import('@/lib/memory-utils').then(({ memoryManager }) => {
+    memoryManager.startMonitoring(30000); // Check every 30 seconds
+  });
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <App />

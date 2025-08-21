@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { createPublicClient, http } from "viem";
-import { TradingPair } from "./useTradingPairs";
+import type { TradingPair } from "./useTradingPairs";
 import { useConfig } from "./useConfig";
 import { configUtils } from "../lib/config-utils";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useConfig } from "./useConfig";
-import { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
+import type { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
 
 export interface TradingPair {
   id: string;
@@ -44,68 +44,85 @@ export const useTradingPairs = (): {
     const chainMap = new Map<string, Chain>();
     chains.forEach(chain => chainMap.set(chain.network, chain));
 
-    return markets
-      .map((market: Market) => {
-        // Find the base and quote chains for this market
-        const baseChain: Chain | undefined = chainMap.get(market.baseChainNetwork);
-        const quoteChain: Chain | undefined = chainMap.get(market.quoteChainNetwork);
+    const results: TradingPair[] = [];
 
-        if (!baseChain || !quoteChain) {
-          return null;
-        }
+    markets.forEach((market: Market, index: number) => {
+      // Find the base and quote chains for this market
+      const baseChain: Chain | undefined = chainMap.get(market.baseChainNetwork);
+      const quoteChain: Chain | undefined = chainMap.get(market.quoteChainNetwork);
 
-        // Find the base and quote tokens
-        const baseToken: Token | undefined = baseChain.tokens[market.baseChainTokenSymbol];
-        const quoteToken: Token | undefined = quoteChain.tokens[market.quoteChainTokenSymbol];
+      if (!baseChain || !quoteChain) {
+        return;
+      }
 
-        if (!baseToken || !quoteToken) {
-          return null;
-        }
+      // Find the base and quote tokens
+      const baseToken: Token | undefined = baseChain.tokens[market.baseChainTokenSymbol];
+      const quoteToken: Token | undefined = quoteChain.tokens[market.quoteChainTokenSymbol];
 
-        // Get chain prefixes for display
-        const getChainPrefix = (network: string): string => {
-          if (network.includes("flare")) return "f";
-          if (network.includes("base")) return "b";
-          if (network.includes("mainnet")) return "m";
-          if (network.includes("goerli")) return "g";
-          if (network.includes("sepolia")) return "s";
-          return network.charAt(0).toLowerCase();
-        };
+      if (!baseToken || !quoteToken) {
+        return;
+      }
 
-        const basePrefix: string = getChainPrefix(baseChain.network);
-        const quotePrefix: string = getChainPrefix(quoteChain.network);
+      // Get chain prefixes for display
+      const getChainPrefix = (network: string): string => {
+        if (network.includes("flare")) return "f";
+        if (network.includes("base")) return "b";
+        if (network.includes("mainnet")) return "m";
+        if (network.includes("goerli")) return "g";
+        if (network.includes("sepolia")) return "s";
+        return network.charAt(0).toLowerCase();
+      };
 
-        // Create the trading pair ID
-        const baseChainId: number =
-          typeof baseChain.chainId === "string"
-            ? parseInt(baseChain.chainId, 10)
-            : baseChain.chainId;
-        const quoteChainId: number =
-          typeof quoteChain.chainId === "string"
-            ? parseInt(quoteChain.chainId, 10)
-            : quoteChain.chainId;
+      const basePrefix: string = getChainPrefix(baseChain.network);
+      const quotePrefix: string = getChainPrefix(quoteChain.network);
 
-        const tradingPair: TradingPair = {
-          id:
-            market.marketId ||
-            `${baseChainId}::${baseToken.address}::${quoteChainId}::${quoteToken.address}`,
-          baseSymbol: market.baseChainTokenSymbol,
-          quoteSymbol: market.quoteChainTokenSymbol,
-          displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
-          baseChainNetwork: market.baseChainNetwork,
-          quoteChainNetwork: market.quoteChainNetwork,
-          baseChainTokenAddress: baseToken.address,
-          quoteChainTokenAddress: quoteToken.address,
-          baseChainTokenDecimals: market.baseChainTokenDecimals,
-          quoteChainTokenDecimals: market.quoteChainTokenDecimals,
-          pairDecimals: market.pairDecimals,
-          baseChainId,
-          quoteChainId,
-        };
+      // Create the trading pair ID
+      const baseChainId: number =
+        typeof baseChain.chainId === "string"
+          ? parseInt(baseChain.chainId, 10)
+          : baseChain.chainId;
+      const quoteChainId: number =
+        typeof quoteChain.chainId === "string"
+          ? parseInt(quoteChain.chainId, 10)
+          : quoteChain.chainId;
 
-        return tradingPair;
-      })
-      .filter(Boolean) as TradingPair[];
+      const tradingPair: TradingPair = {
+        id:
+          market.marketId ||
+          `${baseChainId}::${baseToken.address}::${quoteChainId}::${quoteToken.address}`,
+        baseSymbol: market.baseChainTokenSymbol,
+        quoteSymbol: market.quoteChainTokenSymbol,
+        displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
+        baseChainNetwork: market.baseChainNetwork,
+        quoteChainNetwork: market.quoteChainNetwork,
+        baseChainTokenAddress: baseToken.address,
+        quoteChainTokenAddress: quoteToken.address,
+        baseChainTokenDecimals: market.baseChainTokenDecimals,
+        quoteChainTokenDecimals: market.quoteChainTokenDecimals,
+        pairDecimals: market.pairDecimals,
+        baseChainId,
+        quoteChainId,
+      };
+
+      // Debug logging for the first few trading pairs
+      if (index < 3) {
+        console.log("🔍 useTradingPairs: Created trading pair:", {
+          id: tradingPair.id,
+          displayName: tradingPair.displayName,
+          baseSymbol: tradingPair.baseSymbol,
+          quoteSymbol: tradingPair.quoteSymbol,
+          baseChainTokenDecimals: tradingPair.baseChainTokenDecimals,
+          quoteChainTokenDecimals: tradingPair.quoteChainTokenDecimals,
+          pairDecimals: tradingPair.pairDecimals,
+          marketPairDecimals: market.pairDecimals,
+          marketPairDecimalsType: typeof market.pairDecimals,
+        });
+      }
+
+      results.push(tradingPair);
+    });
+
+    return results;
   }, [config]);
 
   const loading: boolean = configLoading || (!!config && tradingPairs.length === 0);

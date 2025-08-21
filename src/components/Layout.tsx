@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
 
@@ -16,12 +16,15 @@ export const Layout = ({
   return (
     <main className={`min-h-screen bg-neutral-soft/30 relative ${className}`}>
       <section className="container min-h-screen flex flex-col">
-        <header className="p-2 sm:p-4">
+        <header className="p-3 sm:p-4 lg:p-6">
           <Navigation />
         </header>
-        <section className="flex-1 px-2 sm:px-4 pb-16">{children}</section>
+        <section className="flex-1 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 lg:pb-20">
+          {children}
+        </section>
       </section>
-      <Footer className={`${footerPosition} bottom-0 left-0 right-0`} />
+      {/* Hide footer on mobile and tablet, only show on desktop (lg and above) */}
+      <Footer className={`${footerPosition} bottom-0 left-0 right-0 hidden lg:block`} />
     </main>
   );
 };

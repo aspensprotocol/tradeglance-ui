@@ -1,49 +1,16 @@
-import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useTradingPairs } from "@/hooks/useTradingPairs";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
-import SimpleForm from "@/components/SimpleForm";
+import React from 'react';
+import { Layout } from '@/components/Layout';
+import SimpleForm from '@/components/SimpleForm';
+import { useTradingPairs } from '@/hooks/useTradingPairs';
 
 const Simple = (): JSX.Element => {
-  // Get dynamic trading pairs from config
-  const {
-    tradingPairs,
-    loading: pairsLoading,
-    getTradingPairById,
-  } = useTradingPairs();
-
-  // Monitor chain changes
-  const { currentChainId } = useChainMonitor();
-
-  // Set default selected pair to first available pair, or empty string if none available
-  const [selectedPair, setSelectedPair] = useState<string>("");
-
-  // Update selected pair when trading pairs load
-  useEffect(() => {
-    if (tradingPairs.length > 0 && !selectedPair) {
-      setSelectedPair(tradingPairs[0].id);
-    }
-  }, [tradingPairs, selectedPair]);
-
-  // Get the current trading pair object
-  const currentTradingPair = getTradingPairById(selectedPair);
+  const { tradingPairs } = useTradingPairs();
+  const defaultPair = tradingPairs[0];
 
   return (
-    <Layout footerPosition="fixed">
-      <main className="flex items-center justify-center h-full">
-        {pairsLoading || !currentChainId ? (
-          <LoadingSpinner
-            message={
-              pairsLoading ? "Loading trading pairs..." : "Detecting network..."
-            }
-          />
-        ) : (
-          <SimpleForm
-            selectedPair={selectedPair}
-            tradingPair={currentTradingPair || undefined}
-          />
-        )}
+    <Layout footerPosition="absolute">
+      <main className="flex items-center justify-center h-full px-3 sm:px-4 lg:px-6 pb-0">
+        <SimpleForm tradingPair={defaultPair} />
       </main>
     </Layout>
   );

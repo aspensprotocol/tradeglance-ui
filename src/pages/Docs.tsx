@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { DocumentationViewer } from "@/components/DocumentationViewer";
-import { renderMarkdown } from "@/lib/markdown-renderer";
+import { MarkdownRenderer } from "@/lib/markdown-utils";
 import { useState, useEffect } from "react";
 
 const Docs = (): JSX.Element => {
@@ -12,7 +12,7 @@ const Docs = (): JSX.Element => {
     const loadDocumentation = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/docs/README.md");
+        const response = await fetch('/docs/README.md');
         if (response.ok) {
           const content = await response.text();
           setMarkdownContent(content);
@@ -47,10 +47,8 @@ Some examples we thought about that can be built on top of Aspens include:
 We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧`);
         }
       } catch (error) {
-        console.error("Error loading documentation:", error);
-        setMarkdownContent(
-          "# Error Loading Documentation\n\nPlease check the docs/README.md file.",
-        );
+        console.error('Error loading documentation:', error);
+        setMarkdownContent('# Error Loading Documentation\n\nPlease check the docs/README.md file.');
       } finally {
         setLoading(false);
       }
@@ -61,10 +59,10 @@ We're currently looking for partner projects, so if you're a builder, and this s
 
   if (loading) {
     return (
-      <Layout footerPosition="fixed">
+      <Layout footerPosition="absolute">
         <main className="flex items-center justify-center h-full">
           <section className="text-center">
-            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></span>
+            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4 block"></span>
             <p className="text-gray-600">Loading documentation...</p>
           </section>
         </main>
@@ -73,10 +71,10 @@ We're currently looking for partner projects, so if you're a builder, and this s
   }
 
   return (
-    <Layout footerPosition="fixed">
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+    <Layout footerPosition="absolute">
+      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-4xl">
         <DocumentationViewer>
-          {renderMarkdown(markdownContent)}
+          <MarkdownRenderer content={markdownContent} />
         </DocumentationViewer>
       </main>
     </Layout>

@@ -7,9 +7,9 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => 
     alt: string;
   } | null>(null);
 
-  const processMarkdown = (content: string): React.ReactElement[] => {
+  const processMarkdown = (markdownContent: string): React.ReactElement[] => {
     // Split content into lines for processing
-    const lines = content.split("\n");
+    const lines = markdownContent.split("\n");
     const processedLines: React.ReactElement[] = [];
     let skipUntil = -1;
 
@@ -166,7 +166,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => 
       // Handle numbered lists (any number, not just starting with 1)
       if (/^\d+\.\s/.test(line)) {
         // Check if this is the start of an ordered list
-        const listItems: Array<{ number: string; content: string }> = [];
+        const listItems: { number: string; content: string }[] = [];
         let i = index;
 
         // Collect all consecutive numbered list items

@@ -1,5 +1,5 @@
 import { useConfig } from "./useConfig";
-import { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 
 export const useChainNetwork = (): {
   getChainNetwork: (chainId: number | null) => string | null;

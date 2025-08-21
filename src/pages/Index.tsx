@@ -8,158 +8,111 @@ import { useTradingPairs } from "@/hooks/useTradingPairs";
 import { OrderbookProvider } from "@/contexts/OrderbookContext";
 
 const Index = (): JSX.Element => {
-  console.log("🔍 Index component: Component function called");
-
   // Get dynamic trading pairs from config
-  const {
-    tradingPairs,
-    loading: pairsLoading,
-    getTradingPairById,
-  } = useTradingPairs();
+  const { tradingPairs, loading: pairsLoading, getTradingPairById } = useTradingPairs();
 
   // Set default selected pair to first available pair, or empty string if none available
   const [selectedPair, setSelectedPair] = useState<string>("");
-
+  
   // Update selected pair when trading pairs load
   useEffect(() => {
-    console.log("🔄 Index: useEffect for selectedPair triggered:", {
-      tradingPairsCount: tradingPairs.length,
-      selectedPair,
-      firstPairId: tradingPairs[0]?.id,
-      firstPairDisplay: tradingPairs[0]?.displayName,
-    });
-
     if (tradingPairs.length > 0 && !selectedPair) {
-      const firstPairId = tradingPairs[0].id;
-      console.log(
-        "✅ Index: Setting selectedPair to first available pair:",
-        firstPairId,
-      );
-      setSelectedPair(firstPairId);
+      setSelectedPair(tradingPairs[0].id);
     }
   }, [tradingPairs, selectedPair]);
-
+  
   // Get the current trading pair object
   const currentTradingPair = getTradingPairById(selectedPair);
 
   // Debug logging
-  console.log("🔍 Index page render:", {
-    tradingPairs: tradingPairs.map((p) => ({
-      id: p.id,
-      marketId: p.id,
+  console.log('Index page render:', {
+    tradingPairs: tradingPairs.map(p => ({ 
+      id: p.id, 
+      marketId: p.id, 
       displayName: p.displayName,
       marketIdType: typeof p.id,
-      marketIdTruthy: !!p.id,
+      marketIdTruthy: !!p.id
     })),
     selectedPair,
     currentTradingPair,
     currentTradingPairMarketId: currentTradingPair?.id,
     currentTradingPairMarketIdType: typeof currentTradingPair?.id,
-    pairsLoading,
-    hasTradingPair: !!currentTradingPair,
-    tradingPairKeys: currentTradingPair ? Object.keys(currentTradingPair) : [],
+    pairsLoading
   });
-
-  // Log when components will be rendered
-  console.log("🔍 Index: Component rendering decision:", {
-    pairsLoading,
-    willShowLoading: pairsLoading,
-    willShowComponents: !pairsLoading,
-    componentsToRender: !pairsLoading
-      ? {
-          activityPanel: !!currentTradingPair,
-          orderbook: !!currentTradingPair,
-          tradeForm: !!currentTradingPair,
-        }
-      : null,
-  });
-
-  // Add a fallback display for debugging
-  if (!pairsLoading && tradingPairs.length === 0) {
-    return (
-      <Layout footerPosition="fixed">
-        <main className="flex items-center justify-center h-full">
-          <article className="text-center p-8 max-w-2xl">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              Debug: No Trading Pairs
-            </h2>
-            <p className="text-gray-600 mb-4">
-              The useTradingPairs hook returned no trading pairs.
-            </p>
-            <section className="bg-gray-100 p-4 rounded text-left text-sm space-y-2">
-              <p>
-                <strong>Config Loading:</strong> {pairsLoading ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Trading Pairs Count:</strong> {tradingPairs.length}
-              </p>
-              <p>
-                <strong>Selected Pair:</strong> {selectedPair || "None"}
-              </p>
-              <p>
-                <strong>Current Trading Pair:</strong>{" "}
-                {currentTradingPair ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Window Location:</strong> {window.location.href}
-              </p>
-              <p>
-                <strong>Environment:</strong> {import.meta.env.MODE}
-              </p>
-              <p>
-                <strong>gRPC URL:</strong>{" "}
-                {import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api"}
-              </p>
-            </section>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Reload Page
-            </button>
-          </article>
-        </main>
-      </Layout>
-    );
-  }
 
   return (
-    <Layout footerPosition="fixed">
-      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 h-full">
+    <Layout footerPosition="absolute">
+      {/* Mobile-first responsive grid layout */}
+      <main className="
+        grid gap-3 h-full
+        grid-cols-1 
+        sm:grid-cols-2 
+        lg:grid-cols-4 
+        xl:gap-4
+      ">
         {pairsLoading ? (
-          <section className="col-span-1 sm:col-span-2 lg:grid-cols-4">
+          <section className="
+            col-span-1 
+            sm:col-span-2 
+            lg:col-span-4
+          ">
             <LoadingSpinner message="Loading trading pairs..." />
           </section>
-        ) : (
-          <>
-            <OrderbookProvider
-              marketId={currentTradingPair?.id || ""}
-              filterByTrader={undefined}
-            >
-              <section className="col-span-1 sm:col-span-2 lg:col-span-2">
-                <ActivityPanel
-                  key={currentTradingPair?.id || "no-market"}
-                  tradingPair={currentTradingPair || undefined}
-                />
-              </section>
-              <section className="col-span-1 lg:col-span-1">
-                <VerticalOrderBook
-                  key={`orderbook-${currentTradingPair?.id || "no-market"}`}
-                  tradingPair={currentTradingPair || undefined}
-                  selectedPair={selectedPair}
-                  onPairChange={setSelectedPair}
-                  tradingPairs={tradingPairs}
-                />
-              </section>
-            </OrderbookProvider>
-            <section className="col-span-1 lg:col-span-1">
-              <TradeForm
-                key={`tradeform-${currentTradingPair?.id || "no-market"}`}
-                selectedPair={selectedPair}
-                tradingPair={currentTradingPair || undefined}
+        ) : currentTradingPair?.id ? (
+          <OrderbookProvider marketId={currentTradingPair.id}>
+            {/* Activity Panel - Full width on mobile, bottom on tablet, top on desktop */}
+            <section className="
+              col-span-1 
+              sm:col-span-2 
+              lg:col-span-2 
+              order-1
+              sm:order-3
+              lg:order-1
+            ">
+              <ActivityPanel 
+                key={currentTradingPair?.id || 'no-market'} 
+                tradingPair={currentTradingPair || undefined} 
               />
             </section>
-          </>
+            
+            {/* Trade Form - Full width on mobile, first column on tablet, last column on desktop */}
+            <section className="
+              col-span-1 
+              sm:col-span-1 
+              lg:col-span-1 
+              order-2 sm:order-1 lg:order-3
+            ">
+              <TradeForm 
+                key={`tradeform-${currentTradingPair?.id || 'no-market'}`}
+                selectedPair={selectedPair} 
+                tradingPair={currentTradingPair || undefined} 
+              />
+            </section>
+            
+            {/* Orderbook - Full width on mobile, second column on tablet, third column on desktop */}
+            <aside className="
+              col-span-1 
+              sm:col-span-1 
+              lg:col-span-1 
+              order-3 sm:order-2 lg:order-2
+            ">
+              <VerticalOrderBook 
+                key={`orderbook-${currentTradingPair?.id || 'no-market'}`}
+                tradingPair={currentTradingPair || undefined} 
+                selectedPair={selectedPair} 
+                onPairChange={setSelectedPair} 
+                tradingPairs={tradingPairs} 
+              />
+            </aside>
+          </OrderbookProvider>
+        ) : (
+          <section className="
+            col-span-1 
+            sm:col-span-2 
+            lg:col-span-4
+          ">
+            <LoadingSpinner message="No trading pairs available..." />
+          </section>
         )}
       </main>
     </Layout>

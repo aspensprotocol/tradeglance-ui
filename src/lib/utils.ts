@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { configUtils } from "./config-utils";
 
@@ -62,8 +62,8 @@ export function getEtherscanLink(txHash: string, chainId: number): string {
  */
 export function shortenTxHash(
   txHash: string,
-  startLength: number = 6,
-  endLength: number = 4,
+  startLength = 6,
+  endLength = 4,
 ): string {
   if (!txHash || txHash.length < startLength + endLength + 3) {
     return txHash;

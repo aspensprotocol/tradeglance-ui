@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { createPublicClient, http } from "viem";
 import { configUtils } from "../lib/config-utils";
@@ -119,7 +119,7 @@ export const useTokenBalance = (
 
         // Convert balance to human readable format using token decimals
         const balanceDecimal = Number(balanceResult);
-        const decimals = tokenConfig.decimals;
+        const {decimals} = tokenConfig;
         const formattedBalance = (
           balanceDecimal / Math.pow(10, decimals)
         ).toFixed(6);
@@ -281,7 +281,7 @@ export const useTradingBalance = (
       });
 
       // Convert to decimal format
-      const decimals = tokenConfig.decimals;
+      const {decimals} = tokenConfig;
       const depositedDecimal = Number(depositedResult);
       const lockedDecimal = Number(lockedResult);
 
@@ -372,7 +372,10 @@ export const useTradingBalance = (
       fetchTradingBalances();
     }, 15000);
 
-    return () => clearInterval(pollInterval);
+    // eslint-disable-next-line consistent-return
+    return (): void => {
+      clearInterval(pollInterval);
+    };
   }, [
     isConnected,
     address,

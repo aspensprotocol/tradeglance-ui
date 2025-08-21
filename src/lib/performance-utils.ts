@@ -31,12 +31,12 @@ class PerformanceMonitor {
    * End timing a performance metric
    */
   end(name: string): number | undefined {
-    if (!this.isEnabled) return;
+    if (!this.isEnabled) return undefined;
 
     const metric = this.metrics.get(name);
     if (!metric) {
       console.warn(`Performance metric "${name}" not found`);
-      return;
+      return undefined;
     }
 
     metric.endTime = performance.now();
@@ -134,7 +134,7 @@ export const measureOperation = <T>(
 };
 
 // Utility function to measure async operations
-export const measureAsyncOperation = async <T>(
+export const measureAsyncOperation = <T>(
   name: string,
   operation: () => Promise<T>,
   metadata?: Record<string, unknown>
@@ -147,7 +147,7 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
   
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -194,7 +194,7 @@ export const memoize = <T extends (...args: unknown[]) => unknown>(
 // Batch updates utility for performance
 export const batchUpdates = <T>(
   updates: (() => T)[],
-  batchSize: number = 10
+  batchSize = 10
 ): Promise<T[]> => {
   return new Promise((resolve) => {
     const results: T[] = [];

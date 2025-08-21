@@ -1,8 +1,8 @@
-import { createConfig, http, type Config } from "wagmi";
-import { mainnet, sepolia, polygon, base, baseSepolia } from "wagmi/chains";
-import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
-import { defineChain, type Chain as ViemChain } from "viem";
-import { Chain } from "../protos/gen/arborter_config_pb";
+import { type Config, createConfig, http } from "wagmi";
+import { base, baseSepolia, mainnet, polygon, sepolia } from "wagmi/chains";
+import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
+import { type Chain as ViemChain, defineChain } from "viem";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 
 // Your WalletConnect project ID
 const projectId = "c3690594c774dccbd4a0272ae38f1953";
@@ -16,10 +16,15 @@ const createWagmiConfig = (
 ): Config => {
   const allChains = [...defaultChains, ...customChains] as const;
 
-  // Create transports object dynamically
+  // Create transports object dynamically with retry logic
   const transports: Record<number, ReturnType<typeof http>> = {};
   allChains.forEach((chain) => {
-    transports[chain.id] = http();
+    transports[chain.id] = http({
+      batch: { batchSize: 1 }, // Disable batching to avoid connection issues
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30000,
+    });
   });
 
   return createConfig({
@@ -29,9 +34,21 @@ const createWagmiConfig = (
       // Injected wallets (MetaMask, Rabby, etc.) - FIRST
       injected({ shimDisconnect: true }),
       // WalletConnect - SECOND
-      walletConnect({ projectId, showQrModal: true }),
+      walletConnect({ 
+        projectId, 
+        showQrModal: true,
+        metadata: {
+          name: 'TradeGlance',
+          description: 'TradeGlance Trading Platform',
+          url: window.location.origin,
+          icons: [`${window.location.origin}/favicon.png`]
+        }
+      }),
       // Coinbase Wallet - THIRD
-      coinbaseWallet({ appName: "TradeGlance" }),
+      coinbaseWallet({ 
+        appName: "TradeGlance",
+        headlessMode: false, // Ensure UI is shown
+      }),
     ],
   });
 };

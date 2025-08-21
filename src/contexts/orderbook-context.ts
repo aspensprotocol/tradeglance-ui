@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { OrderbookEntry } from "../protos/gen/arborter_pb";
+import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 
 export interface OrderbookContextType {
   orderbook: {

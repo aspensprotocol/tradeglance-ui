@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useConfig } from "./useConfig";
 import { configUtils } from "../lib/config-utils";
-import { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 
 // MetaMask Chain Permissions Update (November 2024):
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
@@ -45,13 +45,13 @@ export const useChainMonitor = (): {
   };
 
   const checkChainSupport = useCallback(
-    async (chainId: number): Promise<void> => {
+    (chainId: number): void => {
       if (!config || !chainId || chainId <= 0) return;
 
       const tradeContractAddress: string | null =
         configUtils.getTradeContractAddress(chainId);
       const chainConfig: Chain | null = configUtils.getChainByChainId(chainId);
-      const supported: boolean = !!tradeContractAddress;
+      const supported = !!tradeContractAddress;
 
       setCurrentChainId(chainId);
       setIsSupported(supported);
@@ -160,7 +160,8 @@ export const useChainMonitor = (): {
     window.ethereum.on("chainChanged", handleChainChanged);
     window.ethereum.on("accountsChanged", handleAccountsChanged);
 
-    return () => {
+    // eslint-disable-next-line consistent-return
+    return (): void => {
       window.ethereum.removeListener("chainChanged", handleChainChanged);
       window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
     };

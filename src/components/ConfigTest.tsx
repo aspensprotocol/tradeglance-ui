@@ -1,6 +1,6 @@
 import { useConfig } from "../hooks/useConfig";
 import { Navigation } from "./Navigation";
-import { Chain, Market } from "../protos/gen/arborter_config_pb";
+import type { Chain, Market } from "../protos/gen/arborter_config_pb";
 
 export const ConfigTest = (): JSX.Element => {
   const { config, loading, error, refetch } = useConfig();

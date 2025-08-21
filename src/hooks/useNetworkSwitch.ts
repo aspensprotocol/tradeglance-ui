@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { configUtils } from "../lib/config-utils";
-import { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 import { useToast } from "./use-toast";
 
 // MetaMask Chain Permissions Update Notice:
@@ -20,14 +20,14 @@ export const useNetworkSwitch = (): {
   const [isSwitching, setIsSwitching] = useState(false);
   const { toast } = useToast();
 
-  const switchToNetwork = async (chainConfig: Chain) => {
+  const switchToNetwork = (chainConfig: Chain): Promise<boolean> => {
     if (typeof window.ethereum === "undefined") {
       toast({
         title: "MetaMask not found",
         description: "Please install MetaMask to switch networks",
         variant: "destructive",
       });
-      return false;
+      return Promise.resolve(false);
     }
 
     setIsSwitching(true);
@@ -55,7 +55,7 @@ export const useNetworkSwitch = (): {
       });
 
       // Return true to indicate the operation was "successful" (user was guided)
-      return true;
+      return Promise.resolve(true);
     } catch (error: unknown) {
       console.error("Error in network switch guidance:", error);
       const errorMessage =
@@ -67,7 +67,7 @@ export const useNetworkSwitch = (): {
         description: errorMessage,
         variant: "destructive",
       });
-      return false;
+      return Promise.resolve(false);
     } finally {
       setIsSwitching(false);
     }

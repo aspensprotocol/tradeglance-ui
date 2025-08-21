@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { TradingPair } from "@/hooks/useTradingPairs";
+import type { TradingPair } from "@/hooks/useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
 import { useOrderbookContext } from "../hooks/useOrderbookContext";
-import { OrderbookEntry } from "../protos/gen/arborter_pb";
+import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 
 interface VerticalOrderBookProps {
   tradingPair?: TradingPair;
@@ -14,26 +14,52 @@ interface VerticalOrderBookProps {
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(({ 
   entry, 
+  index,
   isAsk, 
+  tradingPair,
 }: { 
   entry: OrderbookEntry; 
   index: number; 
   isAsk: boolean; 
   baseSymbol: string;
   quoteSymbol: string;
-}) => (
-  <article
-    className="grid grid-cols-3 text-xs gap-x-4 py-0.5 hover:bg-gray-50 cursor-pointer"
-  >
-    <span className={`font-mono ${isAsk ? 'text-red-500' : 'text-green-500'}`}>
-      {entry.price}
-    </span>
-    <span className="text-right text-gray-700">{entry.quantity}</span>
-    <span className="text-right text-gray-700">
-      {formatDecimalConsistent(Number(entry.price) * Number(entry.quantity))}
-    </span>
-  </article>
-));
+  tradingPair?: TradingPair;
+}) => {
+  // Debug logging for first few entries
+  React.useEffect(() => {
+    if (index < 3 && tradingPair) {
+      console.log(`🔍 OrderbookRow[${index}]:`, {
+        price: entry.price,
+        quantity: entry.quantity,
+        side: entry.side,
+        priceType: typeof entry.price,
+        quantityType: typeof entry.quantity,
+        priceLength: typeof entry.price === 'string' ? entry.price.length : 'N/A',
+        quantityLength: typeof entry.quantity === 'string' ? entry.quantity.length : 'N/A',
+        priceValue: entry.price,
+        quantityValue: entry.quantity,
+        orderId: entry.orderId,
+        isAsk,
+      });
+    }
+  }, [entry, tradingPair, index, isAsk]);
+
+  return (
+    <article
+      className="grid grid-cols-3 text-xs sm:text-sm gap-x-2 sm:gap-x-4 py-1 sm:py-0.5 hover:bg-gray-50 cursor-pointer"
+    >
+      <span className={`font-mono text-xs sm:text-sm ${isAsk ? 'text-red-500' : 'text-green-500'}`}>
+        {entry.price}
+      </span>
+      <span className="text-right text-gray-700 text-xs sm:text-sm">
+        {entry.quantity}
+      </span>
+      <span className="text-right text-gray-700 text-xs sm:text-sm">
+        {formatDecimalConsistent(Number(entry.price) * Number(entry.quantity))}
+      </span>
+    </article>
+  );
+});
 
 OrderbookRow.displayName = 'OrderbookRow';
 
@@ -48,13 +74,57 @@ const VerticalOrderBook = React.memo(({
   const { orderbook, initialLoading, error, refresh } =
     useOrderbookContext();
 
+  // Debug logging for trading pair configuration
+  React.useEffect(() => {
+    if (tradingPair) {
+      const pairDecimalsType = typeof tradingPair.pairDecimals;
+      console.log("🔍 VerticalOrderBook: Trading pair config:", {
+        id: tradingPair.id,
+        displayName: tradingPair.displayName,
+        baseSymbol: tradingPair.baseSymbol,
+        quoteSymbol: tradingPair.quoteSymbol,
+        baseChainTokenDecimals: tradingPair.baseChainTokenDecimals,
+        quoteChainTokenDecimals: tradingPair.quoteChainTokenDecimals,
+        pairDecimals: tradingPair.pairDecimals,
+        pairDecimalsType,
+        pairDecimalsValue: tradingPair.pairDecimals,
+      });
+    }
+  }, [tradingPair]);
+
   // Memoize the orderbook data to prevent unnecessary re-renders
-  const { asks, bids, spreadValue, spreadPercentage } = useMemo(() => ({
-    asks: orderbook?.asks || [],
-    bids: orderbook?.bids || [],
-    spreadValue: orderbook?.spread || 0,
-    spreadPercentage: orderbook?.spreadPercentage || 0,
-  }), [orderbook]);
+  const { asks, bids, spreadValue, spreadPercentage } = useMemo(() => {
+    // DEBUGGING: Log the orderbook data being processed
+    console.log("🔍 VerticalOrderBook: Processing orderbook data:", {
+      hasOrderbook: !!orderbook,
+      orderbookKeys: orderbook ? Object.keys(orderbook) : [],
+      asksCount: orderbook?.asks?.length || 0,
+      bidsCount: orderbook?.bids?.length || 0,
+      sampleAsk: orderbook?.asks?.[0] ? {
+        price: orderbook.asks[0].price,
+        quantity: orderbook.asks[0].quantity,
+        priceType: typeof orderbook.asks[0].price,
+        quantityType: typeof orderbook.asks[0].quantity,
+        priceLength: typeof orderbook.asks[0].price === 'string' ? orderbook.asks[0].price.length : 'N/A',
+        quantityLength: typeof orderbook.asks[0].quantity === 'string' ? orderbook.asks[0].quantity.length : 'N/A',
+      } : null,
+      sampleBid: orderbook?.bids?.[0] ? {
+        price: orderbook.bids[0].price,
+        quantity: orderbook.bids[0].quantity,
+        priceType: typeof orderbook.bids[0].price,
+        quantityType: typeof orderbook.bids[0].quantity,
+        priceLength: typeof orderbook.bids[0].price === 'string' ? orderbook.bids[0].price.length : 'N/A',
+        quantityLength: typeof orderbook.bids[0].quantity === 'string' ? orderbook.bids[0].quantity.length : 'N/A',
+      } : null,
+    });
+    
+    return {
+      asks: orderbook?.asks || [],
+      bids: orderbook?.bids || [],
+      spreadValue: orderbook?.spread || 0,
+      spreadPercentage: orderbook?.spreadPercentage || 0,
+    };
+  }, [orderbook]);
 
   // Memoize the trading pair options to prevent recreation
   const tradingPairOptions = useMemo(() => 
@@ -167,7 +237,7 @@ const VerticalOrderBook = React.memo(({
     return (
       <>
         {/* Header */}
-        <header className="grid grid-cols-3 text-xs text-gray-500 mb-2 gap-x-4">
+        <header className="grid grid-cols-3 text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 gap-x-2 sm:gap-x-4 font-medium">
           <span className="text-left">Price</span>
           <span className="text-right">
             Amount ({tradingPair?.baseSymbol || "TOKEN"})
@@ -187,17 +257,18 @@ const VerticalOrderBook = React.memo(({
               isAsk={true}
               baseSymbol={tradingPair?.baseSymbol || "TOKEN"}
               quoteSymbol={tradingPair?.quoteSymbol || "TOKEN"}
+              tradingPair={tradingPair}
             />
           ))}
         </section>
 
         {/* Spread */}
-        <article className="flex items-center justify-center py-2 my-2 bg-gray-50 rounded text-xs">
-          <span className="text-gray-600 mr-2">Spread:</span>
-          <span className="text-gray-700 font-mono">
+        <article className="flex items-center justify-center py-2 sm:py-3 my-2 sm:my-3 bg-gray-50 rounded text-xs sm:text-sm">
+          <span className="text-gray-600 mr-1 sm:mr-2">Spread:</span>
+          <span className="text-gray-700 font-mono text-xs sm:text-sm">
             {spreadValue.toString()}
           </span>
-          <span className="text-gray-600 ml-2">
+          <span className="text-gray-600 ml-1 sm:ml-2 text-xs sm:text-sm">
             ({formatDecimalConsistent(spreadPercentage)}%)
           </span>
         </article>
@@ -212,6 +283,7 @@ const VerticalOrderBook = React.memo(({
               isAsk={false}
               baseSymbol={tradingPair?.baseSymbol || "TOKEN"}
               quoteSymbol={tradingPair?.quoteSymbol || "TOKEN"}
+              tradingPair={tradingPair}
             />
           ))}
         </section>
@@ -223,7 +295,7 @@ const VerticalOrderBook = React.memo(({
   return (
     <main className="h-full bg-white rounded-lg shadow-sm border">
       {headerComponent}
-      <section className="p-4 h-full overflow-auto">
+      <section className="p-2 sm:p-3 lg:p-4 h-full overflow-auto">
         {orderbookContent}
       </section>
     </main>

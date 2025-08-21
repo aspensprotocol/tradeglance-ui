@@ -1,5 +1,6 @@
 import { create, toBinary } from "@bufbuild/protobuf";
-import { OrderSchema, Side, ExecutionType } from "../protos/gen/arborter_pb";
+import type { ExecutionType, Side } from "../protos/gen/arborter_pb";
+import { OrderSchema } from "../protos/gen/arborter_pb";
 
 // Define proper types for MetaMask ethereum object
 interface MetaMaskEthereumProvider {
@@ -41,8 +42,8 @@ export async function signOrderWithGlobalProtobuf(
 
   try {
     // Use proto enum values directly
-    const side: Side = orderData.side;
-    const executionType: ExecutionType = orderData.executionType;
+    const {side} = orderData;
+    const {executionType} = orderData;
 
     console.log("Execution type conversion:", {
       original: orderData.executionType,
@@ -51,13 +52,13 @@ export async function signOrderWithGlobalProtobuf(
 
     // Create the protobuf Order message exactly like the CLI does
     const orderMessage = create(OrderSchema, {
-      side: side,
+      side,
       quantity: orderData.quantity,
       price: orderData.price,
       marketId: orderData.marketId,
       baseAccountAddress: orderData.baseAccountAddress,
       quoteAccountAddress: orderData.quoteAccountAddress,
-      executionType: executionType,
+      executionType,
       matchingOrderIds: orderData.matchingOrderIds.map((id) => BigInt(id)), // Convert number[] to bigint[]
     });
 
@@ -93,7 +94,7 @@ export async function signOrderWithGlobalProtobuf(
     console.log("=== END MESSAGE DETAILS ===");
 
     // Sign the protobuf bytes using MetaMask
-    const hexStringForSigning: string = "0x" + hexString;
+    const hexStringForSigning = `0x${  hexString}`;
     const signature: string = await ethereum.request({
       method: "personal_sign",
       params: [hexStringForSigning, orderData.baseAccountAddress],
@@ -102,11 +103,12 @@ export async function signOrderWithGlobalProtobuf(
     console.log("MetaMask signature received:", signature);
 
     // Convert hex signature to bytes
+    const hexPairs = signature.slice(2).match(/.{1,2}/g);
+    if (!hexPairs) {
+      throw new Error("Invalid signature format");
+    }
     const signatureBytes: Uint8Array = new Uint8Array(
-      signature
-        .slice(2)
-        .match(/.{1,2}/g)!
-        .map((byte: string) => parseInt(byte, 16)),
+      hexPairs.map((byte: string) => parseInt(byte, 16))
     );
 
     console.log("Signature converted to bytes:", Array.from(signatureBytes));

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { arborterService } from "../lib/grpc-client";
-import { Trade } from "../protos/gen/arborter_pb";
-import { weiToDecimal } from "../lib/number-utils";
+import type { Trade } from "../protos/gen/arborter_pb";
 import { useTradingPairs } from "./useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
 
@@ -48,8 +47,8 @@ export function useRecentTrades(
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState<number>(0);
-  const maxRetries: number = 5; // Increased to 5 for better reliability with streaming
-  const requestTimeout = 15000; // Increased to 15 seconds for streaming data
+  const maxRetries = 5; // Increased to 5 for better reliability with streaming
+
 
   // Process trades data into the expected format
   const processTradesData = useCallback(
@@ -61,31 +60,49 @@ export function useRecentTrades(
       console.log("Processing trades data:", tradesData.length, "trades");
 
       // Convert protobuf Trade objects to RecentTrade interface
-      const processedTrades: RecentTrade[] = tradesData.map((trade: Trade) => ({
-        id: trade.orderHit?.toString() || `trade-${Date.now()}`,
-        side: trade.buyerIs === 1 ? "buy" : "sell", // 1 = MAKER, 2 = TAKER
-        price: parseFloat(
+      const processedTrades: RecentTrade[] = tradesData.map((trade: Trade) => {
+        // The backend sends values in pair decimal format, not wei format
+        // So we need to divide by 10^pairDecimals, not 10^tokenDecimals
+        const pairDecimals = currentTradingPair?.pairDecimals || 8;
+        
+        const priceDecimal = parseFloat(
           formatDecimalConsistent(
-            weiToDecimal(trade.price?.toString() || "0", quoteTokenDecimals),
+            (parseFloat(trade.price?.toString() || "0") / Math.pow(10, pairDecimals)).toString(),
           ),
-        ),
-        quantity: parseFloat(
+        );
+        
+        const quantityDecimal = parseFloat(
           formatDecimalConsistent(
-            weiToDecimal(trade.qty?.toString() || "0", baseTokenDecimals),
+            (parseFloat(trade.qty?.toString() || "0") / Math.pow(10, pairDecimals)).toString(),
           ),
-        ),
-        timestamp: new Date(Number(trade.timestamp) || Date.now()),
-        trader: trade.makerId?.toString() || "",
-        marketId: trade.makerBaseAddress || "",
-      }));
+        );
+
+        console.log("🔍 Trade conversion:", {
+          originalPrice: trade.price?.toString(),
+          originalQuantity: trade.qty?.toString(),
+          pairDecimals,
+          convertedPrice: priceDecimal,
+          convertedQuantity: quantityDecimal,
+        });
+
+        return {
+          id: trade.orderHit?.toString() || `trade-${Date.now()}`,
+          side: trade.buyerIs === 1 ? "buy" : "sell", // 1 = MAKER, 2 = TAKER
+          price: priceDecimal,
+          quantity: quantityDecimal,
+          timestamp: new Date(Number(trade.timestamp) || Date.now()),
+          trader: trade.makerId?.toString() || "",
+          marketId: trade.makerBaseAddress || "",
+        };
+      });
 
       // Remove duplicates based on trade ID and timestamp
       const uniqueTrades: RecentTrade[] = processedTrades.filter(
         (trade: RecentTrade, index: number, self: RecentTrade[]) => {
-          const tradeUniqueId: string = `${trade.id}-${trade.timestamp.getTime()}`;
+          const tradeUniqueId = `${trade.id}-${trade.timestamp.getTime()}`;
 
           const firstIndex: number = self.findIndex((t: RecentTrade) => {
-            const otherUniqueId: string = `${t.id}-${t.timestamp.getTime()}`;
+            const otherUniqueId = `${t.id}-${t.timestamp.getTime()}`;
             return otherUniqueId === tradeUniqueId;
           });
 
@@ -120,26 +137,26 @@ export function useRecentTrades(
 
       return uniqueTrades;
     },
-    [baseTokenDecimals, quoteTokenDecimals],
+    [currentTradingPair],
   );
 
   // Fetch trades data with timeout
   const fetchTradesData = useCallback(
     async (
-      marketId: string,
-      filterByTrader?: string,
+      marketIdParam: string,
+      filterByTraderParam?: string,
     ): Promise<RecentTrade[]> => {
       try {
         console.log("=== FETCHING RECENT TRADES ===");
-        console.log("Market ID:", marketId);
-        console.log("Filter by trader:", filterByTrader);
+        console.log("Market ID:", marketIdParam);
+        console.log("Filter by trader:", filterByTraderParam);
 
         // For continuous streaming, don't use timeout race - let the stream run
         const tradesData: Trade[] = await arborterService.getTrades(
-          marketId,
+          marketIdParam,
           undefined,
           true,
-          filterByTrader,
+          filterByTraderParam,
         );
 
         if (!tradesData || tradesData.length === 0) {
@@ -167,9 +184,9 @@ export function useRecentTrades(
         // Remove duplicates
         const uniqueTrades: RecentTrade[] = processedTrades.filter(
           (trade: RecentTrade, index: number, self: RecentTrade[]) => {
-            const tradeUniqueId: string = `${trade.id}-${trade.timestamp.getTime()}`;
+            const tradeUniqueId = `${trade.id}-${trade.timestamp.getTime()}`;
             const firstIndex: number = self.findIndex((t: RecentTrade) => {
-              const otherUniqueId: string = `${t.id}-${t.timestamp.getTime()}`;
+              const otherUniqueId = `${t.id}-${t.timestamp.getTime()}`;
               return otherUniqueId === tradeUniqueId;
             });
             const isDuplicate: boolean = firstIndex !== index;
@@ -189,9 +206,9 @@ export function useRecentTrades(
 
         console.log("Final unique trades:", uniqueTrades.length);
         return uniqueTrades;
-      } catch (error: unknown) {
-        console.error("Error fetching recent trades:", error);
-        throw error;
+      } catch (err: unknown) {
+        console.error("Error fetching recent trades:", err);
+        throw err;
       }
     },
     [processTradesData],
@@ -230,9 +247,9 @@ export function useRecentTrades(
 
         setInitialLoading(false);
         setRetryCount(0); // Reset retry count on successful fetch
-      } catch (error: unknown) {
+      } catch (err: unknown) {
         const errorMessage: string =
-          error instanceof Error ? error.message : "Unknown error occurred";
+          err instanceof Error ? err.message : "Unknown error occurred";
         console.error("Error fetching data:", errorMessage);
 
         // Check if this is a streaming error (network error, incomplete chunked encoding)
@@ -307,9 +324,9 @@ export function useRecentTrades(
         console.log("📭 No trades found on refresh, setting empty state");
         setTrades([]);
       }
-    } catch (error: unknown) {
+    } catch (err: unknown) {
       const errorMessage: string =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        err instanceof Error ? err.message : "Unknown error occurred";
       console.error("Error refreshing data:", errorMessage);
       setError(errorMessage);
 

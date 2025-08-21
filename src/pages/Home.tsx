@@ -1,56 +1,60 @@
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Layout } from "@/components/Layout";
-import { useMediaQuery } from "react-responsive";
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, BarChart3, BookOpen, Coins } from 'lucide-react';
 
 const Home = (): JSX.Element => {
-  const isMobile = useMediaQuery({ maxWidth: 768 });
-
   return (
-    <Layout footerPosition="fixed">
-      <main className="flex items-center justify-center h-full px-2 sm:px-4">
-        <section className="max-w-md w-full space-y-4 sm:space-y-6">
-          <Card>
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="text-center text-xl sm:text-2xl md:text-3xl">
-                Trade Glance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
-              {/* Hide Pro button on mobile */}
-              {!isMobile && (
-                <Link to="/pro" className="block">
-                  <Button className="w-full py-3 sm:py-2" variant="outline">
-                    Pro
-                  </Button>
-                </Link>
-              )}
-              <Link to="/simple" className="block">
-                <Button className="w-full py-3 sm:py-2" variant="outline">
-                  Simple
+    <main className="flex items-center justify-center h-full px-2 sm:px-4">
+      <section className="max-w-md w-full space-y-4 sm:space-y-6">
+        <Card className="text-center">
+          <CardHeader>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Welcome to Trade Glance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600 text-sm sm:text-base">
+              Your gateway to cross-chain trading with advanced order management and real-time market data.
+            </p>
+            
+            <nav className="grid gap-3">
+              <Link to="/pro">
+                <Button className="w-full justify-between" size="lg">
+                  <span className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Pro Trading
+                  </span>
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/docs" className="block">
-                <Button className="w-full py-3 sm:py-2" variant="outline">
-                  Docs
+              
+              <Link to="/simple">
+                <Button variant="outline" className="w-full justify-between" size="lg">
+                  <span className="flex items-center gap-2">
+                    <Coins className="h-5 w-5" />
+                    Simple Trading
+                  </span>
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/mint" className="block">
-                <Button className="w-full py-3 sm:py-2" variant="outline">
-                  Mint Test Tokens
+              
+              <Link to="/docs">
+                <Button variant="outline" className="w-full justify-between" size="lg">
+                  <span className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Documentation
+                  </span>
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/config" className="block">
-                <Button className="w-full py-3 sm:py-2" variant="outline">
-                  Config
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </section>
-      </main>
-    </Layout>
+            </nav>
+          </CardContent>
+        </Card>
+      </section>
+    </main>
   );
 };
 

@@ -13,7 +13,7 @@ export function Toaster(): JSX.Element {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(({ id, title, description, action, ...props }) => {
         return (
           <Toast key={id} {...props}>
             <section className="grid gap-1">
