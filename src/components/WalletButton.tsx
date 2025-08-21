@@ -19,20 +19,43 @@ export const WalletButton: React.FC = () => {
 
   if (isConnected && address) {
     return (
-      <div className="flex items-center gap-2">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span 
           className="chip blue lighten-4 cursor-pointer waves-effect"
           onClick={handleAddressClick}
           title="Click to deposit/withdraw funds"
+          style={{ 
+            margin: '0', 
+            height: '32px', 
+            lineHeight: '32px',
+            display: 'inline-flex', 
+            alignItems: 'center',
+            padding: '0 12px',
+            fontSize: '13px',
+            verticalAlign: 'middle',
+            boxSizing: 'border-box'
+          }}
         >
-          <i className="material-icons left">account_balance_wallet</i>
+          <i className="material-icons left" style={{ fontSize: '16px', marginRight: '4px', lineHeight: '16px' }}>account_balance_wallet</i>
           {formatAddress(address)}
         </span>
         <a 
           className="btn-small red waves-effect waves-light"
           onClick={() => disconnect()}
+          style={{ 
+            margin: '0', 
+            height: '32px',
+            lineHeight: '32px',
+            display: 'inline-flex', 
+            alignItems: 'center',
+            padding: '0 12px',
+            fontSize: '13px',
+            verticalAlign: 'middle',
+            boxSizing: 'border-box',
+            textDecoration: 'none'
+          }}
         >
-          <i className="material-icons left">power_settings_new</i>
+          <i className="material-icons left" style={{ fontSize: '16px', marginRight: '4px', lineHeight: '16px' }}>power_settings_new</i>
           Disconnect
         </a>
         
@@ -46,8 +69,23 @@ export const WalletButton: React.FC = () => {
   }
   
   return (
-    <a className="btn waves-effect waves-light blue" onClick={() => open()}>
-      <i className="material-icons left">account_balance_wallet</i>
+    <a 
+      className="btn waves-effect waves-light blue" 
+      onClick={() => open()}
+      style={{ 
+        margin: '0', 
+        height: '32px',
+        lineHeight: '32px',
+        display: 'inline-flex', 
+        alignItems: 'center',
+        padding: '0 12px',
+        fontSize: '13px',
+        verticalAlign: 'middle',
+        boxSizing: 'border-box',
+        textDecoration: 'none'
+      }}
+    >
+      <i className="material-icons left" style={{ fontSize: '16px', marginRight: '4px', lineHeight: '16px' }}>account_balance_wallet</i>
       Connect Wallet
     </a>
   )

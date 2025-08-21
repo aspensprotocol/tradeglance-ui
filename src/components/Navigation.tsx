@@ -14,7 +14,7 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
   useMaterialize();
 
   return (
-    <nav className="nav-wrapper teal">
+    <nav className="nav-wrapper" style={{ backgroundColor: 'transparent' }}>
       <div className="container">
         <Link to="/" className="brand-logo">
           <i className="material-icons">trending_up</i>
@@ -26,9 +26,22 @@ export const Navigation = ({ className = "" }: NavigationProps) => {
           <li><Link to="/pro">Pro</Link></li>
           <li><Link to="/simple">Simple</Link></li>
           <li><Link to="/docs">Docs</Link></li>
-          <li>
+          <li style={{ paddingRight: '8px' }}>
             {currentChainId && (
-              <span className={`chip ${isSupported ? 'green lighten-4' : 'red lighten-4'}`}>
+              <span 
+                className={`chip ${isSupported ? 'green lighten-4' : 'red lighten-4'}`}
+                style={{ 
+                  margin: '0', 
+                  height: '32px', 
+                  lineHeight: '32px',
+                  display: 'inline-flex', 
+                  alignItems: 'center',
+                  padding: '0 12px',
+                  fontSize: '13px',
+                  verticalAlign: 'middle',
+                  boxSizing: 'border-box'
+                }}
+              >
                 {isSupported ? '✅' : '❌'} {getChainNetwork(currentChainId) || currentChainId}
               </span>
             )}
