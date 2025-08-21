@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
+import { useMaterialize } from "@/lib/materialize-utils";
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,16 +10,14 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children, className = "", footerPosition = "fixed" }: LayoutProps) => {
+  useMaterialize();
+
   return (
-    <div className={`min-h-screen bg-neutral-soft/30 relative ${className}`}>
-      <div className="container min-h-screen flex flex-col">
-        <div className="p-4">
-          <Navigation />
-        </div>
-        <div className="flex-1 px-4 pb-16">
-          {children}
-        </div>
-      </div>
+    <div className={`min-h-screen grey lighten-4 ${className}`}>
+      <Navigation />
+      <main className="container section">
+        {children}
+      </main>
       <Footer className={`${footerPosition} bottom-0 left-0 right-0`} />
     </div>
   );

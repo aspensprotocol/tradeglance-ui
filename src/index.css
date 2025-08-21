@@ -1,3 +1,7 @@
+/* Import Materialize CSS first */
+@import 'materialize-css/dist/css/materialize.min.css';
+
+/* Then import Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -101,6 +105,33 @@
 }
 
 @layer components {
+  /* Materialize + TailwindCSS Integration Fixes */
+  
+  /* Ensure proper stacking for modals */
+  .modal-overlay {
+    z-index: 1000;
+  }
+  
+  .modal {
+    z-index: 1001;
+  }
+  
+  /* Fix navigation z-index */
+  nav {
+    z-index: 999;
+  }
+  
+  /* Ensure Tailwind utilities work with Materialize */
+  .w-full {
+    width: 100% !important;
+  }
+  
+  /* Custom styles for better integration */
+  .materialize-card {
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+    border-radius: 2px;
+  }
+  
   /* Documentation specific styles */
   .prose h1, .prose h2, .prose h3 {
     scroll-margin-top: 2rem;

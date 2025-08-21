@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useAccount, useDisconnect } from 'wagmi'
-import { Button } from './ui/button'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 import DepositWithdrawModal from './DepositWithdrawModal'
 
@@ -21,20 +20,21 @@ export const WalletButton: React.FC = () => {
   if (isConnected && address) {
     return (
       <div className="flex items-center gap-2">
-        <div 
-          className="text-sm border border-gray-300 rounded px-2 py-0.5 bg-white/60 text-gray-900 cursor-pointer hover:bg-white/80 transition-colors"
+        <span 
+          className="chip blue lighten-4 cursor-pointer waves-effect"
           onClick={handleAddressClick}
           title="Click to deposit/withdraw funds"
         >
-          <div className="font-medium">{formatAddress(address)}</div>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm"
+          <i className="material-icons left">account_balance_wallet</i>
+          {formatAddress(address)}
+        </span>
+        <a 
+          className="btn-small red waves-effect waves-light"
           onClick={() => disconnect()}
         >
+          <i className="material-icons left">power_settings_new</i>
           Disconnect
-        </Button>
+        </a>
         
         <DepositWithdrawModal
           isOpen={modalOpen}
@@ -46,8 +46,9 @@ export const WalletButton: React.FC = () => {
   }
   
   return (
-    <Button onClick={() => open()}>
+    <a className="btn waves-effect waves-light blue" onClick={() => open()}>
+      <i className="material-icons left">account_balance_wallet</i>
       Connect Wallet
-    </Button>
+    </a>
   )
 }
