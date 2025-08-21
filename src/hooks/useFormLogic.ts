@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
 import { TradingPair } from "./useTradingPairs";
@@ -9,9 +9,6 @@ import { BaseOrQuote, Chain } from "../protos/gen/arborter_config_pb";
 // the old wallet_switchEthereumChain and wallet_addEthereumChain methods. This update
 // requires users to manually switch networks in MetaMask instead of automatic switching.
 // See: https://metamask.io/news/metamask-feature-update-chain-permissions
-console.log(
-  "FormLogic: Using MetaMask Chain Permissions system - automatic chain switching disabled",
-);
 
 export interface UseFormLogicOptions {
   tradingPair?: TradingPair;
@@ -68,7 +65,7 @@ export interface UseFormLogicReturn {
   handleSubmitOrder: (
     side: BaseOrQuote.BASE | BaseOrQuote.QUOTE,
   ) => Promise<void>;
-  handleSwapTokens: () => void;
+  handleSwapTokens: () => Promise<void>;
 
   // Network actions
   handleSenderNetworkChange: (network: string) => void;
@@ -176,9 +173,6 @@ export const useFormLogic = ({
         getCorrectSideForChain(currentChainId);
 
       if (activeTab !== correctSide) {
-        console.log(
-          `FormLogic: Auto-updating side from ${activeTab} to ${correctSide} based on chain ${currentChainId}`,
-        );
         setActiveTab(correctSide);
       }
     }
@@ -289,15 +283,7 @@ export const useFormLogic = ({
 
   const handleSideChange = useCallback(
     (newSide: BaseOrQuote.BASE | BaseOrQuote.QUOTE): void => {
-      console.log("FormLogic: handleSideChange called:", {
-        newSide,
-        currentSide: activeTab,
-        currentChainId,
-        currentChainConfig: getCurrentChainConfig(),
-      });
-
       if (newSide === activeTab) {
-        console.log("FormLogic: No change needed, same side");
         return; // No change needed
       }
 
@@ -315,21 +301,7 @@ export const useFormLogic = ({
         return;
       }
 
-      console.log("FormLogic: Found chains:", {
-        baseChain: { network: baseChain.network, chainId: baseChain.chainId },
-        quoteChain: {
-          network: quoteChain.network,
-          chainId: quoteChain.chainId,
-        },
-      });
-
       // Update the active tab first
-      console.log(
-        "FormLogic: Updating active tab from",
-        activeTab,
-        "to",
-        newSide,
-      );
       setActiveTab(newSide);
       setUserManuallySelectedSide(true);
 
@@ -351,35 +323,19 @@ export const useFormLogic = ({
       if (newSide === BaseOrQuote.BASE) {
         // Switching to BASE side (SELL) - suggest base chain
         console.log(
-          "FormLogic: Suggesting base chain (sell chain) for BASE side",
-        );
-        console.log(
           "FormLogic: User should manually switch to base chain in MetaMask:",
           baseChain.network,
         );
-
-        // Show a toast or notification suggesting the user switch chains manually
-        // This is handled by the UI layer if needed
       } else {
         // Switching to QUOTE side (BUY) - suggest quote chain
-        console.log(
-          "FormLogic: Suggesting quote chain (buy chain) for QUOTE side",
-        );
         console.log(
           "FormLogic: User should manually switch to quote chain in MetaMask:",
           quoteChain.network,
         );
-
-        // Show a toast or notification suggesting the user switch chains manually
-        // This is handled by the UI layer if needed
       }
-
-      console.log("FormLogic: Side change completed for side:", newSide);
     },
     [
       activeTab,
-      currentChainId,
-      getCurrentChainConfig,
       getAllChains,
       tradingPair,
     ],
@@ -395,20 +351,11 @@ export const useFormLogic = ({
     // Determine the optimal side based on the current network
     const optimalSide = currentChain.baseOrQuote;
 
-    console.log("FormLogic: Detecting optimal side for current network:", {
-      currentChainId,
-      currentNetwork: currentChain.network,
-      currentBaseOrQuote: currentChain.baseOrQuote,
-      optimalSide,
-      currentActiveTab: activeTab,
-    });
-
     // Only change if the current side doesn't match the optimal side
     if (
       activeTab !== optimalSide &&
       (optimalSide === BaseOrQuote.BASE || optimalSide === BaseOrQuote.QUOTE)
     ) {
-      console.log("FormLogic: Auto-switching to optimal side:", optimalSide);
       setActiveTab(optimalSide as BaseOrQuote.BASE | BaseOrQuote.QUOTE);
       // Reset the manual selection flag since this is an automatic change
       setUserManuallySelectedSide(false);
@@ -469,15 +416,6 @@ export const useFormLogic = ({
     tradingPair,
   ]);
 
-  // Pre-warm chains in MetaMask for faster switching
-  useEffect(() => {
-    // With MetaMask's new Chain Permissions system, we don't pre-warm chains
-    // Users will need to manually add chains when they want to use them
-    console.log(
-      "FormLogic: Chain pre-warming disabled - use MetaMask Chain Permissions instead",
-    );
-  }, [getAllChains, isSimpleForm]);
-
   // Auto-detect optimal side when chain changes
   useEffect(() => {
     detectAndSetOptimalSide();
@@ -486,34 +424,16 @@ export const useFormLogic = ({
   // Handle order type changes
   const handleOrderTypeChange = useCallback(
     (newOrderType: "limit" | "market"): void => {
-      console.log("FormLogic: handleOrderTypeChange called:", {
-        newOrderType,
-        currentOrderType: activeOrderType,
-      });
-
       if (newOrderType === activeOrderType) {
-        console.log("FormLogic: No change needed, same order type");
         return; // No change needed
       }
 
-      console.log(
-        "FormLogic: Updating order type from",
-        activeOrderType,
-        "to",
-        newOrderType,
-      );
       setActiveOrderType(newOrderType);
 
       // If switching to market order, clear the price
       if (newOrderType === "market") {
-        console.log("FormLogic: Clearing price for market order");
         updateFormState({ price: "" });
       }
-
-      console.log(
-        "FormLogic: Order type change completed for type:",
-        newOrderType,
-      );
     },
     [activeOrderType, updateFormState],
   );
@@ -521,21 +441,18 @@ export const useFormLogic = ({
   // Update price function
   const updatePrice = useCallback(
     (price: string): void => {
-      console.log("FormLogic: updatePrice called:", {
-        newPrice: price,
-        currentPrice: formState.price,
-      });
       updateFormState({ price });
-      console.log("FormLogic: Price updated to:", price);
     },
-    [updateFormState, formState.price],
+    [updateFormState],
   );
 
   // Reset manual side selection flag
   const resetManualSideSelection = useCallback((): void => {
-    console.log("FormLogic: Resetting manual side selection flag");
     setUserManuallySelectedSide(false);
   }, []);
+
+  // Memoize the chains array to prevent unnecessary re-renders
+  const chains = useMemo(() => getAllChains(), [getAllChains]);
 
   return {
     // Form state
@@ -561,7 +478,7 @@ export const useFormLogic = ({
     isConnected,
     address,
     tradingPairs,
-    chains: getAllChains(),
+    chains,
 
     // Actions
     updateAmount,

@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   ReactNode,
   useState,
   useEffect,
@@ -9,22 +7,7 @@ import {
 import { useSharedOrderbookData } from "../hooks/useSharedOrderbookData";
 import { OrderbookData } from "../hooks/useSharedOrderbookData";
 import { OrderbookEntry } from "../protos/gen/arborter_pb";
-import { weiToDecimal } from "../lib/number-utils";
-import { useTradingPairs } from "../hooks/useTradingPairs";
-
-interface OrderbookContextType {
-  orderbook: OrderbookData;
-  openOrders: OrderbookEntry[];
-  loading: boolean;
-  initialLoading: boolean;
-  error: string | null;
-  refresh: () => void;
-  lastUpdate: Date;
-}
-
-const OrderbookContext = createContext<OrderbookContextType | undefined>(
-  undefined,
-);
+import { OrderbookContext, type OrderbookContextType } from "./orderbook-context";
 
 interface OrderbookProviderProps {
   children: ReactNode;
@@ -37,15 +20,6 @@ export function OrderbookProvider({
   marketId,
   filterByTrader,
 }: OrderbookProviderProps): JSX.Element {
-  // Get trading pairs to extract token decimals
-  const { tradingPairs } = useTradingPairs();
-
-  // Find the current trading pair to get token decimals
-  const currentTradingPair = tradingPairs.find((pair) => pair.id === marketId);
-
-  // Extract token decimals from the trading pair
-  const baseTokenDecimals = currentTradingPair?.baseChainTokenDecimals || 18;
-  const quoteTokenDecimals = currentTradingPair?.quoteChainTokenDecimals || 18;
 
   // Get raw data from the hook
   const rawData = useSharedOrderbookData(marketId, filterByTrader);
@@ -65,39 +39,36 @@ export function OrderbookProvider({
     error: null,
     refresh: () => {},
     lastUpdate: new Date(),
+    setFilterByTrader: () => {},
   });
 
-  // Parse the raw data with proper decimals
+  // Parse the raw data - NO conversion needed since useSharedOrderbookData already does it
   const parseOrderbookData = useCallback(
     (entries: OrderbookEntry[]): OrderbookEntry[] => {
       if (!entries || entries.length === 0) return [];
 
-      return entries.map((entry) => {
-        // Convert wei values to proper decimals using actual token decimals from config
-        // Price uses quote token decimals (price is in quote currency)
-        // Quantity uses base token decimals (quantity is in base currency)
-        const priceDecimal = weiToDecimal(
-          entry.price || "0",
-          quoteTokenDecimals,
-        );
-        const quantityDecimal = weiToDecimal(
-          entry.quantity || "0",
-          baseTokenDecimals,
-        );
-
-        // Create a new entry with properly formatted values
-        return {
-          ...entry,
-          price: priceDecimal,
-          quantity: quantityDecimal,
-        };
-      });
+      // Just return the entries as-is since they're already converted
+      return entries;
     },
-    [baseTokenDecimals, quoteTokenDecimals],
+    [],
   );
 
   // Update parsed data when raw data changes
   useEffect(() => {
+    console.log("🔄 OrderbookContext: rawData changed, processing:", {
+      hasOrderbook: !!rawData.orderbook,
+      hasOpenOrders: !!rawData.openOrders,
+      orderbookBids: rawData.orderbook?.bids?.length || 0,
+      orderbookAsks: rawData.orderbook?.asks?.length || 0,
+      openOrdersCount: rawData.openOrders?.length || 0,
+      sampleOpenOrder: rawData.openOrders?.[0] ? {
+        price: rawData.openOrders[0].price,
+        quantity: rawData.openOrders[0].quantity,
+        priceType: typeof rawData.openOrders[0].price,
+        quantityType: typeof rawData.openOrders[0].quantity,
+      } : null,
+    });
+
     if (rawData.orderbook && rawData.openOrders) {
       const parsedOrderbook = {
         ...rawData.orderbook,
@@ -107,11 +78,17 @@ export function OrderbookProvider({
 
       const parsedOpenOrders = parseOrderbookData(rawData.openOrders);
 
+      console.log("🔍 OrderbookContext: After parsing:", {
+        parsedOrderbookBids: parsedOrderbook.bids.slice(0, 2).map(b => ({ price: b.price, quantity: b.quantity })),
+        parsedOpenOrders: parsedOpenOrders.slice(0, 2).map(o => ({ price: o.price, quantity: o.quantity })),
+      });
+
       setParsedData({
         ...rawData,
         orderbook: parsedOrderbook,
         openOrders: parsedOpenOrders,
         refresh: rawData.refresh, // Pass through the refresh function
+        setFilterByTrader: rawData.setFilterByTrader, // Pass through the setFilterByTrader function
       });
     }
   }, [rawData, parseOrderbookData]);
@@ -123,12 +100,4 @@ export function OrderbookProvider({
   );
 }
 
-export function useOrderbookContext(): OrderbookContextType {
-  const context = useContext(OrderbookContext);
-  if (context === undefined) {
-    throw new Error(
-      "useOrderbookContext must be used within an OrderbookProvider",
-    );
-  }
-  return context;
-}
+// Hook moved to src/hooks/useOrderbookContext.ts to fix React Fast Refresh warning

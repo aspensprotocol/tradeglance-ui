@@ -18,60 +18,27 @@ export interface UseConfigReturn {
 }
 
 export function useConfig(): UseConfigReturn {
-  console.log("🔍 useConfig hook called");
-
   const [config, setConfig] = useState<Configuration | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  console.log("🔍 useConfig initial state:", {
-    hasConfig: !!config,
-    loading,
-    error,
-    configKeys: config ? Object.keys(config) : [],
-  });
 
   const fetchConfig = useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null);
 
     try {
-      console.log("🔧 Fetching configuration from backend...");
-      console.log(
-        "🔧 gRPC endpoint:",
-        import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
-      );
-      console.log("🔧 Current URL:", window.location.href);
-
       const response = await configService.getConfig();
 
       if (response.config) {
-        console.log("✅ Configuration loaded successfully:", response.config);
         setConfig(response.config);
         // Update the global configUtils instance so other parts of the app can access it
         configUtils.setConfig(response.config);
-        console.log("🔧 ConfigUtils updated with new configuration");
-
-        // Log some details about the loaded configuration
-        console.log("📊 Configuration summary:", {
-          chainsCount: response.config.chains?.length || 0,
-          marketsCount: response.config.markets?.length || 0,
-          hasTradeContracts:
-            response.config.chains?.some(
-              (chain: Chain) => chain.tradeContract,
-            ) || false,
-        });
       } else {
-        console.error(
-          "❌ BACKEND ISSUE: Empty configuration received from backend",
-        );
         setError("Empty configuration received from backend");
       }
     } catch (err: unknown) {
       const errorMessage: string =
         err instanceof Error ? err.message : "Unknown error occurred";
-      console.error("❌ Failed to fetch configuration:", errorMessage);
-      console.error("❌ Error details:", err);
 
       // Provide more specific error messages based on the error type
       let userFriendlyError = errorMessage;
@@ -93,7 +60,6 @@ export function useConfig(): UseConfigReturn {
   }, []);
 
   const refresh = useCallback(async (): Promise<void> => {
-    console.log("🔄 Refreshing configuration...");
     await fetchConfig();
   }, [fetchConfig]);
 

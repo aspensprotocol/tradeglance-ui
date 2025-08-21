@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import { ImageModal } from "@/components/ImageModal";
 
-// Custom markdown renderer for emojis and special formatting
-export const renderMarkdown = (content: string): React.ReactElement => {
-  return <MarkdownRenderer content={content} />;
-};
-
-const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
+export const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
   const [modalImage, setModalImage] = useState<{
     src: string;
     alt: string;

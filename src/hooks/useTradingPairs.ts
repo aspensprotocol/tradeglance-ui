@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useConfig } from "./useConfig";
 import { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
 
@@ -26,87 +27,38 @@ export const useTradingPairs = (): {
 } => {
   const { config, loading: configLoading, error: configError } = useConfig();
 
-  // Add comprehensive logging
-  console.log("🔍 useTradingPairs hook called:", {
-    hasConfig: !!config,
-    configLoading,
-    configError,
-    configKeys: config ? Object.keys(config) : [],
-    chainsCount: config?.chains?.length || 0,
-    marketsCount: config?.markets?.length || 0,
-  });
-
-  const getTradingPairs = (): TradingPair[] => {
+  // Memoize the trading pairs calculation to avoid recalculation on every render
+  const tradingPairs = useMemo((): TradingPair[] => {
     if (!config || !config.chains || !config.markets) {
-      console.log("❌ No config, chains, or markets available:", {
-        hasConfig: !!config,
-        hasChains: !!config?.chains,
-        hasMarkets: !!config?.markets,
-      });
       return [];
     }
 
     const chains: Chain[] = config.chains || [];
     const markets: Market[] = config.markets || [];
 
-    console.log("🔍 Processing trading pairs:", {
-      chainsCount: chains.length,
-      marketsCount: markets.length,
-      chainNetworks: chains.map((c) => c.network),
-      marketSlugs: markets.map((m) => m.slug),
-    });
-
     if (chains.length === 0 || markets.length === 0) {
-      console.warn("No chains or markets found in config:", {
-        chainsCount: chains.length,
-        marketsCount: markets.length,
-      });
       return [];
     }
 
-    const tradingPairs: TradingPair[] = markets
-      .map((market: Market) => {
-        console.log("🔍 Processing market:", {
-          slug: market.slug,
-          marketId: market.marketId,
-          baseChainNetwork: market.baseChainNetwork,
-          quoteChainNetwork: market.quoteChainNetwork,
-          baseTokenSymbol: market.baseChainTokenSymbol,
-          quoteTokenSymbol: market.quoteChainTokenSymbol,
-        });
+    // Create a map for faster chain lookup
+    const chainMap = new Map<string, Chain>();
+    chains.forEach(chain => chainMap.set(chain.network, chain));
 
+    return markets
+      .map((market: Market) => {
         // Find the base and quote chains for this market
-        const baseChain: Chain | undefined = chains.find(
-          (chain: Chain) => chain.network === market.baseChainNetwork,
-        );
-        const quoteChain: Chain | undefined = chains.find(
-          (chain: Chain) => chain.network === market.quoteChainNetwork,
-        );
+        const baseChain: Chain | undefined = chainMap.get(market.baseChainNetwork);
+        const quoteChain: Chain | undefined = chainMap.get(market.quoteChainNetwork);
 
         if (!baseChain || !quoteChain) {
-          console.warn("Market references non-existent chain:", {
-            marketSlug: market.slug,
-            baseChainNetwork: market.baseChainNetwork,
-            quoteChainNetwork: market.quoteChainNetwork,
-            availableChains: chains.map((c) => c.network),
-          });
           return null;
         }
 
         // Find the base and quote tokens
-        const baseToken: Token | undefined =
-          baseChain.tokens[market.baseChainTokenSymbol];
-        const quoteToken: Token | undefined =
-          quoteChain.tokens[market.quoteChainTokenSymbol];
+        const baseToken: Token | undefined = baseChain.tokens[market.baseChainTokenSymbol];
+        const quoteToken: Token | undefined = quoteChain.tokens[market.quoteChainTokenSymbol];
 
         if (!baseToken || !quoteToken) {
-          console.warn("Market references non-existent token:", {
-            marketSlug: market.slug,
-            baseChainTokenSymbol: market.baseChainTokenSymbol,
-            quoteTokenSymbol: market.quoteChainTokenSymbol,
-            availableBaseTokens: Object.keys(baseChain.tokens),
-            availableQuoteTokens: Object.keys(quoteChain.tokens),
-          });
           return null;
         }
 
@@ -151,65 +103,30 @@ export const useTradingPairs = (): {
           quoteChainId,
         };
 
-        console.log("✅ Created trading pair:", {
-          id: tradingPair.id,
-          displayName: tradingPair.displayName,
-          baseSymbol: tradingPair.baseSymbol,
-          quoteSymbol: tradingPair.quoteSymbol,
-        });
-
         return tradingPair;
       })
       .filter(Boolean) as TradingPair[];
+  }, [config]);
 
-    console.log("🎯 Final trading pairs result:", {
-      totalPairs: tradingPairs.length,
-      pairs: tradingPairs.map((p) => ({
-        id: p.id,
-        displayName: p.displayName,
-      })),
-    });
-
-    return tradingPairs;
-  };
-
-  const tradingPairs: TradingPair[] = getTradingPairs();
-  const loading: boolean =
-    configLoading || (!!config && tradingPairs.length === 0);
+  const loading: boolean = configLoading || (!!config && tradingPairs.length === 0);
   const error: string | null =
     configError ||
     (!!config && tradingPairs.length === 0 ? "No trading pairs found" : null);
 
-  console.log("🔍 useTradingPairs final state:", {
-    tradingPairsCount: tradingPairs.length,
-    loading,
-    error,
-    selectedPairs: tradingPairs.map((p) => ({
-      id: p.id,
-      displayName: p.displayName,
-    })),
-  });
+  // Memoize the lookup functions to prevent recreation on every render
+  const getTradingPairById = useMemo(() => 
+    (id: string): TradingPair | null => {
+      return tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
+    },
+    [tradingPairs]
+  );
 
-  const getTradingPairById = (id: string): TradingPair | null => {
-    const result =
-      tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
-    console.log("🔍 getTradingPairById:", {
-      id,
-      result: result ? result.displayName : "not found",
-    });
-    return result;
-  };
-
-  const getTradingPairByMarketId = (marketId: string): TradingPair | null => {
-    const result =
-      tradingPairs.find((pair: TradingPair) => pair.id.includes(marketId)) ||
-      null;
-    console.log("🔍 getTradingPairByMarketId:", {
-      marketId,
-      result: result ? result.displayName : "not found",
-    });
-    return result;
-  };
+  const getTradingPairByMarketId = useMemo(() => 
+    (marketId: string): TradingPair | null => {
+      return tradingPairs.find((pair: TradingPair) => pair.id.includes(marketId)) || null;
+    },
+    [tradingPairs]
+  );
 
   return {
     tradingPairs,

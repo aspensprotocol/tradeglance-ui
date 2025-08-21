@@ -29,6 +29,7 @@ import {
   triggerBalanceRefresh,
 } from "@/lib/utils";
 import { Chain } from "@/protos/gen/arborter_config_pb";
+import { formatDecimalConsistent } from "../lib/number-utils";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -145,7 +146,8 @@ const DepositWithdrawModal = ({
   const { isConnected } = useAccount();
   const { toast } = useToast();
 
-  const chains = getAllChains();
+  // Memoize chains to prevent recreating the array on every render
+  const chains = useMemo(() => getAllChains(), [getAllChains]);
 
   // Debug: Log the chains data
   console.log("DepositWithdrawModal: Available chains:", chains);
@@ -278,7 +280,7 @@ const DepositWithdrawModal = ({
     }
 
     // Validate amounts don't exceed available balances
-    const amountNum: number = parseFloat(amount);
+    const amountNum: number = parseFloat(formatDecimalConsistent(amount));
 
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
@@ -291,7 +293,7 @@ const DepositWithdrawModal = ({
 
     if (activeType === "withdraw") {
       // For withdrawals, check against deposited balance (available locked funds)
-      const availableNum: number = parseFloat(depositedBalance);
+      const availableNum: number = parseFloat(formatDecimalConsistent(depositedBalance));
 
       if (isNaN(availableNum)) {
         toast({
@@ -313,7 +315,7 @@ const DepositWithdrawModal = ({
       }
     } else if (activeType === "deposit") {
       // For deposits, check against wallet balance
-      const walletNum: number = parseFloat(tokenBalance);
+      const walletNum: number = parseFloat(formatDecimalConsistent(tokenBalance));
 
       if (isNaN(walletNum)) {
         toast({
@@ -561,7 +563,7 @@ const DepositWithdrawModal = ({
                           Error loading wallet balance
                         </span>
                       ) : (
-                        `Wallet Balance: ${tokenBalance}`
+                        `Wallet Balance: ${formatDecimalConsistent(tokenBalance)}`
                       )
                     ) : // For withdrawals, show deposited balance (available locked funds)
                     depositedBalanceLoading ? (
@@ -571,7 +573,7 @@ const DepositWithdrawModal = ({
                         Error loading available balance
                       </span>
                     ) : (
-                      `Available: ${depositedBalance}`
+                      `Available: ${formatDecimalConsistent(depositedBalance)}`
                     )}
                   </span>
                 )}
@@ -588,7 +590,7 @@ const DepositWithdrawModal = ({
                 />
                 {activeType === "withdraw" &&
                   depositedBalance &&
-                  parseFloat(depositedBalance) > 0 && (
+                  parseFloat(formatDecimalConsistent(depositedBalance)) > 0 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -601,7 +603,7 @@ const DepositWithdrawModal = ({
                   )}
                 {activeType === "deposit" &&
                   tokenBalance &&
-                  parseFloat(tokenBalance) > 0 && (
+                  parseFloat(formatDecimalConsistent(tokenBalance)) > 0 && (
                     <Button
                       type="button"
                       variant="outline"

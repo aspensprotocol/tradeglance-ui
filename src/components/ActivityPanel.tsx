@@ -5,8 +5,8 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades } from "@/hooks/useRecentTrades";
-import { formatDecimal } from "../lib/number-utils";
-import { useOrderbookContext } from "../contexts/OrderbookContext";
+import { formatDecimalConsistent, formatLargeNumber } from "../lib/number-utils";
+import { useOrderbookContext } from "../hooks/useOrderbookContext";
 
 import { useAllBalances } from "@/hooks/useAllBalances";
 import { triggerBalanceRefresh } from "../lib/utils";
@@ -45,6 +45,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     openOrders,
     loading: ordersLoading,
     error: ordersError,
+    setFilterByTrader,
   } = useOrderbookContext();
 
   // Only call hooks when their corresponding tab is active to prevent data accumulation
@@ -57,11 +58,8 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     showMineOnly ? address : undefined,
   );
 
-  // Filter open orders by trader if needed
-  const orders =
-    showMineOnly && address
-      ? openOrders.filter((order) => order.makerBaseAddress === address)
-      : openOrders;
+  // Use open orders directly since filtering is handled at the gRPC level
+  const orders = openOrders;
 
   // Debug logging
   console.log("ActivityPanel render:", {
@@ -97,6 +95,19 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
       timestamp: new Date().toISOString(),
     });
   }, [activeTab, marketId]);
+
+  // Update the filter when the toggle changes
+  useEffect(() => {
+    if (setFilterByTrader) {
+      const filterValue = showMineOnly && address ? address : undefined;
+      console.log("ActivityPanel: Updating filter:", {
+        showMineOnly,
+        address,
+        filterValue,
+      });
+      setFilterByTrader(filterValue);
+    }
+  }, [showMineOnly, address, setFilterByTrader]);
 
   // Get trading balances for the current trading pair
   useBalanceManager(tradingPair);
@@ -537,35 +548,35 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                           </header>
 
                           <section className="space-y-2">
-                            {parseFloat(balance.walletBalance) > 0 && (
+                            {parseFloat(formatDecimalConsistent(balance.walletBalance)) > 0 && (
                               <span className="flex justify-between py-1">
                                 <span className="text-sm text-gray-600">
                                   Wallet Balance:
                                 </span>
                                 <span className="text-sm font-medium text-gray-900">
-                                  {balance.walletBalance} {balance.symbol}
+                                  {formatDecimalConsistent(balance.walletBalance)} {balance.symbol}
                                 </span>
                               </span>
                             )}
 
-                            {parseFloat(balance.depositedBalance) > 0 && (
+                            {parseFloat(formatDecimalConsistent(balance.depositedBalance)) > 0 && (
                               <span className="flex justify-between py-1">
                                 <span className="text-sm text-gray-600">
                                   Deposited (Available):
                                 </span>
                                 <span className="text-sm font-medium text-green-600">
-                                  {balance.depositedBalance} {balance.symbol}
+                                  {formatDecimalConsistent(balance.depositedBalance)} {balance.symbol}
                                 </span>
                               </span>
                             )}
 
-                            {parseFloat(balance.lockedBalance) > 0 && (
+                            {parseFloat(formatDecimalConsistent(balance.lockedBalance)) > 0 && (
                               <span className="flex justify-between py-1">
                                 <span className="text-sm text-gray-600">
                                   Locked in Orders:
                                 </span>
                                 <span className="text-sm font-medium text-orange-600">
-                                  {balance.lockedBalance} {balance.symbol}
+                                  {formatDecimalConsistent(balance.lockedBalance)} {balance.symbol}
                                 </span>
                               </span>
                             )}

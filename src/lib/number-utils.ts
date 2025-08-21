@@ -62,3 +62,31 @@ export function weiToDecimal(weiValue: string, decimals: number = 18): string {
 
   return `${whole}.${trimmedRemainder}`;
 }
+
+/**
+ * Formats a decimal number to show only up to 3 decimal places, removing trailing zeros
+ * Examples:
+ * - 1.1035 → "1.103"
+ * - 1.12 → "1.12"
+ * - 1.1241958095 → "1.124"
+ * - 1 → "1"
+ * - 1.0 → "1"
+ * - 1.100 → "1.1"
+ */
+export const formatDecimalConsistent = (value: string | number): string => {
+  if (value === null || value === undefined || value === "") {
+    return "0";
+  }
+
+  const num = typeof value === "string" ? parseFloat(value) : value;
+
+  if (isNaN(num)) {
+    return "0";
+  }
+
+  // Convert to string with up to 3 decimal places
+  const formatted = num.toFixed(3);
+
+  // Remove trailing zeros and decimal point if not needed
+  return formatted.replace(/\.?0+$/, "");
+};

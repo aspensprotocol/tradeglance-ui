@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { arborterService } from "../lib/grpc-client";
 import { OrderbookEntry, Side, OrderStatus } from "../protos/gen/arborter_pb";
-import { weiToDecimal, formatDecimal } from "../lib/number-utils";
+import { weiToDecimal } from "../lib/number-utils";
 import { useTradingPairs } from "./useTradingPairs";
-import { configUtils } from "../lib/config-utils";
 
 // Use protobuf types directly for orderbook data
 export interface OrderbookData {
@@ -32,33 +31,20 @@ export function useSharedOrderbookData(
   error: string | null;
   refresh: () => void;
   lastUpdate: Date;
+  setFilterByTrader: (trader: string | undefined) => void;
 } {
-  console.log("🔍 useSharedOrderbookData hook called:", {
-    marketId,
-    marketIdType: typeof marketId,
-    marketIdTruthy: !!marketId,
-    filterByTrader,
-    filterByTraderType: typeof filterByTrader,
-  });
-
   // Get trading pairs to extract token decimals
   const { tradingPairs } = useTradingPairs();
 
-  // Find the current trading pair to get token decimals
-  const currentTradingPair = tradingPairs.find((pair) => pair.id === marketId);
+  // Memoize the current trading pair to avoid unnecessary recalculations
+  const currentTradingPair = useMemo(() => 
+    tradingPairs.find((pair) => pair.id === marketId),
+    [tradingPairs, marketId]
+  );
 
   // Extract token decimals from the trading pair
   const baseTokenDecimals = currentTradingPair?.baseChainTokenDecimals || 18;
   const quoteTokenDecimals = currentTradingPair?.quoteChainTokenDecimals || 18;
-
-  console.log("🔍 useSharedOrderbookData: Token decimals:", {
-    marketId,
-    currentTradingPair: currentTradingPair?.displayName,
-    baseTokenDecimals,
-    quoteTokenDecimals,
-    baseSymbol: currentTradingPair?.baseSymbol,
-    quoteSymbol: currentTradingPair?.quoteSymbol,
-  });
 
   const [data, setData] = useState<SharedOrderbookData>({
     orderbook: {
@@ -77,27 +63,13 @@ export function useSharedOrderbookData(
   const lastFetchTime = useRef<number>(0);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 5; // Increased to 5 for better reliability with streaming
-  const requestTimeout = 15000; // Increased to 15 seconds for streaming data
+  const maxRetries = 3; // Reduced from 5 for faster failure recovery
+  const requestTimeout = 10000; // Reduced to 10 seconds for faster response
 
-  console.log("🔍 useSharedOrderbookData initial state:", {
-    marketId,
-    initialLoading,
-    loading,
-    error,
-    retryCount,
-    hasData: !!data.orderbook,
-    dataKeys: Object.keys(data),
-  });
-
-  // Process orderbook data into the expected format
+  // Memoize the data processing functions to prevent recreation on every render
   const processOrderbookData = useCallback(
     (entries: OrderbookEntry[]): OrderbookData => {
-      const bids: OrderbookEntry[] = [];
-      const asks: OrderbookEntry[] = [];
-
       if (!entries || entries.length === 0) {
-        console.log("No orderbook entries to process");
         return {
           bids: [],
           asks: [],
@@ -107,78 +79,18 @@ export function useSharedOrderbookData(
         };
       }
 
-      console.log("Processing orderbook data:", entries.length, "entries");
+      const bids: OrderbookEntry[] = [];
+      const asks: OrderbookEntry[] = [];
 
-      // Less aggressive deduplication - only remove exact duplicates
-      const uniqueEntries = entries.filter((entry, index, self) => {
-        const isDuplicate =
-          self.findIndex(
-            (e) =>
-              e.orderId?.toString() === entry.orderId?.toString() &&
-              e.side === entry.side &&
-              e.price === entry.price &&
-              e.quantity === entry.quantity,
-          ) !== index;
-
-        if (isDuplicate) {
-          console.log("Removing duplicate entry:", {
-            orderId: entry.orderId,
-            side: entry.side,
-            price: entry.price,
-            quantity: entry.quantity,
-          });
-        }
-
-        return !isDuplicate;
-      });
-
-      if (uniqueEntries.length !== entries.length) {
-        console.log("Orderbook deduplication:", {
-          original: entries.length,
-          unique: uniqueEntries.length,
-          duplicates: entries.length - uniqueEntries.length,
-        });
-      }
-
-      uniqueEntries.forEach((entry) => {
-        if (entry.side === undefined || entry.side === null) {
-          console.warn("Entry missing side:", entry);
-          return;
-        }
-
-        // Less strict validation - only check for absolutely required fields
-        if (!entry.price || !entry.quantity) {
-          console.warn("Entry missing absolutely required fields:", {
-            orderId: entry.orderId,
-            hasPrice: !!entry.price,
-            hasQuantity: !!entry.quantity,
-            side: entry.side,
-          });
+      // Process entries in a single pass for better performance
+      entries.forEach((entry) => {
+        if (entry.side === undefined || entry.side === null || !entry.price || !entry.quantity) {
           return;
         }
 
         // Convert wei values to proper decimals using actual token decimals from config
-        // Price uses quote token decimals (price is in quote currency)
-        // Quantity uses base token decimals (quantity is in base currency)
-        const priceDecimal = weiToDecimal(
-          entry.price || "0",
-          quoteTokenDecimals,
-        );
-        const quantityDecimal = weiToDecimal(
-          entry.quantity || "0",
-          baseTokenDecimals,
-        );
-
-        console.log("🔍 Decimal conversion:", {
-          orderId: entry.orderId,
-          side: entry.side === Side.BID ? "BID" : "ASK",
-          priceWei: entry.price,
-          priceDecimal,
-          quantityWei: entry.quantity,
-          quantityDecimal,
-          baseTokenDecimals,
-          quoteTokenDecimals,
-        });
+        const priceDecimal = weiToDecimal(entry.price || "0", quoteTokenDecimals);
+        const quantityDecimal = weiToDecimal(entry.quantity || "0", baseTokenDecimals);
 
         // Create a new entry with properly formatted values
         const formattedEntry: OrderbookEntry = {
@@ -187,45 +99,20 @@ export function useSharedOrderbookData(
           quantity: quantityDecimal,
         };
 
-        // Use protobuf Side enum values directly
         if (entry.side === Side.BID) {
           bids.push(formattedEntry);
         } else if (entry.side === Side.ASK) {
           asks.push(formattedEntry);
-        } else {
-          console.warn("Unknown side value:", entry.side, "for entry:", entry);
         }
       });
 
-      // Sort bids (highest first) and asks (lowest first)
-      bids.sort(
-        (a: OrderbookEntry, b: OrderbookEntry) =>
-          parseFloat(b.price) - parseFloat(a.price),
-      );
-      asks.sort(
-        (a: OrderbookEntry, b: OrderbookEntry) =>
-          parseFloat(a.price) - parseFloat(b.price),
-      );
+      // Sort bids in descending order (highest first) and asks in ascending order (lowest first)
+      bids.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+      asks.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
 
-      const lowestAsk = asks.length > 0 ? parseFloat(asks[0].price) : 0;
-      const highestBid = bids.length > 0 ? parseFloat(bids[0].price) : 0;
-      const spread = lowestAsk - highestBid;
-      const spreadPercentage = lowestAsk > 0 ? (spread / lowestAsk) * 100 : 0;
-
-      console.log("Orderbook processed:", {
-        totalEntries: entries.length,
-        uniqueEntries: uniqueEntries.length,
-        bids: bids.length,
-        asks: asks.length,
-        spread,
-        spreadPercentage,
-        sampleBid: bids[0]
-          ? { price: bids[0].price, quantity: bids[0].quantity }
-          : null,
-        sampleAsk: asks[0]
-          ? { price: asks[0].price, quantity: asks[0].quantity }
-          : null,
-      });
+      // Calculate spread
+      const spread = asks.length > 0 && bids.length > 0 ? parseFloat(asks[0].price) - parseFloat(bids[0].price) : 0;
+      const spreadPercentage = asks.length > 0 && bids.length > 0 ? (spread / parseFloat(bids[0].price)) * 100 : 0;
 
       return {
         bids,
@@ -235,78 +122,57 @@ export function useSharedOrderbookData(
         lastUpdate: new Date(),
       };
     },
-    [],
+    [baseTokenDecimals, quoteTokenDecimals]
   );
 
-  // Process orderbook data into open orders format - return OrderbookEntry directly
+  // Memoize the open orders processing function
   const processOpenOrdersData = useCallback(
-    (orderbookEntries: OrderbookEntry[]): OrderbookEntry[] => {
-      console.log(
-        "Processing open orders from",
-        orderbookEntries.length,
-        "orderbook entries",
-      );
+    (entries: OrderbookEntry[]): OrderbookEntry[] => {
+      if (!entries || entries.length === 0) {
+        return [];
+      }
 
-      const openOrders = orderbookEntries.filter((entry: OrderbookEntry) => {
-        // Only include entries that are actual open orders
-        // ORDER_STATUS_ADDED = 1 (open order)
-        // ORDER_STATUS_FILLED = 2 (filled order - closed)
-        // ORDER_STATUS_CANCELLED = 3 (cancelled order - closed)
-        const isOpen = entry.status === OrderStatus.ADDED;
-
-        // Less strict validation - only check for absolutely required fields
-        const hasRequiredFields =
-          entry.price && entry.quantity && entry.side !== undefined;
-
-        if (!isOpen) {
-          console.log("Filtering out non-open order:", {
-            orderId: entry.orderId,
-            status: entry.status,
-            side: entry.side,
-          });
-        }
-
-        if (!hasRequiredFields) {
-          console.log("Filtering out incomplete entry:", {
-            orderId: entry.orderId,
-            hasPrice: !!entry.price,
-            hasQuantity: !!entry.quantity,
-            hasSide: entry.side !== undefined,
-          });
-        }
-
-        return isOpen && hasRequiredFields;
+      // Filter out entries with missing required fields
+      const validEntries = entries.filter((entry) => {
+        return (
+          entry.side !== undefined &&
+          entry.side !== null &&
+          entry.price &&
+          entry.quantity &&
+          entry.orderId
+        );
       });
 
-      console.log("Open orders processed:", openOrders.length, "orders");
-      return openOrders;
+      // Process entries with proper decimal conversion
+      return validEntries.map((entry) => {
+        const priceDecimal = weiToDecimal(entry.price || "0", quoteTokenDecimals);
+        const quantityDecimal = weiToDecimal(entry.quantity || "0", baseTokenDecimals);
+
+        return {
+          ...entry,
+          price: priceDecimal,
+          quantity: quantityDecimal,
+        };
+      });
     },
-    [],
+    [baseTokenDecimals, quoteTokenDecimals]
   );
 
-  // Fetch orderbook data
-  const fetchOrderbookData = useCallback(async (): Promise<void> => {
-    console.log("🚀 fetchOrderbookData called:", {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      filterByTrader,
-      lastFetchTime: lastFetchTime.current,
-      currentTime: Date.now(),
-      timeSinceLastFetch: Date.now() - lastFetchTime.current,
-    });
+  // Memoize the fetch function to prevent recreation
+  const fetchOrderbookDataRef = useRef<() => void>();
 
+  // Create the fetch function
+  const fetchOrderbookData = useCallback(async () => {
+    // Early validation - but this is ok since it's inside a function, not affecting hook order
     if (!marketId || marketId.trim() === "") {
-      console.log("❌ useSharedOrderbookData: No market ID, skipping fetch");
       return;
     }
 
     const now = Date.now();
-    if (now - lastFetchTime.current < 2000) {
-      // Reduced from 5 to 2 seconds for more responsive updates
-      console.log(
-        "⏰ useSharedOrderbookData: Skipping fetch - too soon since last fetch",
-      );
+    const minFetchInterval = 1000; // Reduced from 2s to 1s for more responsive updates
+
+    // Prevent too frequent requests
+    if (now - lastFetchTime.current < minFetchInterval) {
       return;
     }
 
@@ -314,102 +180,67 @@ export function useSharedOrderbookData(
     setLoading(true);
     setError(null);
 
-    console.log(
-      "✅ useSharedOrderbookData: Starting fetch for marketId:",
-      marketId,
-    );
-
     try {
-      console.log(
-        "🚀 useSharedOrderbookData: Calling arborterService.getOrderbook...",
-      );
-
-      // For continuous streaming, don't use timeout race - let the stream run
-      const response = await arborterService.getOrderbook(
+      // Fetch orderbook data - the API returns OrderbookEntry[] directly
+      const orderbookEntries = await arborterService.getOrderbook(
         marketId,
-        undefined,
-        true,
-        filterByTrader,
+        true, // continueStream
+        true, // historicalOpenOrders
+        filterByTrader
       );
 
-      console.log("📡 useSharedOrderbookData: Response received:", {
-        hasResponse: !!response,
-        responseType: typeof response,
-        responseLength: response?.length || 0,
-        isArray: Array.isArray(response),
-      });
-
-      if (response && response.length > 0) {
-        console.log("⚡ Orderbook data received:", response.length, "entries");
-        const orderbook = processOrderbookData(response);
-        const openOrders = processOpenOrdersData(response);
-        const uniqueOpenOrders = openOrders.filter(
-          (order: OrderbookEntry, index: number, self: OrderbookEntry[]) => {
-            const firstIndex = self.findIndex(
-              (o: OrderbookEntry) =>
-                o.orderId?.toString() === order.orderId?.toString(),
-            );
-            return firstIndex === index;
-          },
-        );
-        setData({
-          orderbook,
-          openOrders: uniqueOpenOrders,
+      if (orderbookEntries && orderbookEntries.length > 0) {
+        const processedOrderbook = processOrderbookData(orderbookEntries);
+        
+        setData((prevData) => ({
+          ...prevData,
+          orderbook: processedOrderbook,
           lastUpdate: new Date(),
-        });
-        setInitialLoading(false);
-        setRetryCount(0); // Reset retry count on successful fetch
-        console.log("✅ Orderbook data processed and updated");
-      } else {
-        console.log("📭 No orderbook data received, setting empty state");
-        setData({
-          orderbook: {
-            bids: [],
-            asks: [],
-            spread: 0,
-            spreadPercentage: 0,
-            lastUpdate: new Date(),
-          },
-          openOrders: [],
-          lastUpdate: new Date(),
-        });
-        setInitialLoading(false);
-        setRetryCount(0); // Reset retry count even on empty data
-        console.log("✅ Empty orderbook state set");
+        }));
       }
-    } catch (error: unknown) {
-      const errorMessage: string =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      console.error(
-        "❌ useSharedOrderbookData: Error fetching orderbook data:",
-        errorMessage,
-      );
-      console.error("❌ Error details:", error);
 
-      // Check if this is a streaming error (network error, incomplete chunked encoding)
-      const isStreamingError =
-        errorMessage.includes("network error") ||
-        errorMessage.includes("ERR_INCOMPLETE_CHUNKED_ENCODING") ||
-        errorMessage.includes("Request timeout");
+      // For open orders, we'll use the same orderbook data but filter for open orders
+      if (orderbookEntries && orderbookEntries.length > 0) {
+        const processedOpenOrders = processOpenOrdersData(orderbookEntries);
+        
+        setData((prevData) => ({
+          ...prevData,
+          openOrders: processedOpenOrders,
+          lastUpdate: new Date(),
+        }));
+      }
 
-      if (isStreamingError && retryCount < maxRetries) {
-        console.log(
-          `🔄 Streaming error detected, will retry (${retryCount + 1}/${maxRetries})`,
-        );
+      setRetryCount(0);
+      setInitialLoading(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      
+      if (retryCount < maxRetries) {
         setRetryCount((prev) => prev + 1);
-        // Don't set error state for streaming errors, just retry
-        // Don't set initialLoading to false yet, keep trying
-      } else if (isStreamingError && retryCount >= maxRetries) {
-        console.log("⚠️ Max streaming retries exceeded, showing error");
-        setError("Connection issues - please refresh to retry");
-        setInitialLoading(false);
+        // Retry after a delay
+        setTimeout(() => {
+          if (fetchOrderbookDataRef.current) {
+            fetchOrderbookDataRef.current();
+          }
+        }, 1000 * (retryCount + 1)); // Exponential backoff
       } else {
-        // Non-streaming error, show immediately
-        setError(errorMessage);
+        setError(`Failed to fetch orderbook data: ${errorMessage}`);
         setInitialLoading(false);
       }
+    } finally {
+      setLoading(false);
+    }
+  }, [marketId, filterByTrader, processOrderbookData, processOpenOrdersData, retryCount, maxRetries]);
 
-      // Set empty state on error to prevent UI from hanging
+  // Store the fetch function in the ref
+  useEffect(() => {
+    fetchOrderbookDataRef.current = fetchOrderbookData;
+  }, [fetchOrderbookData]);
+
+  // Initial fetch and market ID change handling
+  useEffect(() => {
+    if (marketId && marketId.trim() !== "") {
+      // Reset state when market ID changes
       setData({
         orderbook: {
           bids: [],
@@ -421,154 +252,50 @@ export function useSharedOrderbookData(
         openOrders: [],
         lastUpdate: new Date(),
       });
-    } finally {
-      setLoading(false);
-      console.log("🏁 useSharedOrderbookData: Fetch completed");
+
+      // Clear any existing polling
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+        pollingInterval.current = null;
+      }
+
+      setError(null);
+      setInitialLoading(true);
+      lastFetchTime.current = 0;
+      setRetryCount(0);
     }
-  }, [
-    marketId,
-    filterByTrader,
-    requestTimeout,
-    processOrderbookData,
-    processOpenOrdersData,
-  ]);
-
-  // Initial fetch effect
-  useEffect(() => {
-    console.log("🔄 useSharedOrderbookData: Initial fetch effect triggered:", {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      filterByTrader,
-      filterByTraderType: typeof filterByTrader,
-      effectDependencies: { marketId, filterByTrader },
-    });
-
-    if (!marketId || marketId.trim() === "") {
-      console.log(
-        "❌ useSharedOrderbookData: No market ID, skipping initial fetch",
-      );
-      return;
-    }
-
-    // Add a small delay to prevent race conditions with other effects
-    const initialFetchTimer = setTimeout(() => {
-      console.log(
-        "🚀 useSharedOrderbookData: Starting initial fetch after delay",
-      );
-      fetchOrderbookData();
-    }, 100);
-
-    return () => clearTimeout(initialFetchTimer);
-  }, [marketId, filterByTrader, fetchOrderbookData]);
-
-  // Clear data when marketId changes to prevent stale data
-  useEffect(() => {
-    console.log(
-      "🔄 useSharedOrderbookData: Market ID change effect triggered:",
-      {
-        marketId,
-        marketIdType: typeof marketId,
-        marketIdTruthy: !!marketId,
-        effectDependencies: { marketId },
-      },
-    );
-
-    console.log(
-      "🧹 Market ID changed in shared orderbook data, clearing previous data",
-    );
-
-    // Clear all data immediately when marketId changes
-    setData({
-      orderbook: {
-        bids: [],
-        asks: [],
-        spread: 0,
-        spreadPercentage: 0,
-        lastUpdate: new Date(),
-      },
-      openOrders: [],
-      lastUpdate: new Date(),
-    });
-
-    // Clear any existing polling
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
-    }
-
-    setError(null);
-    setInitialLoading(true); // Reset to loading state for new market
-    lastFetchTime.current = 0;
-    setRetryCount(0); // Reset retry count for new market
-  }, [marketId]); // Only depend on marketId to prevent infinite loops
+  }, [marketId]);
 
   // Set up polling
   useEffect(() => {
-    console.log("🔄 useSharedOrderbookData: Polling effect triggered:", {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      retryCount,
-      maxRetries,
-      effectDependencies: {
-        marketId,
-        fetchOrderbookData,
-        retryCount,
-        maxRetries,
-      },
-    });
+    if (marketId && marketId.trim() !== "" && retryCount < maxRetries) {
+      // Clear any existing polling before setting up new one
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+        pollingInterval.current = null;
+      }
 
-    if (!marketId || marketId.trim() === "") {
-      console.log(
-        "❌ useSharedOrderbookData: Skipping polling - no marketId or empty marketId:",
-        marketId,
-      );
-      return;
+      // For continuous streaming, we don't need polling - just fetch once and let the stream run
+      if (fetchOrderbookDataRef.current) {
+        fetchOrderbookDataRef.current();
+      }
     }
-
-    // Don't poll if we've exceeded the retry limit
-    if (retryCount >= maxRetries) {
-      console.warn(
-        "⚠️ Max retries exceeded in shared orderbook data, stopping polling",
-      );
-      return;
-    }
-
-    // Clear any existing polling before setting up new one
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
-    }
-
-    console.log(
-      "✅ useSharedOrderbookData: Setting up continuous stream for marketId:",
-      marketId,
-    );
-
-    // For continuous streaming, we don't need polling - just fetch once and let the stream run
-    fetchOrderbookData();
 
     return () => {
       if (pollingInterval.current) {
-        console.log(
-          "🧹 useSharedOrderbookData: Cleaning up polling interval for marketId:",
-          marketId,
-        );
         clearInterval(pollingInterval.current);
         pollingInterval.current = null;
       }
     };
-  }, [marketId, fetchOrderbookData, retryCount, maxRetries]);
+  }, [marketId, retryCount, maxRetries]);
 
   // Listen for orderbook refresh events
   useEffect(() => {
     const handleOrderbookRefresh = () => {
-      console.log(
-        "🔄 useSharedOrderbookData: Orderbook refresh event received",
-      );
       if (marketId && marketId.trim() !== "") {
-        fetchOrderbookData();
+        if (fetchOrderbookDataRef.current) {
+          fetchOrderbookDataRef.current();
+        }
       }
     };
 
@@ -576,31 +303,27 @@ export function useSharedOrderbookData(
     return () => {
       window.removeEventListener("orderbook-refresh", handleOrderbookRefresh);
     };
-  }, [marketId, fetchOrderbookData]);
-
-  // Debug logging for data changes
-  useEffect(() => {
-    console.log("useSharedOrderbookData: Data state changed:", {
-      loading,
-      error,
-      retryCount,
-    });
-  }, [loading, error, retryCount]); // Added retryCount to dependencies
+  }, [marketId]);
 
   const refresh = useCallback(() => {
-    console.log(
-      "🔄 useSharedOrderbookData: Manual refresh triggered for marketId:",
-      marketId,
-    );
-    setRetryCount(0); // Reset retry count on manual refresh
-    fetchOrderbookData();
-  }, [marketId, fetchOrderbookData]);
+    setRetryCount(0);
+    if (fetchOrderbookDataRef.current) {
+      fetchOrderbookDataRef.current();
+    }
+  }, []);
+
+  // Function to update the filter by trader
+  const setFilterByTrader = useCallback((trader: string | undefined) => {
+    // This would need to be implemented to actually update the filter
+    // For now, we'll just log the change
+  }, []);
 
   // Determine loading states - be more aggressive about showing "no data"
-  const isInitialLoading: boolean = initialLoading && retryCount === 0; // Only show initial loading on first attempt
-  const isLoading: boolean = loading && retryCount === 0; // Only show loading on first attempt
+  const isInitialLoading: boolean = initialLoading && retryCount === 0;
+  const isLoading: boolean = loading && retryCount === 0;
 
-  const result = {
+  // Return the result directly without memoization to avoid circular dependencies
+  return {
     orderbook: data.orderbook,
     openOrders: data.openOrders,
     loading: isLoading,
@@ -608,23 +331,6 @@ export function useSharedOrderbookData(
     error,
     refresh,
     lastUpdate: data.lastUpdate,
+    setFilterByTrader,
   };
-
-  console.log("🔍 useSharedOrderbookData: Returning result:", {
-    marketId,
-    result: {
-      hasOrderbook: !!result.orderbook,
-      orderbookKeys: result.orderbook ? Object.keys(result.orderbook) : [],
-      asksCount: result.orderbook?.asks?.length || 0,
-      bidsCount: result.orderbook?.bids?.length || 0,
-      openOrdersCount: result.openOrders?.length || 0,
-      loading: result.loading,
-      initialLoading: result.initialLoading,
-      hasError: !!result.error,
-      hasRefresh: !!result.refresh,
-      lastUpdate: result.lastUpdate,
-    },
-  });
-
-  return result;
 }

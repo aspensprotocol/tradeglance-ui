@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { TradingPair } from "@/hooks/useTradingPairs";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { formatDecimalConsistent } from "../lib/number-utils";
 
 interface TradeFormProps {
   selectedPair: string;
@@ -126,10 +127,10 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                   "w-full pl-2 pr-16 sm:pr-20 md:pr-24 lg:pr-28 xl:pr-32 py-2 sm:py-2.5 md:py-3 rounded-lg bg-[#2a2d3a] border text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm sm:text-base transition-all",
                   ((): string => {
                     const quantity: number = parseFloat(
-                      formState.amount.replace(",", "."),
+                      formatDecimalConsistent(formState.amount.replace(",", ".")),
                     );
                     const availableBalanceNum: number =
-                      parseFloat(availableBalance);
+                      parseFloat(formatDecimalConsistent(availableBalance));
                     if (
                       !isNaN(quantity) &&
                       !isNaN(availableBalanceNum) &&
@@ -249,7 +250,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                 <section className="flex justify-between">
                   <dt className="text-gray-400">Amount:</dt>
                   <dd className="text-white">
-                    {formState.amount || "0"}{" "}
+                    {formatDecimalConsistent(formState.amount || "0")}{" "}
                     {tradingPair?.baseSymbol || "ATOM"}
                   </dd>
                 </section>
@@ -257,7 +258,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                   <section className="flex justify-between">
                     <dt className="text-gray-400">Price:</dt>
                     <dd className="text-white">
-                      {formState.price} {tradingPair?.quoteSymbol || "TTK"}
+                      {formatDecimalConsistent(formState.price)} {tradingPair?.quoteSymbol || "TTK"}
                     </dd>
                   </section>
                 ) : tradingState.activeOrderType === "market" ? (
@@ -275,7 +276,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
               disabled={
                 !isConnected ||
                 !formState.amount ||
-                parseFloat(formState.amount) <= 0 ||
+                parseFloat(formatDecimalConsistent(formState.amount)) <= 0 ||
                 formState.isSubmitting
               }
               className={cn(

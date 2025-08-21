@@ -3,6 +3,7 @@ import { arborterService } from "../lib/grpc-client";
 import { Trade } from "../protos/gen/arborter_pb";
 import { weiToDecimal } from "../lib/number-utils";
 import { useTradingPairs } from "./useTradingPairs";
+import { formatDecimalConsistent } from "../lib/number-utils";
 
 export interface RecentTrade {
   id: string;
@@ -64,10 +65,14 @@ export function useRecentTrades(
         id: trade.orderHit?.toString() || `trade-${Date.now()}`,
         side: trade.buyerIs === 1 ? "buy" : "sell", // 1 = MAKER, 2 = TAKER
         price: parseFloat(
-          weiToDecimal(trade.price?.toString() || "0", quoteTokenDecimals),
+          formatDecimalConsistent(
+            weiToDecimal(trade.price?.toString() || "0", quoteTokenDecimals),
+          ),
         ),
         quantity: parseFloat(
-          weiToDecimal(trade.qty?.toString() || "0", baseTokenDecimals),
+          formatDecimalConsistent(
+            weiToDecimal(trade.qty?.toString() || "0", baseTokenDecimals),
+          ),
         ),
         timestamp: new Date(Number(trade.timestamp) || Date.now()),
         trader: trade.makerId?.toString() || "",
@@ -115,7 +120,7 @@ export function useRecentTrades(
 
       return uniqueTrades;
     },
-    [],
+    [baseTokenDecimals, quoteTokenDecimals],
   );
 
   // Fetch trades data with timeout
@@ -189,7 +194,7 @@ export function useRecentTrades(
         throw error;
       }
     },
-    [processTradesData, requestTimeout],
+    [processTradesData],
   );
 
   // Fetch data effect
