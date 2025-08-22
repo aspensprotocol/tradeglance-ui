@@ -52,7 +52,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     openOrders,
     loading: ordersLoading,
     error: ordersError,
-  } = useMarketOrderbook(marketId || "", undefined);
+  } = useMarketOrderbook(marketId || "", showMineOnly ? address : undefined);
 
   // Only call hooks when their corresponding tab is active to prevent data accumulation
   const {
@@ -64,13 +64,8 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     showMineOnly ? address : undefined,
   );
 
-  // Filter open orders by trader if needed
-  const orders =
-    showMineOnly && address
-      ? openOrders.filter(
-          (order: OrderbookEntry) => order.makerBaseAddress === address,
-        )
-      : openOrders;
+  // No need for client-side filtering since we're using API-level filtering
+  const orders = openOrders;
 
   // Debug logging
   console.log("ActivityPanel render:", {
@@ -83,6 +78,9 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     ordersCount: orders?.length || 0,
     tradesLoading,
     ordersLoading,
+    showMineOnly,
+    filterByTrader: showMineOnly ? address : undefined,
+    userAddress: address,
   });
 
   // Log when data changes to help debug accumulation
@@ -94,9 +92,22 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
       tradesLoading,
       ordersLoading,
       marketId,
+      showMineOnly,
+      filterByTrader: showMineOnly ? address : undefined,
       timestamp: new Date().toISOString(),
     });
-  }, [activeTab, trades, orders, tradesLoading, ordersLoading, marketId]);
+  }, [activeTab, trades, orders, tradesLoading, ordersLoading, marketId, showMineOnly, address]);
+
+  // Log when filter changes
+  useEffect(() => {
+    console.log("ActivityPanel filter changed:", {
+      showMineOnly,
+      filterByTrader: showMineOnly ? address : undefined,
+      userAddress: address,
+      marketId,
+      timestamp: new Date().toISOString(),
+    });
+  }, [showMineOnly, address, marketId]);
 
   // Log when activeTab changes to track tab switching
   useEffect(() => {
@@ -148,7 +159,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
   };
 
   return (
-    <main className="h-full bg-white rounded-lg shadow-sm border animate-fade-in">
+    <main className="h-full bg-white rounded-lg shadow-sm border animate-fade-in overflow-hidden">
       <section className="p-2 sm:p-3 lg:p-4 h-full flex flex-col min-w-0">
         <nav className="flex border-b mb-3 sm:mb-4 overflow-x-auto">
           <button
@@ -195,7 +206,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           </button>
         </nav>
 
-        <section className="animate-fade-in flex-1 overflow-auto min-w-0">
+        <section className="animate-fade-in flex-1 min-w-0 overflow-auto">
           {activeTab === "trades" ? (
             <section
               key={`trades-tab-${marketId}-${showMineOnly}`}
@@ -241,18 +252,18 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               </header>
 
               {tradesLoading && trades.length === 0 ? (
-                <article className="text-center py-8 text-neutral">
+                <article className="text-center py-4 text-neutral">
                   <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></span>
                   <p className="text-sm text-gray-500">
                     Fetching trade data...
                   </p>
                 </article>
               ) : tradesError ? (
-                <article className="text-center py-8 text-red-500">
+                <article className="text-center py-4 text-red-500">
                   Error loading recent trades: {tradesError}
                 </article>
               ) : trades.length === 0 ? (
-                <article className="text-center py-8 text-neutral">
+                <article className="text-center py-4 text-neutral">
                   <span className="text-gray-400 mb-2">
                     <svg
                       className="w-12 h-12 mx-auto"
@@ -348,18 +359,18 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
               </header>
 
               {ordersLoading && orders.length === 0 ? (
-                <article className="text-center py-8 text-neutral">
+                <article className="text-center py-4 text-neutral">
                   <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></span>
                   <p className="text-sm text-gray-500">
                     Fetching order data...
                   </p>
                 </article>
               ) : ordersError ? (
-                <article className="text-center py-8 text-red-500">
+                <article className="text-center py-4 text-red-500">
                   Error loading open orders: {ordersError}
                 </article>
               ) : orders.length === 0 ? (
-                <article className="text-center py-8 text-neutral">
+                <article className="text-center py-4 text-neutral">
                   <span className="text-gray-400 mb-2">
                     <svg
                       className="w-12 h-12 mx-auto"
@@ -419,16 +430,16 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
           ) : (
             <section key={`balances-tab-${marketId}`} className="space-y-4">
               {balancesLoading ? (
-                <article className="text-center py-8 text-neutral">
+                <article className="text-center py-4 text-neutral">
                   <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></span>
                   Loading balances...
                 </article>
               ) : balancesError ? (
-                <article className="text-center py-8 text-red-500">
+                <article className="text-center py-4 text-red-500">
                   Error loading balances: {balancesError}
                 </article>
               ) : !balances || balances.length === 0 ? (
-                <article className="text-center py-8">
+                <article className="text-center py-4">
                   <span className="text-gray-400 mb-2">
                     <svg
                       className="w-12 h-12 mx-auto"

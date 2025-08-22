@@ -10,25 +10,9 @@ export function useMarketOrderbook(marketId: string, filterByTrader?: string): M
   // Get raw data from the hook
   const rawData = useSharedOrderbookData(marketId, filterByTrader);
 
-  // Check global cache first for instant data display
-  const cachedData = globalCache.getCachedData(marketId);
-  const hasCachedData = cachedData && !globalCache.isDataStale(marketId);
-
-  // Debug logging to track cache usage
-  console.log("🔍 useMarketOrderbook:", {
-    marketId,
-    hasCachedData,
-    cachedDataExists: !!cachedData,
-    isDataStale: cachedData ? globalCache.isDataStale(marketId) : "no-cache",
-    rawDataLoading: rawData.loading,
-    rawDataInitialLoading: rawData.initialLoading,
-    rawDataHasOrderbook: !!rawData.orderbook,
-    rawDataOrderbookLength: rawData.orderbook?.bids?.length || 0 + rawData.orderbook?.asks?.length || 0,
-    timestamp: new Date().toISOString(),
-  });
-
   // Parse and cache the data with proper decimals
   const [parsedData, setParsedData] = useState<MarketOrderbookData>({
+    marketId,
     orderbook: {
       bids: [],
       asks: [],
@@ -103,6 +87,35 @@ export function useMarketOrderbook(marketId: string, filterByTrader?: string): M
     return parseOrderbookData(rawData.openOrders);
   }, [rawData.openOrders, parseOrderbookData]);
 
+  // Check global cache first for instant data display
+  const cachedData = globalCache.getCachedData(marketId, filterByTrader);
+  const hasCachedData = cachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
+
+  // EXTENSIVE DEBUG: Log every cache interaction
+  console.log("🔍 useMarketOrderbook: CACHE DEBUG:", {
+    marketId,
+    marketIdType: typeof marketId,
+    marketIdTruthy: !!marketId,
+    cachedDataExists: !!cachedData,
+    hasCachedData,
+    isDataStale: cachedData ? globalCache.isDataStale(marketId) : "no-cache",
+    cacheSize: "checking...",
+    timestamp: new Date().toISOString(),
+  });
+
+  // Debug logging to track cache usage
+  console.log("🔍 useMarketOrderbook:", {
+    marketId,
+    hasCachedData,
+    cachedDataExists: !!cachedData,
+    isDataStale: cachedData ? globalCache.isDataStale(marketId) : "no-cache",
+    rawDataLoading: rawData.loading,
+    rawDataInitialLoading: rawData.initialLoading,
+    rawDataHasOrderbook: !!rawData.orderbook,
+    rawDataOrderbookLength: rawData.orderbook?.bids?.length || 0 + rawData.orderbook?.asks?.length || 0,
+    timestamp: new Date().toISOString(),
+  });
+
   // Update parsed data when raw data changes
   useEffect(() => {
     console.log(
@@ -118,13 +131,23 @@ export function useMarketOrderbook(marketId: string, filterByTrader?: string): M
 
     if (rawData.orderbook && rawData.openOrders && parsedOrderbook) {
       // Save to global cache for persistence across route changes
+      console.log("💾 useMarketOrderbook: SAVING TO CACHE:", {
+        marketId,
+        filterByTrader,
+        orderbookBids: parsedOrderbook.bids.length,
+        orderbookAsks: parsedOrderbook.asks.length,
+        openOrdersCount: parsedOpenOrders.length,
+        timestamp: new Date().toISOString(),
+      });
+      
       globalCache.setCachedData(marketId, {
         orderbook: parsedOrderbook,
         openOrders: parsedOpenOrders,
         lastUpdate: new Date(),
-      });
+      }, filterByTrader);
 
       setParsedData({
+        marketId,
         ...rawData,
         orderbook: parsedOrderbook,
         openOrders: parsedOpenOrders,
@@ -137,15 +160,57 @@ export function useMarketOrderbook(marketId: string, filterByTrader?: string): M
     parsedOpenOrders,
     globalCache,
     marketId,
+    filterByTrader,
   ]);
 
-  // If we have cached data and no fresh data yet, use cached data
-  if (hasCachedData && (!rawData.orderbook || rawData.orderbook.bids.length === 0)) {
+  // Debug: Log cache status
+  console.log("🔍 useMarketOrderbook: Cache check before return:", {
+    marketId,
+    hasCachedData,
+    rawDataLoading: rawData.loading,
+    rawDataHasOrderbook: !!rawData.orderbook,
+    rawDataOrderbookBidsLength: rawData.orderbook?.bids?.length || 0,
+    cachedDataExists: !!cachedData,
+    timestamp: new Date().toISOString(),
+  });
+
+  // PRIORITY: If we have cached data and it's not stale, use it immediately for instant display
+  // This ensures cached data is shown even when fresh data is loading
+  if (hasCachedData) {
+    console.log("🟢 useMarketOrderbook: Using cached data for instant display:", {
+      marketId,
+      cachedDataBids: cachedData.orderbook.bids.length,
+      cachedDataAsks: cachedData.orderbook.asks.length,
+      timestamp: new Date().toISOString(),
+    });
+    
     return {
+      marketId,
       orderbook: cachedData.orderbook,
       openOrders: cachedData.openOrders,
       loading: rawData.loading,
-      initialLoading: false, // Not initial loading if we have cached data
+      initialLoading: false,
+      error: rawData.error,
+      refresh: rawData.refresh,
+      lastUpdate: cachedData.lastUpdate,
+    };
+  }
+
+  // If we have cached data but it's stale, still use it while loading fresh data
+  if (cachedData && rawData.loading) {
+    console.log("🟡 useMarketOrderbook: Using stale cached data while loading fresh data:", {
+      marketId,
+      cachedDataBids: cachedData.orderbook.bids.length,
+      cachedDataAsks: cachedData.orderbook.asks.length,
+      timestamp: new Date().toISOString(),
+    });
+    
+    return {
+      marketId,
+      orderbook: cachedData.orderbook,
+      openOrders: cachedData.openOrders,
+      loading: rawData.loading,
+      initialLoading: false,
       error: rawData.error,
       refresh: rawData.refresh,
       lastUpdate: cachedData.lastUpdate,

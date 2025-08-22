@@ -54,7 +54,10 @@ const Index = ({
         grid-cols-1 
         sm:grid-cols-2 
         lg:grid-cols-4 
+        lg:gap-4
         xl:gap-4
+        min-h-0
+        overflow-hidden
       "
       >
         {pairsLoading ? (
@@ -78,6 +81,8 @@ const Index = ({
               order-1
               sm:order-3
               lg:order-1
+              h-full
+              min-h-0
             "
             >
               <ActivityPanel
@@ -93,6 +98,8 @@ const Index = ({
               sm:col-span-1 
               lg:col-span-1 
               order-2 sm:order-1 lg:order-3
+              h-full
+              min-h-0
             "
             >
               <TradeForm
@@ -108,6 +115,8 @@ const Index = ({
               sm:col-span-1 
               lg:col-span-1 
               order-3 sm:order-2 lg:order-2
+              h-full
+              min-h-0
             "
             >
               <VerticalOrderBook

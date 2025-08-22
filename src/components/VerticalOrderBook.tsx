@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
 import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import type { VerticalOrderBookProps } from "../lib/shared-types";
+import { useAccount } from "wagmi";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(
@@ -70,10 +71,29 @@ const VerticalOrderBook = React.memo(
     onPairChange,
     tradingPairs,
   }: VerticalOrderBookProps): JSX.Element => {
-    // Use market-specific orderbook hook
+    // Get current user's wallet address for filtering
+    const { address } = useAccount();
+    
+    // State for "Mine" filter toggle
+    const [showOnlyMine, setShowOnlyMine] = useState(false);
+    
+    // Determine the filter to use - if "Mine" is selected and user is connected, filter by their address
+    const filterByTrader = showOnlyMine && address ? address : undefined;
+    
+    // Use market-specific orderbook hook with filtering
+    console.log("🔍 VerticalOrderBook: Calling useMarketOrderbook with:", {
+      tradingPairId: tradingPair?.id,
+      marketId: tradingPair?.id || "",
+      tradingPairExists: !!tradingPair,
+      filterByTrader,
+      showOnlyMine,
+      userAddress: address,
+      timestamp: new Date().toISOString(),
+    });
+    
     const { orderbook, initialLoading, error, refresh } = useMarketOrderbook(
       tradingPair?.id || "",
-      undefined
+      filterByTrader
     );
 
     // Debug logging for trading pair configuration
@@ -94,6 +114,17 @@ const VerticalOrderBook = React.memo(
       }
     }, [tradingPair]);
 
+    // Debug logging for filter changes
+    React.useEffect(() => {
+      console.log("🔍 VerticalOrderBook: Filter changed:", {
+        showOnlyMine,
+        filterByTrader,
+        userAddress: address,
+        marketId: tradingPair?.id,
+        timestamp: new Date().toISOString(),
+      });
+    }, [showOnlyMine, filterByTrader, address, tradingPair?.id]);
+
     // Memoize the orderbook data to prevent unnecessary re-renders
     const { asks, bids, spreadValue, spreadPercentage } = useMemo(() => {
       // DEBUGGING: Log the orderbook data being processed
@@ -102,6 +133,8 @@ const VerticalOrderBook = React.memo(
         orderbookKeys: orderbook ? Object.keys(orderbook) : [],
         asksCount: orderbook?.asks?.length || 0,
         bidsCount: orderbook?.bids?.length || 0,
+        filterByTrader,
+        showOnlyMine,
         sampleAsk: orderbook?.asks?.[0]
           ? {
               price: orderbook.asks[0].price,
@@ -142,7 +175,7 @@ const VerticalOrderBook = React.memo(
         spreadValue: orderbook?.spread || 0,
         spreadPercentage: orderbook?.spreadPercentage || 0,
       };
-    }, [orderbook]);
+    }, [orderbook, filterByTrader, showOnlyMine]);
 
     // Memoize the trading pair options to prevent recreation
     const tradingPairOptions = useMemo(
@@ -170,29 +203,45 @@ const VerticalOrderBook = React.memo(
               <option value="">Select a trading pair</option>
               {tradingPairOptions}
             </select>
-            <button
-              onClick={() => refresh()}
-              className="ml-2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Refresh orderbook"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <nav className="flex items-center gap-2">
+              {/* Mine filter toggle */}
+              {address && (
+                <button
+                  onClick={() => setShowOnlyMine(!showOnlyMine)}
+                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                    showOnlyMine
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                  title={showOnlyMine ? "Show all orders" : "Show only my orders"}
+                >
+                  {showOnlyMine ? "Mine" : "All"}
+                </button>
+              )}
+              <button
+                onClick={() => refresh()}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Refresh orderbook"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
+            </nav>
           </nav>
         </header>
       ),
-      [selectedPair, onPairChange, tradingPairOptions, refresh],
+      [selectedPair, onPairChange, tradingPairOptions, refresh, address, showOnlyMine],
     );
 
     // Memoize the orderbook content to prevent unnecessary re-renders
@@ -205,6 +254,11 @@ const VerticalOrderBook = React.memo(
               <span className="text-gray-500">
                 <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></span>
                 Loading orderbook...
+                {showOnlyMine && (
+                  <span className="text-sm text-blue-600 mt-1 block">
+                    Filtering by your orders
+                  </span>
+                )}
               </span>
             </article>
           </section>
@@ -226,16 +280,19 @@ const VerticalOrderBook = React.memo(
       if (!orderbook || (asks.length === 0 && bids.length === 0)) {
         return (
           <section className="p-4 h-full flex items-center justify-center">
-                          <article className="text-center">
-                <span className="text-gray-500">
-                  <span className="text-lg mb-2">📊</span>
-                  No orderbook data available
-                  <span className="text-sm mt-1">
-                    This market may not have active orders yet
-                  </span>
+            <article className="text-center">
+              <span className="text-gray-500">
+                <span className="text-lg mb-2">📊</span>
+                {showOnlyMine ? "No orders found for your wallet" : "No orderbook data available"}
+                <span className="text-sm mt-1">
+                  {showOnlyMine 
+                    ? "You may not have any active orders in this market"
+                    : "This market may not have active orders yet"
+                  }
                 </span>
-              </article>
-            </section>
+              </span>
+            </article>
+          </section>
         );
       }
 
@@ -311,13 +368,14 @@ const VerticalOrderBook = React.memo(
       spreadValue,
       spreadPercentage,
       tradingPair,
+      showOnlyMine,
     ]);
 
     // Always return the component - no early returns to violate Rules of Hooks
     return (
-      <main className="h-full bg-white rounded-lg shadow-sm border">
+      <main className="h-full bg-white rounded-lg shadow-sm border overflow-hidden flex flex-col">
         {headerComponent}
-        <section className="p-2 sm:p-3 lg:p-4 h-full overflow-auto">
+        <section className="p-2 sm:p-3 lg:p-4 flex-1 overflow-auto">
           {orderbookContent}
         </section>
       </main>

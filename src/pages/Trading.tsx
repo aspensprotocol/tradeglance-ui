@@ -45,9 +45,11 @@ const Trading = (): JSX.Element => {
   });
 
   return (
-    <Layout footerPosition="absolute">
-      <main className="flex-1">
-        <section className={viewMode === "pro" ? "block" : "hidden"}>
+    <Layout footerPosition="fixed">
+      {/* Keep both components mounted to preserve orderbook cache */}
+      <main className="h-full">
+        {/* Pro view - show/hide instead of mount/unmount */}
+        <section className={`h-full ${viewMode === "pro" ? "block" : "hidden"}`}>
           <Index 
             selectedPair={selectedPair}
             setSelectedPair={setSelectedPair}
@@ -56,9 +58,14 @@ const Trading = (): JSX.Element => {
             pairsLoading={pairsLoading}
           />
         </section>
-        <section className={viewMode === "simple" ? "block" : "hidden"}>
+        
+        {/* Simple view - show/hide instead of mount/unmount */}
+        <section className={`h-full ${viewMode === "simple" ? "block" : "hidden"}`}>
           <Simple 
+            selectedPair={selectedPair}
+            setSelectedPair={setSelectedPair}
             currentTradingPair={currentTradingPair}
+            tradingPairs={tradingPairs}
             pairsLoading={pairsLoading}
           />
         </section>

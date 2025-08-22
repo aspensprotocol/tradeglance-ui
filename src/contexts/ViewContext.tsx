@@ -1,34 +1,31 @@
-import React, { useState, useEffect, type ReactNode } from "react";
-import { ViewContext, type ViewContextType } from "./view-context";
+import React, { useState, useCallback } from "react";
+import type { ViewContextType } from "../lib/shared-types";
+import { ViewContext } from "./view-context";
 
 interface ViewProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export const ViewProvider = ({ children }: ViewProviderProps): JSX.Element => {
-  const [viewMode, setViewMode] = useState<ViewContextType["viewMode"]>(() => {
-    const saved = localStorage.getItem("tradingViewMode");
-    console.log("🔍 ViewContext: Initializing with localStorage value:", saved);
-    const initialValue = (saved === "pro" || saved === "simple") ? saved : "simple";
-    console.log("🔍 ViewContext: Setting initial viewMode to:", initialValue);
-    return initialValue;
-  });
+export function ViewProvider({ children }: ViewProviderProps): JSX.Element {
+  const [viewMode, setViewModeState] = useState<'simple' | 'pro'>('pro');
 
-  const handleSetViewMode = (mode: ViewContextType["viewMode"]): void => {
-    console.log("🔄 ViewContext: Changing view mode from", viewMode, "to", mode);
-    setViewMode(mode);
-    localStorage.setItem("tradingViewMode", mode);
-    console.log("💾 ViewContext: Saved to localStorage:", mode);
-  };
-
-  // Debug: Track viewMode changes
-  useEffect(() => {
-    console.log("👀 ViewContext: viewMode changed to:", viewMode);
+  const setViewMode = useCallback((mode: 'simple' | 'pro') => {
+    console.log("🔄 ViewContext: Switching view mode:", {
+      from: viewMode,
+      to: mode,
+      timestamp: new Date().toISOString(),
+    });
+    setViewModeState(mode);
   }, [viewMode]);
 
+  const contextValue: ViewContextType = {
+    viewMode,
+    setViewMode,
+  };
+
   return (
-    <ViewContext.Provider value={{ viewMode, setViewMode: handleSetViewMode }}>
+    <ViewContext.Provider value={contextValue}>
       {children}
     </ViewContext.Provider>
   );
-};
+}

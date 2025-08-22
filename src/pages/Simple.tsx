@@ -3,12 +3,18 @@ import SimpleForm from "@/components/SimpleForm";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 
 interface SimpleProps {
+  selectedPair: string;
+  setSelectedPair: (pair: string) => void;
   currentTradingPair?: TradingPair;
+  tradingPairs: TradingPair[];
   pairsLoading: boolean;
 }
 
 const Simple = ({ 
+  selectedPair,
+  setSelectedPair,
   currentTradingPair, 
+  tradingPairs,
   pairsLoading 
 }: SimpleProps): JSX.Element => {
   // Use the current trading pair from props
@@ -24,13 +30,18 @@ const Simple = ({
 
   return (
     <>
-      <main className="flex items-center justify-center h-full px-3 sm:px-4 lg:px-6 pb-0">
+      <main className="flex items-center justify-center h-full min-h-0 overflow-hidden">
         {pairsLoading ? (
           <section className="text-center">
             <p>Loading trading pairs...</p>
           </section>
         ) : defaultPair ? (
-          <SimpleForm tradingPair={defaultPair} />
+          <SimpleForm 
+            selectedPair={selectedPair}
+            setSelectedPair={setSelectedPair}
+            tradingPair={defaultPair}
+            tradingPairs={tradingPairs}
+          />
         ) : (
           <section className="text-center">
             <p>No trading pairs available</p>

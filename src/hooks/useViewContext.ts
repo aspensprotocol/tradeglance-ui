@@ -1,10 +1,11 @@
 import { useContext } from "react";
-import { ViewContext, type ViewContextType } from "@/contexts/view-context";
+import { ViewContext } from "@/contexts/view-context";
+import type { ViewContextType } from "@/lib/shared-types";
 
-export const useViewContext = (): ViewContextType => {
+export function useViewContext(): ViewContextType {
   const context = useContext(ViewContext);
   if (!context) {
     throw new Error("useViewContext must be used within a ViewProvider");
   }
   return context;
-};
+}

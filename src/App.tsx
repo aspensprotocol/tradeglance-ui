@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "./lib/web3modal-config";
 import { GlobalOrderbookCacheProvider } from "@/contexts/GlobalOrderbookCache";
+
 import { ViewProvider } from "@/contexts/ViewContext";
 import Home from "./pages/Home";
 import Trading from "./pages/Trading";

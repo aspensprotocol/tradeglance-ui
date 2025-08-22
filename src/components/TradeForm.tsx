@@ -41,14 +41,14 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
     <section className="h-full bg-[#1a1c23] rounded-lg shadow-sm border border-gray-700 animate-fade-in overflow-hidden">
       <main className="p-2 sm:p-3 md:p-4 lg:p-6 h-full flex flex-col">
         {/* Buy/Sell Tabs */}
-        <fieldset className="flex bg-[#2a2d3a] rounded-lg p-1 mb-3 sm:mb-4 lg:mb-6">
+        <fieldset className="flex bg-[#2a2d3a] rounded-lg p-1 mb-2 sm:mb-3 lg:mb-4">
           {([BaseOrQuote.BASE, BaseOrQuote.QUOTE] as TradingSide[]).map(
             (tab: TradingSide) => (
               <button
                 key={tab}
                 onClick={() => handleSideChange(tab)}
                 className={cn(
-                  "flex-1 py-1.5 sm:py-2 md:py-2.5 lg:py-3 text-xs sm:text-sm font-bold rounded-md transition-colors",
+                  "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
                   tradingState.activeTab === tab
                     ? tab === BaseOrQuote.BASE
                       ? "bg-green-500 text-white shadow-lg"
@@ -63,7 +63,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
         </fieldset>
 
         {/* Order Type Toggle */}
-        <fieldset className="mb-3 sm:mb-4 lg:mb-6">
+        <fieldset className="mb-2 sm:mb-3 lg:mb-4">
           <legend className="flex justify-between items-center mb-2">
             <span className="text-xs sm:text-sm font-medium text-gray-300">
               Order Type
@@ -75,7 +75,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                 key={type}
                 onClick={() => handleOrderTypeChange(type)}
                 className={cn(
-                  "flex-1 py-1 px-2 sm:px-3 md:px-3.5 lg:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors",
+                  "flex-1 py-1 px-2 text-xs sm:text-sm font-medium rounded-md transition-colors",
                   tradingState.activeOrderType === type
                     ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
                     : "text-gray-400 hover:text-white hover:bg-gray-600",
@@ -88,11 +88,11 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
         </fieldset>
 
         {/* Trade Form */}
-        <section className="flex-1 flex flex-col min-h-[280px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[500px] justify-between">
-          <fieldset className="flex-1 flex flex-col space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
+        <section className="flex-1 flex flex-col justify-between">
+          <fieldset className="flex-1 flex flex-col space-y-2 sm:space-y-2 md:space-y-3 lg:space-y-4">
             {/* Amount Input */}
             <section>
-              <header className="flex justify-between items-center mb-1 sm:mb-2">
+              <header className="flex justify-between items-center mb-1">
                 <label
                   htmlFor="amount"
                   className="text-xs sm:text-sm font-medium text-gray-300"
@@ -113,13 +113,13 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
             </section>
             <section className="relative">
               <input
-                type="text"
+                type="number"
                 id="amount"
                 name="amount"
                 value={formState.amount}
                 onChange={(e) => updateAmount(e.target.value)}
                 className={cn(
-                  "w-full pl-2 pr-16 sm:pr-20 md:pr-24 lg:pr-28 xl:pr-32 py-2 sm:py-2.5 md:py-3 rounded-lg bg-[#2a2d3a] border text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm sm:text-base transition-all",
+                  "w-full pl-2 pr-16 sm:pr-20 md:pr-24 lg:pr-28 xl:pr-32 py-2.5 rounded-lg bg-[#2a2d3a] border text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm transition-all",
                   ((): string => {
                     const quantity: number = parseFloat(
                       formState.amount.replace(",", "."),
@@ -154,7 +154,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
             </section>
 
             {/* Percentage Buttons */}
-            <section>
+            <section className="-mt-2">
               <nav className="flex gap-1 sm:gap-1.5 md:gap-2">
                 {[25, 50, 75, 100].map((percentage) => (
                   <Button
@@ -162,7 +162,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                     onClick={() => handlePercentageClick(percentage)}
                     variant="ghost"
                     size="sm"
-                    className="flex-1 py-1 sm:py-1.5 md:py-2 text-xs text-gray-400 hover:text-white hover:bg-[#2a2d3a] rounded"
+                    className="flex-1 py-1 text-xs text-gray-400 hover:text-white hover:bg-[#2a2d3a] rounded"
                   >
                     {percentage}%
                   </Button>
@@ -172,20 +172,20 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
 
             {/* Price Input (for limit orders) or Market Order Info */}
             {tradingState.activeOrderType === "limit" ? (
-              <section>
-                <header className="flex justify-between items-center mb-1 sm:mb-2">
-                  <span className="text-xs sm:text-sm font-medium text-gray-300">
-                    Price
-                  </span>
-                </header>
+              <section className="-mt-2">
+                              <header className="flex justify-between items-center mb-1">
+                <span className="text-xs sm:text-sm font-medium text-gray-300">
+                  Price
+                </span>
+              </header>
                 <section className="relative">
                   <input
-                    type="text"
+                    type="number"
                     id="price"
                     name="price"
                     value={formState.price || ""}
                     onChange={(e) => updatePrice(e.target.value)}
-                    className="w-full pl-2 pr-12 sm:pr-16 md:pr-20 lg:pr-22 xl:pr-24 py-2 sm:py-2.5 md:py-3 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 text-sm sm:text-base transition-all"
+                    className="w-full pl-2 pr-12 sm:pr-16 md:pr-20 lg:pr-22 xl:pr-24 py-2.5 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 text-sm transition-all"
                     placeholder="0,00"
                   />
                   <section className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 min-w-0">
@@ -200,12 +200,12 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
               </section>
             ) : (
               /* Market Order Info - maintains consistent height */
-              <section>
-                <header className="flex justify-between items-center mb-1 sm:mb-2">
-                  <span className="text-xs sm:text-sm font-medium text-gray-300">
-                    Market Order
-                  </span>
-                </header>
+              <section className="-mt-2">
+                              <header className="flex justify-between items-center mb-1">
+                <span className="text-xs sm:text-sm font-medium text-gray-300">
+                  Market Order
+                </span>
+              </header>
                 <article className="p-2 sm:p-2.5 md:p-3 bg-[#2a2d3a] rounded-lg border border-gray-600">
                   <p className="text-xs sm:text-sm text-gray-400">
                     Market orders execute at the best available price
@@ -215,10 +215,10 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
             )}
           </fieldset>
 
-          <footer>
+          <footer className="-mt-2">
             {/* Order Summary */}
-            <section className="p-2 sm:p-3 md:p-4 bg-[#2a2d3a] rounded-lg">
-              <dl className="space-y-1 sm:space-y-1.5 md:space-y-2 text-xs sm:text-sm">
+            <section className="p-2 sm:p-2 md:p-3 bg-[#2a2d3a] rounded-lg">
+              <dl className="space-y-1 text-xs sm:text-sm">
                 <section className="flex justify-between">
                   <dt className="text-gray-400">Order Type:</dt>
                   <dd className="text-white capitalize">
@@ -274,8 +274,8 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                 parseFloat(formState.amount) <= 0 ||
                 formState.isSubmitting
               }
-              className={cn(
-                "w-full py-2 sm:py-2.5 md:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors",
+                              className={cn(
+                  "w-full py-2 rounded-lg text-sm font-medium transition-colors mt-4",
                 tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
                   : "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] hover:from-[#00a8b9] hover:to-[#00a8b9] text-white",

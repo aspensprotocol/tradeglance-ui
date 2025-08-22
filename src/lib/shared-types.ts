@@ -109,14 +109,32 @@ export interface CachedOrderbookData {
   orderbook: OrderbookData;
   openOrders: OrderbookEntry[];
   lastUpdate: Date;
+  filterByTrader?: string; // Optional field to track if data was filtered by trader
 }
 
 // Global orderbook cache context type
 export interface GlobalOrderbookCacheContextType {
-  getCachedData: (marketId: string) => CachedOrderbookData | null;
-  setCachedData: (marketId: string, data: SharedOrderbookData) => void;
-  clearCache: (marketId?: string) => void;
-  isDataStale: (marketId: string, maxAgeMs?: number) => boolean;
+  getCachedData: (marketId: string, filterByTrader?: string) => CachedOrderbookData | null;
+  setCachedData: (marketId: string, data: SharedOrderbookData, filterByTrader?: string) => void;
+  clearCache: (marketId?: string, filterByTrader?: string) => void;
+  isDataStale: (marketId: string, maxAgeMs?: number, filterByTrader?: string) => boolean;
+  getCacheStats: () => {
+    totalEntries: number;
+    keys: string[];
+    entries: {
+      key: string;
+      marketId: string;
+      filterByTrader?: string;
+      hasOrderbook: boolean;
+      orderbookBids: number;
+      orderbookAsks: number;
+      hasOpenOrders: boolean;
+      openOrdersCount: number;
+      lastUpdate: string;
+      ageMs: number;
+    }[];
+  };
+  shouldClearCache: (marketId: string, filterByTrader?: string) => boolean;
 }
 
 // Orderbook context type
