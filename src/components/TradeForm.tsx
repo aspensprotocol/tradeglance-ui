@@ -5,14 +5,9 @@ import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradeFormProps } from "@/lib/shared-types";
 
-// Define the valid trading sides (excluding UNSPECIFIED)
-type TradingSide = BaseOrQuote.BASE | BaseOrQuote.QUOTE;
 
-// Define the display mapping for tabs
-const TAB_DISPLAY_MAP: Record<TradingSide, string> = {
-  [BaseOrQuote.BASE]: "Buy", // BASE = buying the base asset
-  [BaseOrQuote.QUOTE]: "Sell", // QUOTE = selling the base asset
-} as const;
+
+
 
 const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
   // Use the shared form logic hook
@@ -40,26 +35,32 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
   return (
     <section className="h-full bg-[#1a1c23] rounded-lg shadow-sm border border-gray-700 animate-fade-in overflow-hidden">
       <main className="p-2 sm:p-3 md:p-4 lg:p-6 h-full flex flex-col">
-        {/* Buy/Sell Tabs */}
+        {/* Buy/Sell Tabs - Buy always left, Sell always right */}
         <fieldset className="flex bg-[#2a2d3a] rounded-lg p-1 mb-2 sm:mb-3 lg:mb-4">
-          {([BaseOrQuote.BASE, BaseOrQuote.QUOTE] as TradingSide[]).map(
-            (tab: TradingSide) => (
-              <button
-                key={tab}
-                onClick={() => handleSideChange(tab)}
-                className={cn(
-                  "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
-                  tradingState.activeTab === tab
-                    ? tab === BaseOrQuote.BASE
-                      ? "bg-green-500 text-white shadow-lg"
-                      : "bg-red-500 text-white shadow-lg"
-                    : "text-gray-400 hover:text-white",
-                )}
-              >
-                {TAB_DISPLAY_MAP[tab]}
-              </button>
-            ),
-          )}
+          {/* Buy button - always left */}
+          <button
+            onClick={() => handleSideChange(BaseOrQuote.QUOTE)}
+            className={cn(
+              "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
+              tradingState.activeTab === BaseOrQuote.QUOTE
+                ? "bg-green-500 text-white shadow-lg" // Buy (green)
+                : "text-gray-400 hover:text-white",
+            )}
+          >
+            Buy
+          </button>
+          {/* Sell button - always right */}
+          <button
+            onClick={() => handleSideChange(BaseOrQuote.BASE)}
+            className={cn(
+              "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
+              tradingState.activeTab === BaseOrQuote.BASE
+                ? "bg-red-500 text-white shadow-lg" // Sell (red)
+                : "text-gray-400 hover:text-white",
+            )}
+          >
+            Sell
+          </button>
         </fieldset>
 
         {/* Order Type Toggle */}
@@ -231,15 +232,11 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                     className={cn(
                       "font-medium",
                       tradingState.activeTab === BaseOrQuote.BASE
-                        ? "text-green-400"
-                        : "text-red-400",
+                        ? "text-red-400"   // BASE = Sell (red)
+                        : "text-green-400", // QUOTE = Buy (green)
                     )}
                   >
-                    {
-                      TAB_DISPLAY_MAP[
-                        tradingState.activeTab || BaseOrQuote.BASE
-                      ]
-                    }
+                    {tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"}
                   </dd>
                 </section>
                 <section className="flex justify-between">
@@ -287,7 +284,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                   <span className="text-xs sm:text-sm">Processing...</span>
                 </span>
               ) : (
-                `${TAB_DISPLAY_MAP[tradingState.activeTab || BaseOrQuote.BASE]} ${tradingPair?.baseSymbol || "ATOM"}`
+                `${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${tradingPair?.baseSymbol || "ATOM"}`
               )}
             </Button>
           </footer>

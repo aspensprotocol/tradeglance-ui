@@ -27,8 +27,9 @@ const Home = (): JSX.Element => {
               <CardTitle className="text-center">Trade Glance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Hide Pro button on mobile, show on tablet and desktop */}
               <Button 
-                className="w-full" 
+                className="w-full hidden sm:block" 
                 variant="outline"
                 onClick={handleProClick}
               >

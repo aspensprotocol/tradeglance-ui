@@ -253,8 +253,8 @@ const Mint = (): JSX.Element => {
   };
 
   return (
-    <Layout footerPosition="absolute">
-      <main className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
+    <Layout scrollable>
+      <main className="max-w-4xl mx-auto">
         <header className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Test Token Minting

@@ -14,7 +14,7 @@ import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import { useAccount } from "wagmi";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface SimpleFormProps {
   selectedPair?: string;
@@ -29,6 +29,10 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
   
   // State for "Mine" filter toggle
   const [showOnlyMine, setShowOnlyMine] = useState(false);
+  
+  // State for individual token selection in Simple view
+  const [selectedBaseToken, setSelectedBaseToken] = useState<string>(tradingPair?.baseSymbol || "");
+  const [selectedQuoteToken, setSelectedQuoteToken] = useState<string>(tradingPair?.quoteSymbol || "");
   
   // Use the shared form logic hook
   const {
@@ -52,8 +56,68 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
   // Use prop tradingPairs if available, otherwise fall back to form logic
   const availableTradingPairs = tradingPairs || formLogicTradingPairs;
 
+  // Get unique tokens from all trading pairs
+  const uniqueTokens = useMemo(() => {
+    if (!availableTradingPairs) {
+      return {
+        baseTokens: [] as string[],
+        quoteTokens: [] as string[],
+      };
+    }
+    
+    const baseTokens = new Set<string>();
+    const quoteTokens = new Set<string>();
+    
+    availableTradingPairs.forEach(pair => {
+      baseTokens.add(pair.baseSymbol);
+      quoteTokens.add(pair.quoteSymbol);
+    });
+    
+    return {
+      baseTokens: Array.from(baseTokens).sort(),
+      quoteTokens: Array.from(quoteTokens).sort(),
+    };
+  }, [availableTradingPairs]);
+
+  // Find the trading pair based on selected tokens
+  const currentTradingPair = useMemo(() => {
+    if (!selectedBaseToken || !selectedQuoteToken || !availableTradingPairs) {
+      return tradingPair;
+    }
+    
+    return availableTradingPairs.find(
+      pair => pair.baseSymbol === selectedBaseToken && pair.quoteSymbol === selectedQuoteToken
+    ) || tradingPair;
+  }, [selectedBaseToken, selectedQuoteToken, availableTradingPairs, tradingPair]);
+
+  // Update selected pair when tokens change
+  const handleBaseTokenChange = (token: string) => {
+    setSelectedBaseToken(token);
+    if (token && selectedQuoteToken) {
+      const pair = availableTradingPairs?.find(
+        p => p.baseSymbol === token && p.quoteSymbol === selectedQuoteToken
+      );
+      if (pair && setSelectedPair) {
+        setSelectedPair(pair.id);
+      }
+    }
+  };
+
+  const handleQuoteTokenChange = (token: string) => {
+    setSelectedQuoteToken(token);
+    if (selectedBaseToken && token) {
+      const pair = availableTradingPairs?.find(
+        p => p.baseSymbol === selectedBaseToken && p.quoteSymbol === token
+      );
+      if (pair && setSelectedPair) {
+        setSelectedPair(pair.id);
+      }
+    }
+  };
+
   // Debug: Log selected pair for state tracking
   console.log("SimpleForm selectedPair:", selectedPair);
+  console.log("SimpleForm currentTradingPair:", currentTradingPair);
 
   const handleSubmitSimple = async () => {
     // Submit the order using shared logic
@@ -106,35 +170,28 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
                 <span className="flex items-center gap-1">
                   <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xs font-bold">
-                      {tradingPair?.baseSymbol
-                        ? tradingPair.baseSymbol.charAt(0)
+                      {selectedBaseToken
+                        ? selectedBaseToken.charAt(0)
                         : "?"}
                     </span>
                   </span>
                   <Select
-                    value={tradingPair?.baseSymbol}
-                    onValueChange={(value) => {
-                      const pair = availableTradingPairs?.find(
-                        (p) => p.baseSymbol === value,
-                      );
-                      if (pair && setSelectedPair) {
-                        setSelectedPair(pair.id);
-                      }
-                    }}
+                    value={selectedBaseToken}
+                    onValueChange={handleBaseTokenChange}
                   >
                     <SelectTrigger className="w-16 bg-transparent border-none text-white p-0 h-auto">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      {availableTradingPairs?.map((pair) => (
+                      {uniqueTokens.baseTokens.map((token) => (
                         <SelectItem
-                          key={pair.baseSymbol}
-                          value={pair.baseSymbol}
+                          key={token}
+                          value={token}
                           className="text-white hover:bg-gray-600"
                         >
-                          {pair.displayName.split("/")[0]}
+                          {token}
                         </SelectItem>
-                      )) || []}
+                      ))}
                     </SelectContent>
                   </Select>
                 </span>
@@ -193,7 +250,7 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
               <span className="text-gray-500">$0.00</span>
               <span className="flex items-center gap-1">
                 <span className="text-gray-400">
-                  Balance: {balanceLoading ? "Loading..." : `${formatDecimalConsistent(availableBalance)} ${tradingPair?.baseSymbol || "ATOM"}`}
+                  Balance: {balanceLoading ? "Loading..." : `${formatDecimalConsistent(availableBalance)} ${currentTradingPair?.baseSymbol || "ATOM"}`}
                 </span>
               </span>
             </section>
@@ -237,35 +294,28 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
                 <span className="flex items-center gap-1">
                   <span className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xs font-bold">
-                      {tradingPair?.quoteSymbol
-                        ? tradingPair.quoteSymbol.charAt(0)
+                      {selectedQuoteToken
+                        ? selectedQuoteToken.charAt(0)
                         : "?"}
                     </span>
                   </span>
                   <Select
-                    value={tradingPair?.quoteSymbol}
-                    onValueChange={(value) => {
-                      const pair = availableTradingPairs?.find(
-                        (p) => p.quoteSymbol === value,
-                      );
-                      if (pair && setSelectedPair) {
-                        setSelectedPair(pair.id);
-                      }
-                    }}
+                    value={selectedQuoteToken}
+                    onValueChange={handleQuoteTokenChange}
                   >
                     <SelectTrigger className="w-16 bg-transparent border-none text-white p-0 h-auto">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      {availableTradingPairs?.map((pair) => (
+                      {uniqueTokens.quoteTokens.map((token) => (
                         <SelectItem
-                          key={pair.quoteSymbol}
-                          value={pair.quoteSymbol}
+                          key={token}
+                          value={token}
                           className="text-white hover:bg-gray-600"
                         >
-                          {pair.displayName.split("/")[1]}
+                          {token}
                         </SelectItem>
-                      )) || []}
+                      ))}
                     </SelectContent>
                   </Select>
                 </span>
@@ -339,7 +389,7 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
                 const fee = amountValue * 0.01; // 1% fee
                 return fee.toFixed(2);
               })()}{" "}
-              {tradingPair?.quoteSymbol || "TTK"}
+              {currentTradingPair?.quoteSymbol || "TTK"}
             </span>
           </section>
 

@@ -61,8 +61,8 @@ We're currently looking for partner projects, so if you're a builder, and this s
 
   if (loading) {
     return (
-      <Layout footerPosition="absolute">
-        <main className="flex items-center justify-center h-full">
+      <Layout scrollable>
+        <main className="flex items-center justify-center py-16">
           <section className="text-center">
             <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4 block"></span>
             <p className="text-gray-600">Loading documentation...</p>
@@ -73,8 +73,8 @@ We're currently looking for partner projects, so if you're a builder, and this s
   }
 
   return (
-    <Layout footerPosition="absolute">
-      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-4xl">
+    <Layout scrollable>
+      <main className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8">
         <DocumentationViewer>
           <MarkdownRenderer content={markdownContent} />
         </DocumentationViewer>

@@ -73,16 +73,18 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           </Dialog>
         </nav>
         <nav className="flex flex-wrap gap-3 sm:gap-6 text-[#8E9196] text-xs">
-          <a href="#" className="hover:text-[#1EAEDB]">
-            Terms
-          </a>
-          <a href="#" className="hover:text-[#1EAEDB]">
-            Privacy
-          </a>
-          <a href="#" className="hover:text-[#1EAEDB]">
+          <a 
+            href="https://t.me/aspens_xyz" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-[#1EAEDB]"
+          >
             Support
           </a>
-          <a href="#" className="hover:text-[#1EAEDB]">
+          <a 
+            href="/docs" 
+            className="hover:text-[#1EAEDB]"
+          >
             Documentation
           </a>
         </nav>
