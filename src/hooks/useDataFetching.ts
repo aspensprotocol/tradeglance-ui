@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useBalanceCache } from "./useBalanceCache";
 
 interface UseDataFetchingParams<T> {
   marketId: string;
@@ -6,14 +7,18 @@ interface UseDataFetchingParams<T> {
   fetchFunction: (marketId: string, filterByTrader?: string) => Promise<T>;
   pollingInterval?: number;
   debounceMs?: number;
+  cacheKey?: string; // Optional custom cache key
+  cacheTimeout?: number; // Optional custom cache timeout
 }
 
 export function useDataFetching<T>({
   marketId,
   filterByTrader,
   fetchFunction,
-  pollingInterval = 20000,
-  debounceMs = 300,
+  pollingInterval = 500,
+  debounceMs = 50,
+  cacheKey,
+  cacheTimeout = 2000, // 2 seconds default cache timeout for orderbook data
 }: UseDataFetchingParams<T>): {
   data: T;
   loading: boolean;
@@ -21,7 +26,11 @@ export function useDataFetching<T>({
   error: string | null;
   refetch: () => Promise<void>;
   lastFetchTime: number;
+  isFromCache: boolean;
 } {
+  // Use our centralized cache system
+  const balanceCache = useBalanceCache();
+  
   // Use useRef to prevent multiple initializations
   const initializedRef = useRef(false);
   const [data, setData] = useState<T>([] as T);
@@ -30,9 +39,13 @@ export function useDataFetching<T>({
   const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
   const [retryCount, setRetryCount] = useState(0);
+  const [isFromCache, setIsFromCache] = useState(false);
   const maxRetries = 3;
 
-  const fetchData = useCallback(async () => {
+  // Generate cache key for this data
+  const dataCacheKey = cacheKey || `data-fetching-${marketId}-${filterByTrader || 'all'}`;
+
+  const fetchData = useCallback(async (forceRefresh = false) => {
     if (!marketId || marketId.trim() === "") {
       console.log(
         "useDataFetching: Skipping fetch - no marketId or empty marketId:",
@@ -44,6 +57,20 @@ export function useDataFetching<T>({
       return;
     }
 
+    // Check cache first (unless forcing refresh)
+    if (!forceRefresh) {
+      const cachedData = balanceCache.getCachedData(dataCacheKey);
+      if (cachedData) {
+        console.log("useDataFetching: Using cached data for:", dataCacheKey);
+        setData(cachedData as T);
+        setError(null);
+        setLastFetchTime(Date.now());
+        setIsFromCache(true);
+        setInitialLoading(false);
+        return;
+      }
+    }
+
     // Prevent multiple simultaneous fetches
     if (loading) {
       return;
@@ -51,9 +78,10 @@ export function useDataFetching<T>({
 
     setLoading(true);
     setError(null);
+    setIsFromCache(false);
 
     try {
-      console.log("useDataFetching: Fetching data for marketId:", marketId);
+      console.log("useDataFetching: Fetching fresh data for marketId:", marketId);
       const result = await fetchFunction(marketId, filterByTrader);
 
       console.log("Data fetch result:", {
@@ -82,6 +110,12 @@ export function useDataFetching<T>({
         setData([] as T);
       }
 
+      // Cache the successful result
+      if (result && (Array.isArray(result) ? result.length > 0 : true)) {
+        balanceCache.setCachedData(dataCacheKey, result);
+        console.log("useDataFetching: Cached data for:", dataCacheKey);
+      }
+
       setError(null);
       setLastFetchTime(Date.now());
     } catch (err) {
@@ -99,7 +133,7 @@ export function useDataFetching<T>({
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [marketId, filterByTrader, fetchFunction, loading]);
+  }, [marketId, filterByTrader, fetchFunction, loading, balanceCache, dataCacheKey]);
 
   // Initial fetch - only run once
   useEffect(() => {
@@ -127,7 +161,13 @@ export function useDataFetching<T>({
     initializedRef.current = false;
     setRetryCount(0); // Reset retry count for new market
     setLastFetchTime(0); // Reset last fetch time
-  }, [marketId]); // Only depend on marketId to prevent infinite loops
+    setIsFromCache(false);
+    
+    // Invalidate cache for the old market ID
+    if (dataCacheKey) {
+      balanceCache.invalidateCache(dataCacheKey);
+    }
+  }, [marketId, balanceCache, dataCacheKey]); // Only depend on marketId to prevent infinite loops
 
   // Set up polling - only after initial fetch
   useEffect(() => {
@@ -154,14 +194,23 @@ export function useDataFetching<T>({
 
     console.log("useDataFetching: Setting up polling for marketId:", marketId);
     const interval = setInterval(() => {
-      // Only poll if we're not currently loading and enough time has passed
-      if (!loading && Date.now() - lastFetchTime >= pollingInterval) {
+      // Check if cache is stale before polling
+      const cachedData = balanceCache.getCachedData(dataCacheKey);
+      const isCacheStale = !cachedData || (Date.now() - lastFetchTime >= cacheTimeout);
+      
+      // Only poll if we're not currently loading, enough time has passed, and cache is stale
+      if (!loading && Date.now() - lastFetchTime >= pollingInterval && isCacheStale) {
         console.log(
           "Polling for new data, last fetch was",
           Date.now() - lastFetchTime,
-          "ms ago",
+          "ms ago, cache stale:",
+          isCacheStale,
         );
         fetchData();
+      } else if (cachedData && !isCacheStale) {
+        console.log("useDataFetching: Using fresh cached data, skipping poll");
+        // Update timestamp to prevent immediate polling
+        setLastFetchTime(Date.now());
       }
     }, pollingInterval);
 
@@ -177,11 +226,14 @@ export function useDataFetching<T>({
     fetchData,
     retryCount,
     maxRetries,
+    balanceCache,
+    dataCacheKey,
+    cacheTimeout,
   ]);
 
-  const refetch = useCallback(async () => {
+  const refetch = useCallback(async (forceRefresh = false) => {
     setRetryCount(0); // Reset retry count on manual retry
-    await fetchData();
+    await fetchData(forceRefresh);
   }, [fetchData]);
 
   // Ensure data is always properly initialized to prevent .map() errors
@@ -194,5 +246,6 @@ export function useDataFetching<T>({
     error,
     refetch,
     lastFetchTime,
+    isFromCache,
   };
 }

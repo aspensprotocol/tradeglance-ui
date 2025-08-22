@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { formatDecimalConsistent } from "@/lib/number-utils";
 
 interface TradeFormProps {
   selectedPair: string;
@@ -110,7 +111,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                   <span className="text-blue-400">Loading...</span>
                 ) : (
                   <span className="text-blue-400">
-                    {availableBalance} {tradingPair?.baseSymbol || "ATOM"}
+                    {formatDecimalConsistent(availableBalance)} {tradingPair?.baseSymbol || "ATOM"}
                   </span>
                 )}
               </span>
@@ -144,7 +145,7 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
                 aria-describedby="amount-available"
               />
               <span id="amount-available" className="sr-only">
-                Available balance: {availableBalance}{" "}
+                Available balance: {formatDecimalConsistent(availableBalance)}{" "}
                 {tradingPair?.baseSymbol || "ATOM"}
               </span>
               <section className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 min-w-0">

@@ -6,6 +6,7 @@ import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useChainNetwork } from "@/hooks/useChainNetwork";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useViewContext } from "@/hooks/useViewContext";
 
 interface NavigationProps {
   className?: string;
@@ -17,6 +18,7 @@ export const Navigation = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentChainId, isSupported } = useChainMonitor();
   const { getChainNetwork } = useChainNetwork();
+  const { viewMode, setViewMode } = useViewContext();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const toggleMobileMenu = (): void => {
@@ -56,18 +58,26 @@ export const Navigation = ({
     <nav className={`flex justify-between items-center ${className}`}>
       {/* Desktop Navigation */}
       <section className="hidden md:flex gap-6">
-        <Link
-          to="/pro"
-          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
+        <button
+          onClick={() => setViewMode("pro")}
+          className={`text-lg font-medium transition-colors ${
+            viewMode === "pro" 
+              ? "text-blue-600" 
+              : "text-gray-900 hover:text-blue-600"
+          }`}
         >
           Pro
-        </Link>
-        <Link
-          to="/simple"
-          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
+        </button>
+        <button
+          onClick={() => setViewMode("simple")}
+          className={`text-lg font-medium transition-colors ${
+            viewMode === "simple" 
+              ? "text-blue-600" 
+              : "text-gray-900 hover:text-blue-600"
+          }`}
         >
           Simple
-        </Link>
+        </button>
         <Link
           to="/docs"
           className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
@@ -122,7 +132,7 @@ export const Navigation = ({
                 </CardHeader>
                 <CardContent className="space-y-2 sm:space-y-3">
                   <Link
-                    to="/simple"
+                    to="/trading?view=simple"
                     className="block"
                     onClick={closeMobileMenu}
                   >

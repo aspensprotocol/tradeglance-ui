@@ -4,39 +4,38 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "./lib/web3modal-config";
+import { GlobalOrderbookCacheProvider } from "@/contexts/GlobalOrderbookCache";
+import { OrderbookProvider } from "@/contexts/OrderbookContext";
+import { ViewProvider } from "@/contexts/ViewContext";
 import Home from "./pages/Home";
-import Index from "./pages/Index";
-import Simple from "./pages/Simple";
+import Trading from "./pages/Trading";
 import Docs from "./pages/Docs";
 import Mint from "./pages/Mint";
 import NotFound from "./pages/NotFound";
 import { ConfigTest } from "./components/ConfigTest";
-import { ResponsiveRoute } from "./components/ResponsiveRoute";
 
 const App = (): JSX.Element => (
   <WagmiProvider config={wagmiConfig}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route
-            path="/pro"
-            element={
-              <ResponsiveRoute hideOnMobile={true} redirectTo="/simple">
-                <Index />
-              </ResponsiveRoute>
-            }
-          />
-          <Route path="/simple" element={<Simple />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/mint" element={<Mint />} />
-          <Route path="/config" element={<ConfigTest />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <GlobalOrderbookCacheProvider>
+        <ViewProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <OrderbookProvider marketId="global">
+                          <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/trading" element={<Trading />} />
+                <Route path="/docs" element={<Docs />} />
+                <Route path="/mint" element={<Mint />} />
+                <Route path="/config" element={<ConfigTest />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </OrderbookProvider>
+          </BrowserRouter>
+        </ViewProvider>
+      </GlobalOrderbookCacheProvider>
     </TooltipProvider>
   </WagmiProvider>
 );

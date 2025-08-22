@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAccount, useDisconnect, useConnect } from "wagmi";
 import { Button } from "./ui/button";
 import DepositWithdrawModal from "./DepositWithdrawModal";

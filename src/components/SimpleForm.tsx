@@ -12,6 +12,7 @@ import {
 import type { TradingPair } from "@/hooks/useTradingPairs";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
+import { formatDecimalConsistent } from "@/lib/number-utils";
 
 interface SimpleFormProps {
   selectedPair?: string;
@@ -173,7 +174,7 @@ const SimpleForm = ({ tradingPair }: SimpleFormProps): JSX.Element => {
               <span className="text-gray-500">$0.00</span>
               <span className="flex items-center gap-2">
                 <span className="text-gray-400">
-                  Balance: {balanceLoading ? "Loading..." : availableBalance}
+                  Balance: {balanceLoading ? "Loading..." : `${formatDecimalConsistent(availableBalance)} ${tradingPair?.baseSymbol || "ATOM"}`}
                 </span>
               </span>
             </section>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSharedOrderbookData } from "../hooks/useSharedOrderbookData";
+import { useGlobalOrderbookCache } from "../hooks/useGlobalOrderbookCache";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import {
   OrderbookContext,
@@ -26,6 +27,9 @@ export function OrderbookProvider({
     marketIdTruthy: !!marketId,
     timestamp: new Date().toISOString(),
   });
+
+  // Get global cache
+  const globalCache = useGlobalOrderbookCache();
 
   // Get raw data from the hook
   const rawData = useSharedOrderbookData(marketId, filterByTrader);
@@ -242,6 +246,15 @@ export function OrderbookProvider({
         })),
       });
 
+      // Save to global cache for persistence across route changes
+      if (marketId && parsedOrderbook && parsedOpenOrders) {
+        globalCache.setCachedData(marketId, {
+          orderbook: parsedOrderbook,
+          openOrders: parsedOpenOrders,
+          lastUpdate: new Date(),
+        });
+      }
+
       setParsedData({
         ...rawData,
         orderbook: parsedOrderbook,
@@ -256,6 +269,8 @@ export function OrderbookProvider({
     parsedOpenOrders,
     loggingData,
     comprehensiveLoggingData,
+    globalCache,
+    marketId,
   ]);
 
   // Safety check: Don't render if marketId is invalid
@@ -295,16 +310,8 @@ export function OrderbookProvider({
     );
   }
 
-  // Don't render the context provider until we have valid data
-  if (!rawData.orderbook || !rawData.openOrders) {
-    console.log("🔍 OrderbookProvider: Waiting for data to load...", {
-      hasOrderbook: !!rawData.orderbook,
-      hasOpenOrders: !!rawData.openOrders,
-      loading: rawData.loading,
-      initialLoading: rawData.initialLoading,
-    });
-
-    // Return a loading state or null while waiting for data
+  // Special case for global provider - don't fetch data, just provide context
+  if (marketId === "global") {
     return (
       <OrderbookContext.Provider
         value={{
@@ -316,8 +323,8 @@ export function OrderbookProvider({
             lastUpdate: new Date(),
           },
           openOrders: [],
-          loading: true,
-          initialLoading: true,
+          loading: false,
+          initialLoading: false,
           error: null,
           refresh: () => {
             // No-op: refresh is handled by the hook
@@ -333,8 +340,78 @@ export function OrderbookProvider({
     );
   }
 
+  // Check global cache first for instant data display
+  const cachedData = marketId ? globalCache.getCachedData(marketId) : null;
+  const hasCachedData = cachedData && !globalCache.isDataStale(marketId);
+
+  // Don't render the context provider until we have valid data
+  if (!rawData.orderbook || !rawData.openOrders || 
+      (rawData.orderbook.bids.length === 0 && rawData.orderbook.asks.length === 0)) {
+    console.log("🔍 OrderbookProvider: Waiting for data to load...", {
+      hasOrderbook: !!rawData.orderbook,
+      hasOpenOrders: !!rawData.openOrders,
+      orderbookBidsLength: rawData.orderbook?.bids?.length || 0,
+      orderbookAsksLength: rawData.orderbook?.asks?.length || 0,
+      loading: rawData.loading,
+      initialLoading: rawData.initialLoading,
+      hasCachedData,
+    });
+
+    // If we have cached data, use it instead of showing loading
+    if (hasCachedData) {
+      console.log("🔍 OrderbookProvider: Using cached data while loading fresh data");
+      return (
+        <OrderbookContext.Provider
+          value={{
+            orderbook: cachedData.orderbook,
+            openOrders: cachedData.openOrders,
+            loading: rawData.loading,
+            initialLoading: false, // Not initial loading if we have cached data
+            error: rawData.error,
+            refresh: rawData.refresh,
+            lastUpdate: cachedData.lastUpdate,
+            setFilterByTrader: rawData.setFilterByTrader,
+          }}
+        >
+          {children}
+        </OrderbookContext.Provider>
+      );
+    }
+
+    // Return a loading state or null while waiting for data
+    return (
+      <OrderbookContext.Provider
+        value={{
+          orderbook: {
+            bids: [],
+            asks: [],
+            spread: 0,
+            spreadPercentage: 0,
+            lastUpdate: new Date(),
+          },
+          openOrders: [],
+          loading: rawData.loading,
+          initialLoading: rawData.initialLoading,
+          error: rawData.error,
+          refresh: rawData.refresh,
+          lastUpdate: new Date(),
+          setFilterByTrader: rawData.setFilterByTrader,
+        }}
+      >
+        {children}
+      </OrderbookContext.Provider>
+    );
+  }
+
   return (
-    <OrderbookContext.Provider value={parsedData}>
+    <OrderbookContext.Provider value={{
+      ...parsedData,
+      loading: rawData.loading,
+      initialLoading: rawData.initialLoading,
+      error: rawData.error,
+      refresh: rawData.refresh,
+      setFilterByTrader: rawData.setFilterByTrader,
+    }}>
       {children}
     </OrderbookContext.Provider>
   );

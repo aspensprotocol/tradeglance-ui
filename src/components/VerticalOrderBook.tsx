@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
-import { useOrderbookContext } from "../hooks/useOrderbookContext";
+import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 
 interface VerticalOrderBookProps {
@@ -76,8 +76,11 @@ const VerticalOrderBook = React.memo(
     onPairChange,
     tradingPairs,
   }: VerticalOrderBookProps): JSX.Element => {
-    // Use the shared orderbook context instead of separate hook
-    const { orderbook, initialLoading, error, refresh } = useOrderbookContext();
+    // Use market-specific orderbook hook
+    const { orderbook, initialLoading, error, refresh } = useMarketOrderbook(
+      tradingPair?.id || "",
+      undefined
+    );
 
     // Debug logging for trading pair configuration
     React.useEffect(() => {
@@ -203,41 +206,33 @@ const VerticalOrderBook = React.memo(
       // Show loading state until we have actual data
       if (initialLoading) {
         return (
-          <main className="h-full bg-white rounded-lg shadow-sm border">
-            {headerComponent}
-            <section className="p-4 h-full flex items-center justify-center">
-              <article className="text-center">
-                <span className="text-gray-500">
-                  <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></span>
-                  Loading orderbook...
-                </span>
-              </article>
-            </section>
-          </main>
+          <section className="p-4 h-full flex items-center justify-center">
+            <article className="text-center">
+              <span className="text-gray-500">
+                <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></span>
+                Loading orderbook...
+              </span>
+            </article>
+          </section>
         );
       }
 
       // Show error state
       if (error) {
         return (
-          <main className="h-full bg-white rounded-lg shadow-sm border">
-            {headerComponent}
-            <section className="p-4 h-full flex items-center justify-center">
-              <span className="text-red-500">
-                Error loading orderbook: {error}
-              </span>
-            </section>
-          </main>
+          <section className="p-4 h-full flex items-center justify-center">
+            <span className="text-red-500">
+              Error loading orderbook: {error}
+            </span>
+          </section>
         );
       }
 
       // Show no data state only when we're not loading and have no data
       if (!orderbook || (asks.length === 0 && bids.length === 0)) {
         return (
-          <main className="h-full bg-white rounded-lg shadow-sm border">
-            {headerComponent}
-            <section className="p-4 h-full flex items-center justify-center">
-              <article className="text-center">
+          <section className="p-4 h-full flex items-center justify-center">
+                          <article className="text-center">
                 <span className="text-gray-500">
                   <span className="text-lg mb-2">📊</span>
                   No orderbook data available
@@ -247,16 +242,13 @@ const VerticalOrderBook = React.memo(
                 </span>
               </article>
             </section>
-          </main>
         );
       }
 
       // Additional validation to ensure we have proper data
       if (!Array.isArray(asks) || !Array.isArray(bids)) {
         return (
-          <main className="h-full bg-white rounded-lg shadow-sm border">
-            <span className="text-red-500">Invalid orderbook data format</span>
-          </main>
+          <span className="text-red-500">Invalid orderbook data format</span>
         );
       }
 
@@ -325,7 +317,6 @@ const VerticalOrderBook = React.memo(
       spreadValue,
       spreadPercentage,
       tradingPair,
-      headerComponent,
     ]);
 
     // Always return the component - no early returns to violate Rules of Hooks

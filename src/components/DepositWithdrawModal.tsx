@@ -29,6 +29,7 @@ import {
   triggerBalanceRefresh,
 } from "@/lib/utils";
 import type { Chain } from "@/protos/gen/arborter_config_pb";
+import { formatDecimalConsistent } from "@/lib/number-utils";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
@@ -560,7 +561,7 @@ const DepositWithdrawModal = ({
                           Error loading wallet balance
                         </span>
                       ) : (
-                        `Wallet Balance: ${tokenBalance}`
+                        `Wallet Balance: ${formatDecimalConsistent(tokenBalance)}`
                       )
                     ) : // For withdrawals, show deposited balance (available locked funds)
                     depositedBalanceLoading ? (
@@ -570,7 +571,7 @@ const DepositWithdrawModal = ({
                         Error loading available balance
                       </span>
                     ) : (
-                      `Available: ${depositedBalance}`
+                      `Available: ${formatDecimalConsistent(depositedBalance)}`
                     )}
                   </span>
                 )}

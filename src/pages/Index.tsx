@@ -1,32 +1,25 @@
+import { useEffect } from "react";
 import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
-import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useTradingPairs } from "@/hooks/useTradingPairs";
-import { OrderbookProvider } from "@/contexts/OrderbookContext";
+import type { TradingPair } from "@/hooks/useTradingPairs";
 
-const Index = (): JSX.Element => {
-  // Get dynamic trading pairs from config
-  const {
-    tradingPairs,
-    loading: pairsLoading,
-    getTradingPairById,
-  } = useTradingPairs();
+interface IndexProps {
+  selectedPair: string;
+  setSelectedPair: (pair: string) => void;
+  currentTradingPair?: TradingPair;
+  tradingPairs: TradingPair[];
+  pairsLoading: boolean;
+}
 
-  // Set default selected pair to first available pair, or empty string if none available
-  const [selectedPair, setSelectedPair] = useState<string>("");
-
-  // Update selected pair when trading pairs load
-  useEffect(() => {
-    if (tradingPairs.length > 0 && !selectedPair) {
-      setSelectedPair(tradingPairs[0].id);
-    }
-  }, [tradingPairs, selectedPair]);
-
-  // Get the current trading pair object
-  const currentTradingPair = getTradingPairById(selectedPair);
+const Index = ({ 
+  selectedPair, 
+  setSelectedPair, 
+  currentTradingPair, 
+  tradingPairs, 
+  pairsLoading 
+}: IndexProps): JSX.Element => {
 
   // Debug logging
   console.log("Index page render:", {
@@ -44,8 +37,16 @@ const Index = (): JSX.Element => {
     pairsLoading,
   });
 
+  // Debug: Track component mounting/unmounting
+  useEffect(() => {
+    console.log("🚀 Index component MOUNTED");
+    return () => {
+      console.log("💀 Index component UNMOUNTED");
+    };
+  }, []);
+
   return (
-    <Layout footerPosition="absolute">
+    <>
       {/* Mobile-first responsive grid layout */}
       <main
         className="
@@ -67,7 +68,7 @@ const Index = (): JSX.Element => {
             <LoadingSpinner message="Loading trading pairs..." />
           </section>
         ) : currentTradingPair?.id ? (
-          <OrderbookProvider marketId={currentTradingPair.id}>
+          <>
             {/* Activity Panel - Full width on mobile, bottom on tablet, top on desktop */}
             <section
               className="
@@ -118,7 +119,7 @@ const Index = (): JSX.Element => {
                 tradingPairs={tradingPairs}
               />
             </aside>
-          </OrderbookProvider>
+          </>
         ) : (
           <section
             className="
@@ -131,7 +132,7 @@ const Index = (): JSX.Element => {
           </section>
         )}
       </main>
-    </Layout>
+    </>
   );
 };
 

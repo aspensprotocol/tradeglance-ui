@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
+import { useUnifiedBalance } from "./useUnifiedBalance";
 import type { TradingPair } from "./useTradingPairs";
 import type { Chain } from "../protos/gen/arborter_config_pb";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
@@ -122,6 +123,12 @@ export const useFormLogic = ({
     getCorrectSideForChain,
     getTargetChainForSide,
   } = useTradingLogic({ tradingPair, isSimpleForm });
+
+  // Get unified balance data with caching
+  const {
+    availableBalance: unifiedAvailableBalance,
+    balanceLoading: unifiedBalanceLoading,
+  } = useUnifiedBalance(tradingPair, currentChainId ? getCorrectSideForChain(currentChainId) : undefined);
 
   const {
     networkState,
@@ -469,8 +476,8 @@ export const useFormLogic = ({
     },
 
     // Data
-    availableBalance,
-    balanceLoading,
+    availableBalance: unifiedAvailableBalance || availableBalance,
+    balanceLoading: unifiedBalanceLoading || balanceLoading,
     currentChainId,
     isConnected,
     address,

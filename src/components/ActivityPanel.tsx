@@ -5,47 +5,54 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades } from "@/hooks/useRecentTrades";
-import { useOrderbookContext } from "../hooks/useOrderbookContext";
 import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
 import { Side } from "@/protos/gen/arborter_pb";
-
-import { useAllBalances } from "@/hooks/useAllBalances";
+import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
+import { useTabOptimization } from "@/hooks/useTabOptimization";
+import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import { triggerBalanceRefresh } from "../lib/utils";
 import type { TradingPair } from "@/hooks/useTradingPairs";
+import { formatDecimalConsistent } from "@/lib/number-utils";
 
 interface ActivityPanelProps {
   tradingPair?: TradingPair;
 }
 
 const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
-  const [activeTab, setActiveTab] = useState<"trades" | "orders" | "balances">(
-    "trades",
-  );
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
   const [showMineOnly, setShowMineOnly] = useState(false);
 
+  // Use tab optimization to prevent unnecessary reloads
+  const {
+    activeTab,
+    switchTab,
+  } = useTabOptimization<"trades" | "orders" | "balances">({
+    initialTab: "trades",
+    dataFetchingEnabled: true,
+    cacheTimeout: 30000, // 30 seconds
+  });
+
   // Get wallet address
   const { address } = useAccount();
 
-  // Get all balances across all tokens and chains
+  // Get all balances across all tokens and chains using unified hook
   const {
-    balances,
-    loading: balancesLoading,
+    allBalances: balances,
+    allBalancesLoading: balancesLoading,
     error: balancesError,
-    hasAnyBalances,
-    refreshBalances,
-  } = useAllBalances();
+    refreshAll: refreshBalances,
+  } = useUnifiedBalance(tradingPair, undefined);
 
   // Get the market ID from the trading pair
   const marketId = tradingPair?.id;
 
-  // Use shared orderbook context for open orders
+  // Use market-specific orderbook hook for open orders
   const {
     openOrders,
     loading: ordersLoading,
     error: ordersError,
-  } = useOrderbookContext();
+  } = useMarketOrderbook(marketId || "", undefined);
 
   // Only call hooks when their corresponding tab is active to prevent data accumulation
   const {
@@ -119,22 +126,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     setModalOpen(true);
   };
 
-  const handleTabChange = (newTab: "trades" | "orders" | "balances") => {
-    if (newTab !== activeTab) {
-      console.log("ActivityPanel: Switching tabs, clearing data", {
-        from: activeTab,
-        to: newTab,
-        marketId,
-        timestamp: new Date().toISOString(),
-      });
-
-      // Force clear any accumulated data by changing the key
-      // This will force React to re-mount the components
-      setActiveTab(newTab);
-      // Reset the filter when switching tabs to ensure consistent behavior
-      setShowMineOnly(false);
-    }
-  };
+  // Remove unused handleTabChange function since we're using switchTab directly
 
   const formatTime = (timestamp: Date) => {
     // Force CET timezone for display
@@ -160,7 +152,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
       <section className="p-2 sm:p-3 lg:p-4 h-full flex flex-col min-w-0">
         <nav className="flex border-b mb-3 sm:mb-4 overflow-x-auto">
           <button
-            onClick={() => handleTabChange("trades")}
+            onClick={() => switchTab("trades")}
             className={cn(
               "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
               activeTab === "trades"
@@ -174,7 +166,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             )}
           </button>
           <button
-            onClick={() => handleTabChange("orders")}
+            onClick={() => switchTab("orders")}
             className={cn(
               "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
               activeTab === "orders"
@@ -188,7 +180,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
             )}
           </button>
           <button
-            onClick={() => handleTabChange("balances")}
+            onClick={() => switchTab("balances")}
             className={cn(
               "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
               activeTab === "balances"
@@ -291,10 +283,10 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                       className="grid grid-cols-4 sm:grid-cols-5 text-xs py-2 border-b border-gray-100 gap-1 sm:gap-2 hover:bg-gray-50"
                     >
                       <span className="text-right truncate font-medium">
-                        {trade.price} {tradingPair?.quoteSymbol || "TTK"}
+                        {formatDecimalConsistent(trade.price)} {tradingPair?.quoteSymbol || "TTK"}
                       </span>
                       <span className="text-right truncate">
-                        {trade.quantity} {tradingPair?.baseSymbol || "ATOM"}
+                        {formatDecimalConsistent(trade.quantity)} {tradingPair?.baseSymbol || "ATOM"}
                       </span>
                       <span className="text-right truncate text-gray-500 hidden sm:block">
                         {trade.trader
@@ -435,7 +427,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                 <article className="text-center py-8 text-red-500">
                   Error loading balances: {balancesError}
                 </article>
-              ) : !hasAnyBalances ? (
+              ) : !balances || balances.length === 0 ? (
                 <article className="text-center py-8">
                   <span className="text-gray-400 mb-2">
                     <svg
@@ -500,7 +492,14 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
 
                   {/* Token Balances */}
                   <section className="space-y-4">
-                    {balances.map((balance) => {
+                    {balances.map((balance: {
+                      symbol: string;
+                      chainId: number;
+                      network: string;
+                      walletBalance: string;
+                      depositedBalance: string;
+                      lockedBalance: string;
+                    }) => {
                       // Get chain prefix for display
                       const getChainPrefix = (network: string): string => {
                         if (network.includes("flare")) return "f";
@@ -547,7 +546,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                                   Wallet Balance:
                                 </span>
                                 <span className="text-sm font-medium text-gray-900">
-                                  {balance.walletBalance} {balance.symbol}
+                                  {formatDecimalConsistent(balance.walletBalance)} {balance.symbol}
                                 </span>
                               </span>
                             )}
@@ -558,7 +557,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                                   Deposited (Available):
                                 </span>
                                 <span className="text-sm font-medium text-green-600">
-                                  {balance.depositedBalance} {balance.symbol}
+                                  {formatDecimalConsistent(balance.depositedBalance)} {balance.symbol}
                                 </span>
                               </span>
                             )}
@@ -569,7 +568,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                                   Locked in Orders:
                                 </span>
                                 <span className="text-sm font-medium text-orange-600">
-                                  {balance.lockedBalance} {balance.symbol}
+                                  {formatDecimalConsistent(balance.lockedBalance)} {balance.symbol}
                                 </span>
                               </span>
                             )}
