@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { GlobalOrderbookCacheContext, type CachedOrderbookData, type GlobalOrderbookCacheContextType } from "./global-orderbook-context";
+import { GlobalOrderbookCacheContext } from "./global-orderbook-context";
+import type { CachedOrderbookData, GlobalOrderbookCacheContextType, SharedOrderbookData } from "../lib/shared-types";
 
 interface GlobalOrderbookCacheProviderProps {
   children: React.ReactNode;
@@ -72,7 +73,7 @@ export function GlobalOrderbookCacheProvider({ children }: GlobalOrderbookCacheP
     return cached;
   }, [cache]);
 
-  const setCachedData = useCallback((marketId: string, data: Omit<CachedOrderbookData, 'marketId'>) => {
+  const setCachedData = useCallback((marketId: string, data: SharedOrderbookData) => {
     console.log("💾 GlobalCache setCachedData:", {
       marketId,
       orderBookBids: data.orderbook?.bids?.length || 0,
@@ -84,9 +85,10 @@ export function GlobalOrderbookCacheProvider({ children }: GlobalOrderbookCacheP
     setCache(prev => {
       const newCache = new Map(prev);
       newCache.set(marketId, {
-        ...data,
         marketId,
-        lastUpdate: new Date(),
+        orderbook: data.orderbook,
+        openOrders: data.openOrders,
+        lastUpdate: data.lastUpdate,
       });
       console.log("💾 GlobalCache updated, new size:", newCache.size);
       return newCache;

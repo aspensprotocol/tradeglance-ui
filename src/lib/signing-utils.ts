@@ -1,6 +1,6 @@
 import { create, toBinary } from "@bufbuild/protobuf";
-import type { ExecutionType, Side } from "../protos/gen/arborter_pb";
 import { OrderSchema } from "../protos/gen/arborter_pb";
+import type { OrderCreationData } from "./shared-types";
 
 // Define proper types for MetaMask ethereum object
 interface MetaMaskEthereumProvider {
@@ -18,18 +18,6 @@ const getEthereumProvider = (): MetaMaskEthereumProvider => {
   }
   throw new Error("MetaMask is not installed");
 };
-
-// Use proto-generated types instead of custom interfaces
-export interface OrderCreationData {
-  side: Side;
-  quantity: string;
-  price?: string;
-  marketId: string;
-  baseAccountAddress: string;
-  quoteAccountAddress: string;
-  executionType: ExecutionType;
-  matchingOrderIds: number[];
-}
 
 export async function signOrderWithGlobalProtobuf(
   orderData: OrderCreationData,
@@ -59,7 +47,7 @@ export async function signOrderWithGlobalProtobuf(
       baseAccountAddress: orderData.baseAccountAddress,
       quoteAccountAddress: orderData.quoteAccountAddress,
       executionType,
-      matchingOrderIds: orderData.matchingOrderIds.map((id) => BigInt(id)), // Convert number[] to bigint[]
+      matchingOrderIds: orderData.matchingOrderIds?.map((id) => BigInt(id)) || [], // Convert number[] to bigint[]
     });
 
     console.log("Created protobuf message:", orderMessage);
@@ -90,7 +78,7 @@ export async function signOrderWithGlobalProtobuf(
       orderData.executionType,
       `(${executionType === 0 ? "UNSPECIFIED" : "DISCRETIONARY"})`,
     );
-    console.log("  Matching Order IDs:", orderData.matchingOrderIds);
+    console.log("  Matching Order IDs:", orderData.matchingOrderIds || []);
     console.log("=== END MESSAGE DETAILS ===");
 
     // Sign the protobuf bytes using MetaMask

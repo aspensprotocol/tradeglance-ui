@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Menu, X } from "lucide-react";
 import WalletButton from "./WalletButton";
@@ -18,8 +18,13 @@ export const Navigation = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentChainId, isSupported } = useChainMonitor();
   const { getChainNetwork } = useChainNetwork();
-  const { viewMode, setViewMode } = useViewContext();
+  const { viewMode } = useViewContext();
+  const location = useLocation();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Check if we're on the trading page
+  const isOnTradingPage = location.pathname === "/trading";
+  const isOnDocsPage = location.pathname === "/docs";
 
   const toggleMobileMenu = (): void => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -58,29 +63,33 @@ export const Navigation = ({
     <nav className={`flex justify-between items-center ${className}`}>
       {/* Desktop Navigation */}
       <section className="hidden md:flex gap-6">
-        <button
-          onClick={() => setViewMode("pro")}
+        <Link
+          to="/trading?view=pro"
           className={`text-lg font-medium transition-colors ${
-            viewMode === "pro" 
+            isOnTradingPage && viewMode === "pro" 
               ? "text-blue-600" 
               : "text-gray-900 hover:text-blue-600"
           }`}
         >
           Pro
-        </button>
-        <button
-          onClick={() => setViewMode("simple")}
+        </Link>
+        <Link
+          to="/trading?view=simple"
           className={`text-lg font-medium transition-colors ${
-            viewMode === "simple" 
+            isOnTradingPage && viewMode === "simple" 
               ? "text-blue-600" 
               : "text-gray-900 hover:text-blue-600"
           }`}
         >
           Simple
-        </button>
+        </Link>
         <Link
           to="/docs"
-          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
+          className={`text-lg font-medium transition-colors ${
+            isOnDocsPage 
+              ? "text-blue-600" 
+              : "text-gray-900 hover:text-blue-600"
+          }`}
         >
           Docs
         </Link>

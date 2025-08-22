@@ -1,14 +1,9 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { TradingPair } from "@/hooks/useTradingPairs";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 import { formatDecimalConsistent } from "@/lib/number-utils";
-
-interface TradeFormProps {
-  selectedPair: string;
-  tradingPair?: TradingPair;
-}
+import type { TradeFormProps } from "@/lib/shared-types";
 
 // Define the valid trading sides (excluding UNSPECIFIED)
 type TradingSide = BaseOrQuote.BASE | BaseOrQuote.QUOTE;

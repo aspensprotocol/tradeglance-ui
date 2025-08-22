@@ -4,24 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { useViewContext } from "@/hooks/useViewContext";
 
-const Home = () => {
+const Home = (): JSX.Element => {
   const navigate = useNavigate();
   const { setViewMode } = useViewContext();
 
-  const handleProClick = () => {
+  const handleProClick = (): void => {
     setViewMode("pro");
     navigate("/trading");
   };
 
-  const handleSimpleClick = () => {
+  const handleSimpleClick = (): void => {
     setViewMode("simple");
     navigate("/trading");
   };
 
   return (
     <Layout footerPosition="fixed">
-      <div className="flex items-center justify-center h-full">
-        <div className="max-w-md w-full space-y-6">
+      <main className="flex items-center justify-center h-full">
+        <section className="max-w-md w-full space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-center">Trade Glance</CardTitle>
@@ -64,8 +64,8 @@ const Home = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </section>
+      </main>
     </Layout>
   );
 };

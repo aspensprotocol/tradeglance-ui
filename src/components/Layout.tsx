@@ -21,9 +21,9 @@ export const Layout = ({
         <header className="p-3 sm:p-4 lg:p-6">
           <Navigation />
           {viewToggle && (
-            <div className="mt-3 flex justify-center">
+            <section className="mt-3 flex justify-center">
               {viewToggle}
-            </div>
+            </section>
           )}
         </header>
         <section className="flex-1 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 lg:pb-20">

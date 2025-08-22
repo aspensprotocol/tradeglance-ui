@@ -10,7 +10,7 @@ export const LoadingSpinner = ({
   message = "Loading...",
   className = "",
   size = "md",
-}: LoadingSpinnerProps) => {
+}: LoadingSpinnerProps): JSX.Element => {
   const sizeClasses = {
     sm: "h-4 w-4",
     md: "h-8 w-8",

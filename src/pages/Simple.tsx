@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import SimpleForm from "@/components/SimpleForm";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 
@@ -26,15 +26,15 @@ const Simple = ({
     <>
       <main className="flex items-center justify-center h-full px-3 sm:px-4 lg:px-6 pb-0">
         {pairsLoading ? (
-          <div className="text-center">
+          <section className="text-center">
             <p>Loading trading pairs...</p>
-          </div>
+          </section>
         ) : defaultPair ? (
           <SimpleForm tradingPair={defaultPair} />
         ) : (
-          <div className="text-center">
+          <section className="text-center">
             <p>No trading pairs available</p>
-          </div>
+          </section>
         )}
       </main>
     </>

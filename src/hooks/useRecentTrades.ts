@@ -3,16 +3,7 @@ import { arborterService } from "../lib/grpc-client";
 import type { Trade } from "../protos/gen/arborter_pb";
 import { useTradingPairs } from "./useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
-
-export interface RecentTrade {
-  id: string;
-  side: string;
-  price: number;
-  quantity: number;
-  timestamp: Date;
-  trader: string;
-  marketId: string;
-}
+import type { RecentTrade } from "../lib/shared-types";
 
 export function useRecentTrades(
   marketId: string,

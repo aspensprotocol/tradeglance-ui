@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { arborterService } from "@/lib/grpc-client";
-import type { OrderCreationData } from "@/lib/signing-utils";
+import type { OrderCreationData } from "@/lib/shared-types";
 import { signOrderWithGlobalProtobuf } from "@/lib/signing-utils";
 import { ExecutionType, OrderSchema, Side } from "@/protos/gen/arborter_pb";
 import { create } from "@bufbuild/protobuf";
@@ -284,7 +284,7 @@ export const useTradingLogic = ({
         baseAccountAddress: orderData.baseAccountAddress,
         quoteAccountAddress: orderData.quoteAccountAddress,
         executionType: orderData.executionType,
-        matchingOrderIds: orderData.matchingOrderIds.map((id) => BigInt(id)), // Convert number[] to bigint[]
+        matchingOrderIds: orderData.matchingOrderIds?.map((id: number) => BigInt(id)) || [], // Convert number[] to bigint[]
       });
 
       // Send the order

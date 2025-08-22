@@ -1,25 +1,10 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { arborterService } from "../lib/grpc-client";
-import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import { Side } from "../protos/gen/arborter_pb";
+import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import { useTradingPairs } from "./useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
-
-// Use protobuf types directly for orderbook data
-export interface OrderbookData {
-  bids: OrderbookEntry[];
-  asks: OrderbookEntry[];
-  spread: number;
-  spreadPercentage: number;
-  lastUpdate: Date;
-}
-
-// Use protobuf types directly for shared data
-export interface SharedOrderbookData {
-  orderbook: OrderbookData;
-  openOrders: OrderbookEntry[];
-  lastUpdate: Date;
-}
+import type { OrderbookData, SharedOrderbookData } from "../lib/shared-types";
 
 export function useSharedOrderbookData(
   marketId: string,
@@ -83,7 +68,7 @@ export function useSharedOrderbookData(
   const [error, setError] = useState<string | null>(null);
   const lastFetchTime = useRef<number>(0);
   const pollingInterval = useRef<number | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [retryCount, setRetryCount] = useState<number>(0);
   const maxRetries = 3; // Reduced from 5 for faster failure recovery
 
   // Memoize the data processing functions to prevent recreation on every render
@@ -377,7 +362,7 @@ export function useSharedOrderbookData(
             price: a.price,
             quantity: a.quantity,
             priceType: typeof a.price,
-            quantityType: typeof a.quantity,
+            quantityType: typeof a.price,
             priceLength: typeof a.price === "string" ? a.price.length : "N/A",
             quantityLength:
               typeof a.quantity === "string" ? a.quantity.length : "N/A",

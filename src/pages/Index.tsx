@@ -97,7 +97,6 @@ const Index = ({
             >
               <TradeForm
                 key={`tradeform-${currentTradingPair?.id || "no-market"}`}
-                selectedPair={selectedPair}
                 tradingPair={currentTradingPair || undefined}
               />
             </section>

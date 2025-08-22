@@ -3,13 +3,7 @@ import type { TradingPair } from "@/hooks/useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
 import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
-
-interface VerticalOrderBookProps {
-  tradingPair?: TradingPair;
-  selectedPair: string;
-  onPairChange: (pair: string) => void;
-  tradingPairs: TradingPair[];
-}
+import type { VerticalOrderBookProps } from "../lib/shared-types";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(

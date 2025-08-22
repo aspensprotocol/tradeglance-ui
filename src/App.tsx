@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "./lib/web3modal-config";
 import { GlobalOrderbookCacheProvider } from "@/contexts/GlobalOrderbookCache";
-import { OrderbookProvider } from "@/contexts/OrderbookContext";
 import { ViewProvider } from "@/contexts/ViewContext";
 import Home from "./pages/Home";
 import Trading from "./pages/Trading";
@@ -22,17 +21,15 @@ const App = (): JSX.Element => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <OrderbookProvider marketId="global">
-                          <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/trading" element={<Trading />} />
-                <Route path="/docs" element={<Docs />} />
-                <Route path="/mint" element={<Mint />} />
-                <Route path="/config" element={<ConfigTest />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </OrderbookProvider>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/trading" element={<Trading />} />
+              <Route path="/docs" element={<Docs />} />
+              <Route path="/mint" element={<Mint />} />
+              <Route path="/config" element={<ConfigTest />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </BrowserRouter>
         </ViewProvider>
       </GlobalOrderbookCacheProvider>

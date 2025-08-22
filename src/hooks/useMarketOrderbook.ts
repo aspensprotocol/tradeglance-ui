@@ -2,22 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSharedOrderbookData } from "./useSharedOrderbookData";
 import { useGlobalOrderbookCache } from "./useGlobalOrderbookCache";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
-
-interface MarketOrderbookData {
-  orderbook: {
-    bids: OrderbookEntry[];
-    asks: OrderbookEntry[];
-    spread: number;
-    spreadPercentage: number;
-    lastUpdate: Date;
-  };
-  openOrders: OrderbookEntry[];
-  loading: boolean;
-  initialLoading: boolean;
-  error: string | null;
-  refresh: () => void;
-  lastUpdate: Date;
-}
+import type { MarketOrderbookData } from "../lib/shared-types";
 
 export function useMarketOrderbook(marketId: string, filterByTrader?: string): MarketOrderbookData {
   const globalCache = useGlobalOrderbookCache();
