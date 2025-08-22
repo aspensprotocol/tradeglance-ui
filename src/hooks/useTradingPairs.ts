@@ -1,163 +1,128 @@
-import { useConfig } from './useConfig';
-import { configUtils } from '../lib/config-utils';
-import { Configuration, Market, Chain } from '../protos/gen/arborter_config_pb';
+import { useConfig } from "./useConfig";
+import type { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
+import type { TradingPair } from "../lib/shared-types";
 
-// Use proto-generated types instead of custom interfaces
-export interface TradingPair {
-  id: string;
-  displayName: string;
-  baseSymbol: string;
-  quoteSymbol: string;
-  baseChainId: number;
-  quoteChainId: number;
-  marketId: string;
-  baseTokenDecimals: number;
-  quoteTokenDecimals: number;
-  pairDecimals: number;
-}
+export const useTradingPairs = (): {
+  tradingPairs: TradingPair[];
+  loading: boolean;
+  error: string | null;
+  getTradingPairById: (id: string) => TradingPair | null;
+  getTradingPairByMarketId: (marketId: string) => TradingPair | null;
+} => {
+  const { config, loading: configLoading, error: configError } = useConfig();
 
-export const useTradingPairs = () => {
-  const { config, loading, error } = useConfig();
-  
-  // Debug logging for config
-  console.log('useTradingPairs: Config received:', {
-    hasConfig: !!config,
-    configType: typeof config,
-    configKeys: config ? Object.keys(config) : [],
-    chainsCount: config?.chains?.length || 0,
-    marketsCount: config?.markets?.length || 0,
-    loading,
-    error
-  });
-  
-  const getTradingPairs = (): TradingPair[] => {
-    if (!config) {
+  // Calculate trading pairs from config
+  const tradingPairs: TradingPair[] = (() => {
+    if (!config || !config.chains || !config.markets) {
       return [];
     }
 
-    // The config is a plain JavaScript object, not a protobuf object
-    const chains = config.chains || [];
-    const markets = config.markets || [];
+    const chains: Chain[] = config.chains || [];
+    const markets: Market[] = config.markets || [];
 
     if (chains.length === 0 || markets.length === 0) {
       return [];
     }
 
-    const tradingPairs: TradingPair[] = [];
+    // Create a map for faster chain lookup
+    const chainMap = new Map<string, Chain>();
+    chains.forEach((chain) => chainMap.set(chain.network, chain));
 
-    // Create trading pairs from markets
+    const results: TradingPair[] = [];
+
     markets.forEach((market: Market) => {
-      console.log('Processing market:', {
-        slug: market.slug,
-        name: market.name,
-        marketId: market.marketId,
-        marketIdType: typeof market.marketId,
-        marketIdTruthy: !!market.marketId,
-        baseChainNetwork: market.baseChainNetwork,
-        quoteChainNetwork: market.quoteChainNetwork,
-        fullMarket: market,
-        marketKeys: Object.keys(market)
-      });
-      
-      // Find base and quote chains by network name
-      const baseChain = chains.find((chain: Chain) => chain.network === market.baseChainNetwork);
-      const quoteChain = chains.find((chain: Chain) => chain.network === market.quoteChainNetwork);
-      
-      console.log('Found chains:', {
-        baseChain: baseChain ? {
-          network: baseChain.network,
-          chainId: baseChain.chainId,
-          baseOrQuote: baseChain.baseOrQuote
-        } : null,
-        quoteChain: quoteChain ? {
-          network: quoteChain.network,
-          chainId: quoteChain.chainId,
-          baseOrQuote: quoteChain.baseOrQuote
-        } : null
-      });
-      
+      // Find the base and quote chains for this market
+      const baseChain: Chain | undefined = chainMap.get(
+        market.baseChainNetwork,
+      );
+      const quoteChain: Chain | undefined = chainMap.get(
+        market.quoteChainNetwork,
+      );
+
       if (!baseChain || !quoteChain) {
-        console.log('Skipping market - chain not found:', {
-          baseChainNetwork: market.baseChainNetwork,
-          quoteChainNetwork: market.quoteChainNetwork,
-          availableChains: chains.map(c => c.network)
-        });
         return;
       }
 
-      // Skip markets without valid marketId
-      if (!market.marketId || market.marketId.trim() === '') {
-        console.warn('Skipping market - no valid marketId:', {
-          slug: market.slug,
-          name: market.name,
-          marketId: market.marketId
-        });
+      // Find the base and quote tokens
+      const baseToken: Token | undefined =
+        baseChain.tokens[market.baseChainTokenSymbol];
+      const quoteToken: Token | undefined =
+        quoteChain.tokens[market.quoteChainTokenSymbol];
+
+      if (!baseToken || !quoteToken) {
         return;
       }
 
-      // Helper function to get chain prefix for trading pairs
+      // Get chain prefixes for display
       const getChainPrefix = (network: string): string => {
-        if (network.includes('flare')) return 'f'; // flare-coston2
-        if (network.includes('base')) return 'b';  // base-sepolia
-        if (network.includes('mainnet')) return 'm';
-        if (network.includes('goerli')) return 'g';
-        if (network.includes('sepolia')) return 's';
-        return network.charAt(0).toLowerCase(); // fallback to first letter
+        if (network.includes("flare")) return "f";
+        if (network.includes("base")) return "b";
+        if (network.includes("mainnet")) return "m";
+        if (network.includes("goerli")) return "g";
+        if (network.includes("sepolia")) return "s";
+        return network.charAt(0).toLowerCase();
       };
 
-      // Get chain prefixes
-      const basePrefix = getChainPrefix(baseChain.network);
-      const quotePrefix = getChainPrefix(quoteChain.network);
+      const basePrefix: string = getChainPrefix(baseChain.network);
+      const quotePrefix: string = getChainPrefix(quoteChain.network);
 
-      // Convert chain IDs to numbers for consistency
-      const baseChainId = typeof baseChain.chainId === 'string' ? parseInt(baseChain.chainId, 10) : baseChain.chainId;
-      const quoteChainId = typeof quoteChain.chainId === 'string' ? parseInt(quoteChain.chainId, 10) : quoteChain.chainId;
+      // Create the trading pair ID
+      const baseChainId: number =
+        typeof baseChain.chainId === "string"
+          ? parseInt(baseChain.chainId, 10)
+          : baseChain.chainId;
+      const quoteChainId: number =
+        typeof quoteChain.chainId === "string"
+          ? parseInt(quoteChain.chainId, 10)
+          : quoteChain.chainId;
 
-      // Create trading pair with chain prefixes
       const tradingPair: TradingPair = {
-        id: `${basePrefix}${market.baseChainTokenSymbol}-${quotePrefix}${market.quoteChainTokenSymbol}`,
-        displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
+        id:
+          market.marketId ||
+          `${baseChainId}::${baseToken.address}::${quoteChainId}::${quoteToken.address}`,
         baseSymbol: market.baseChainTokenSymbol,
         quoteSymbol: market.quoteChainTokenSymbol,
-        baseChainId: baseChainId,
-        quoteChainId: quoteChainId,
-        marketId: market.marketId || `${baseChain.network}-${market.baseChainTokenSymbol}-${quoteChain.network}-${market.quoteChainTokenSymbol}`,
-        baseTokenDecimals: market.baseChainTokenDecimals || 18,
-        quoteTokenDecimals: market.quoteChainTokenDecimals || 18,
-        pairDecimals: market.pairDecimals || 8,
+        displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
+        baseChainNetwork: market.baseChainNetwork,
+        quoteChainNetwork: market.quoteChainNetwork,
+        baseChainTokenAddress: baseToken.address,
+        quoteChainTokenAddress: quoteToken.address,
+        baseChainTokenDecimals: market.baseChainTokenDecimals,
+        quoteChainTokenDecimals: market.quoteChainTokenDecimals,
+        pairDecimals: market.pairDecimals,
+        baseChainId,
+        quoteChainId,
       };
 
-      tradingPairs.push(tradingPair);
-      console.log('Created trading pair:', {
-        id: tradingPair.id,
-        displayName: tradingPair.displayName,
-        marketId: tradingPair.marketId,
-        marketIdType: typeof tradingPair.marketId,
-        marketIdTruthy: !!tradingPair.marketId,
-        baseChainId: tradingPair.baseChainId,
-        quoteChainId: tradingPair.quoteChainId,
-        baseChainBaseOrQuote: baseChain.baseOrQuote,
-        quoteChainBaseOrQuote: quoteChain.baseOrQuote
-      });
+      results.push(tradingPair);
     });
 
-    console.log('Final trading pairs:', tradingPairs.map(p => ({ id: p.id, marketId: p.marketId })));
-    return tradingPairs;
-  };
+    return results;
+  })();
 
+  const loading: boolean =
+    configLoading || (!!config && tradingPairs.length === 0);
+  const error: string | null =
+    configError ||
+    (!!config && tradingPairs.length === 0 ? "No trading pairs found" : null);
+
+  // Create lookup functions
   const getTradingPairById = (id: string): TradingPair | null => {
-    return getTradingPairs().find(pair => pair.id === id) || null;
+    return tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
   };
 
   const getTradingPairByMarketId = (marketId: string): TradingPair | null => {
-    return getTradingPairs().find(pair => pair.marketId === marketId) || null;
+    return (
+      tradingPairs.find((pair: TradingPair) => pair.id.includes(marketId)) ||
+      null
+    );
   };
 
   return {
-    tradingPairs: getTradingPairs(),
-    getTradingPairById,
-    getTradingPairByMarketId,
+    tradingPairs,
     loading,
     error,
+    getTradingPairById,
+    getTradingPairByMarketId,
   };
-}; 
+};

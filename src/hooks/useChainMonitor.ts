@@ -1,144 +1,155 @@
-import { useState, useEffect } from 'react';
-import { configUtils } from '../lib/config-utils';
-import { useConfig } from './useConfig';
+import { useCallback, useEffect, useState } from "react";
+import { useConfig } from "./useConfig";
+import { configUtils } from "../lib/config-utils";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 
-export const useChainMonitor = () => {
+// MetaMask Chain Permissions Update (November 2024):
+// - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
+// - Users must manually switch chains in MetaMask
+// - This hook now only monitors chain state, doesn't attempt to switch chains
+
+export const useChainMonitor = (): {
+  currentChainId: number | null;
+  isSupported: boolean;
+  supportedChains: Chain[];
+  getCurrentChainId: () => Promise<number>;
+  handleChainChanged: (chainId: string) => void;
+} => {
   const [currentChainId, setCurrentChainId] = useState<number | null>(null);
   const [isSupported, setIsSupported] = useState<boolean>(false);
-  const { config, loading: configLoading } = useConfig();
+  const [supportedChains, setSupportedChains] = useState<Chain[]>([]);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const { config } = useConfig();
 
+  // Initialize with clean state when no MetaMask
   useEffect(() => {
-    // Don't check chain support until config is loaded
-    if (configLoading || !config) {
-      console.log('Chain monitor: Waiting for config to load...', { configLoading, hasConfig: !!config });
+    if (!window.ethereum) {
+      setCurrentChainId(null);
+      setIsSupported(false);
+      setSupportedChains([]);
+      setIsInitialized(true);
+    }
+  }, []);
+
+  const getCurrentChainId = async (): Promise<number> => {
+    if (!window.ethereum) throw new Error("No ethereum provider found");
+
+    const chainId: string = await window.ethereum.request({
+      method: "eth_chainId",
+    });
+    const chainIdNumber: number = parseInt(chainId, 16);
+    return chainIdNumber;
+  };
+
+  const checkChainSupport = useCallback(
+    (chainId: number): void => {
+      if (!config || !chainId || chainId <= 0) return;
+
+      const tradeContractAddress: string | null =
+        configUtils.getTradeContractAddress(chainId);
+      const supported = !!tradeContractAddress;
+
+      setCurrentChainId(chainId);
+      setIsSupported(supported);
+    },
+    [config],
+  );
+
+  const updateSupportedChains = useCallback((): void => {
+    if (!config) {
+      setSupportedChains([]);
       return;
     }
 
-    console.log('Chain monitor: Config loaded, checking chain support...');
+    const allChains: Chain[] = configUtils.getAllChains();
+    setSupportedChains(allChains);
+  }, [config]);
 
-    const getCurrentChainId = async () => {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-          const chainIdNumber = parseInt(chainId, 16);
-          console.log('Chain monitor: Current chain ID from MetaMask:', chainIdNumber);
-          console.log('Chain monitor: Chain ID type:', typeof chainIdNumber);
-          setCurrentChainId(chainIdNumber);
-          
-          // Get trade contract info for this chain using configUtils directly
-          const tradeContractAddress = configUtils.getTradeContractAddress(chainIdNumber);
-          const chainConfig = configUtils.getChainByChainId(chainIdNumber);
-          const supported = !!tradeContractAddress;
-          
-          console.log('Chain monitor: Chain analysis:', {
-            chainId: chainIdNumber,
-            chainIdType: typeof chainIdNumber,
-            hasTradeContract: !!tradeContractAddress,
-            tradeContractAddress,
-            hasChainConfig: !!chainConfig,
-            supported
-          });
-          
-          if (supported && tradeContractAddress) {
-            console.log(`✅ Supported chain detected!`);
-            console.log(`🔗 Current Chain ID: ${chainIdNumber}`);
-            console.log(`📋 Trade Contract for deposits/withdrawals: ${tradeContractAddress}`);
-            console.log(`💡 You can now perform deposits and withdrawals on this chain`);
-            
-            // Log supported tokens for this chain
-            if (chainConfig && chainConfig.tokens) {
-              console.log(`🪙 Supported tokens on this chain:`);
-              Object.entries(chainConfig.tokens).forEach(([symbol, token]) => {
-                console.log(`   • ${token.symbol} (${symbol}): ${token.address}`);
-              });
-            }
-            
-            setIsSupported(true);
-          } else {
-            console.log(`❌ Unsupported chain detected!`);
-            console.log(`🔗 Current Chain ID: ${chainIdNumber}`);
-            console.log(`⚠️  This chain is not supported for deposits and withdrawals`);
-            console.log(`💡 Please switch to a supported network in MetaMask`);
-            
-            // Log available chains for debugging
-            const allChains = configUtils.getAllChains();
-            console.log('Available chains in config:', allChains.map(c => ({ 
-              chainId: c.chainId, 
-              network: c.network,
-              hasTradeContract: !!c.tradeContractAddress 
-            })));
-            
-            // Show user-friendly message about supported networks
-            console.log('💡 Supported networks you can switch to:');
-            allChains.forEach(chain => {
-              if (chain.tradeContractAddress) {
-                console.log(`   • ${chain.network} (Chain ID: ${chain.chainId})`);
-              }
-            });
-            
-            setIsSupported(false);
-          }
-        } catch (error) {
-          console.error('Error getting chain ID:', error);
+  // Initialize chain monitoring
+  useEffect(() => {
+    if (isInitialized) return; // Prevent multiple initializations
+
+    const initializeChainMonitoring = async (): Promise<void> => {
+      if (!window.ethereum) {
+        console.warn("No ethereum provider found");
+        setCurrentChainId(null);
+        setIsSupported(false);
+        setIsInitialized(true);
+        return;
+      }
+
+      try {
+        // Check if MetaMask is connected by trying to get accounts
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        if (accounts.length === 0) {
           setCurrentChainId(null);
           setIsSupported(false);
+          setIsInitialized(true);
+          return;
         }
-      } else {
-        console.log('Chain monitor: MetaMask not available');
+
+        // Only try to get chain ID if MetaMask is connected
+        const chainId: number = await getCurrentChainId();
+        await checkChainSupport(chainId);
+        updateSupportedChains();
+        setIsInitialized(true);
+      } catch {
+        setCurrentChainId(null);
+        setIsSupported(false);
+        setIsInitialized(true);
       }
     };
 
-    // Get initial chain ID
-    getCurrentChainId();
+    initializeChainMonitoring();
+  }, [checkChainSupport, updateSupportedChains, isInitialized]);
 
-    // Listen for chain changes
-    const handleChainChanged = (chainId: string) => {
-      const chainIdNumber = parseInt(chainId, 16);
-      console.log('Chain monitor: Chain changed to:', chainIdNumber);
-      setCurrentChainId(chainIdNumber);
-      
-      // Get trade contract info for the new chain using configUtils directly
-      const tradeContractAddress = configUtils.getTradeContractAddress(chainIdNumber);
-      const chainConfig = configUtils.getChainByChainId(chainIdNumber);
-      const supported = !!tradeContractAddress;
-      
-      if (supported && tradeContractAddress) {
-        console.log(`✅ Network changed to supported chain!`);
-        console.log(`🔗 New Chain ID: ${chainIdNumber}`);
-        console.log(`📋 Trade Contract for deposits/withdrawals: ${tradeContractAddress}`);
-        console.log(`💡 You can now perform deposits and withdrawals on this chain`);
-        
-        // Log supported tokens for this chain
-        if (chainConfig && chainConfig.tokens) {
-          console.log(`🪙 Supported tokens on this chain:`);
-          Object.entries(chainConfig.tokens).forEach(([symbol, token]) => {
-            console.log(`   • ${token.symbol} (${symbol}): ${token.address}`);
-          });
-        }
-        
-        setIsSupported(true);
-      } else {
-        console.log(`❌ Network changed to unsupported chain!`);
-        console.log(`🔗 New Chain ID: ${chainIdNumber}`);
-        console.log(`⚠️  This chain is not supported for deposits and withdrawals`);
-        console.log(`💡 Please switch to a supported network in MetaMask`);
+  // Update when config changes
+  useEffect(() => {
+    // Only update chain support if we have a valid chain ID and config
+    if (currentChainId && currentChainId > 0 && config) {
+      checkChainSupport(currentChainId);
+    }
+    // Always update supported chains when config changes
+    updateSupportedChains();
+  }, [config, currentChainId, checkChainSupport, updateSupportedChains]);
+
+  // Listen for chain changes
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    const handleChainChanged = (chainId: string): void => {
+      const chainIdNumber: number = parseInt(chainId, 16);
+
+      checkChainSupport(chainIdNumber);
+    };
+
+    const handleAccountsChanged = (accounts: string[]): void => {
+      if (accounts.length === 0) {
+        setCurrentChainId(null);
         setIsSupported(false);
       }
     };
 
-    if (window.ethereum) {
-      window.ethereum.on('chainChanged', handleChainChanged);
-    }
+    window.ethereum.on("chainChanged", handleChainChanged);
+    window.ethereum.on("accountsChanged", handleAccountsChanged);
 
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
-      }
+    // eslint-disable-next-line consistent-return
+    return (): void => {
+      window.ethereum.removeListener("chainChanged", handleChainChanged);
+      window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
     };
-  }, [config, configLoading]);
+  }, [checkChainSupport]);
 
   return {
     currentChainId,
     isSupported,
+    supportedChains,
+    getCurrentChainId,
+    handleChainChanged: (chainId: string): void => {
+      const chainIdNumber: number = parseInt(chainId, 16);
+      checkChainSupport(chainIdNumber);
+    },
   };
-}; 
+};

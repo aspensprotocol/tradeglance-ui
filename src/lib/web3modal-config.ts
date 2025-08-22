@@ -1,24 +1,30 @@
-import { createWeb3Modal } from '@web3modal/wagmi/react'
-import { WagmiProvider, createConfig, http } from 'wagmi'
-import { mainnet, sepolia, polygon, base, baseSepolia } from 'wagmi/chains'
-import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors'
-import { defineChain } from 'viem'
-import { Chain } from '../protos/gen/arborter_config_pb'
+import { type Config, createConfig, http } from "wagmi";
+import { base, baseSepolia, mainnet, polygon, sepolia } from "wagmi/chains";
+import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
+import { type Chain as ViemChain, defineChain } from "viem";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 
 // Your WalletConnect project ID
-const projectId = 'c3690594c774dccbd4a0272ae38f1953'
+const projectId = "c3690594c774dccbd4a0272ae38f1953";
 
 // Start with default chains that are always available
-const defaultChains = [mainnet, sepolia, polygon, base, baseSepolia] as const
+const defaultChains = [mainnet, sepolia, polygon, base, baseSepolia] as const;
 
 // Create initial wagmi config with default chains only
-const createWagmiConfig = (customChains: ReturnType<typeof defineChain>[] = []) => {
+const createWagmiConfig = (
+  customChains: ReturnType<typeof defineChain>[] = [],
+): Config => {
   const allChains = [...defaultChains, ...customChains] as const;
-  
-  // Create transports object dynamically
+
+  // Create transports object dynamically with retry logic
   const transports: Record<number, ReturnType<typeof http>> = {};
-  allChains.forEach(chain => {
-    transports[chain.id] = http();
+  allChains.forEach((chain) => {
+    transports[chain.id] = http(chain.rpcUrls.default.http[0], {
+      batch: { batchSize: 1 }, // Disable batching to avoid connection issues
+      retryCount: 3,
+      retryDelay: 1000,
+      timeout: 30000,
+    });
   });
 
   return createConfig({
@@ -28,79 +34,75 @@ const createWagmiConfig = (customChains: ReturnType<typeof defineChain>[] = []) 
       // Injected wallets (MetaMask, Rabby, etc.) - FIRST
       injected({ shimDisconnect: true }),
       // WalletConnect - SECOND
-      walletConnect({ projectId, showQrModal: true }),
+      walletConnect({
+        projectId,
+        showQrModal: true,
+        metadata: {
+          name: "TradeGlance",
+          description: "TradeGlance Trading Platform",
+          url: window.location.origin,
+          icons: [`${window.location.origin}/favicon.png`],
+        },
+      }),
       // Coinbase Wallet - THIRD
-      coinbaseWallet({ appName: 'TradeGlance' })
-    ]
+      coinbaseWallet({
+        appName: "TradeGlance",
+        headlessMode: false, // Ensure UI is shown
+      }),
+    ],
   });
 };
 
 // Create initial config with default chains
 let wagmiConfig = createWagmiConfig();
 
-// Create Web3Modal with injected wallet support
-let web3Modal = createWeb3Modal({
-  wagmiConfig,
-  projectId,
-  // Theme
-  themeMode: 'dark',
-  themeVariables: {
-    '--w3m-z-index': 9999
-  }
-})
-
-export { wagmiConfig, createWagmiConfig }
+export { wagmiConfig, createWagmiConfig };
 
 // Utility function to create dynamic chains from gRPC config
-export const createDynamicChains = (grpcChains: Chain[]) => {
-  return grpcChains.map(chain => defineChain({
-    id: typeof chain.chainId === 'string' ? parseInt(chain.chainId, 10) : chain.chainId,
-    name: chain.network,
-    network: chain.network,
-    nativeCurrency: {
-      decimals: 18,
-      name: 'Ether',
-      symbol: 'ETH',
-    },
-    rpcUrls: {
-      default: { http: [chain.rpcUrl] },
-      public: { http: [chain.rpcUrl] },
-    },
-    blockExplorers: chain.explorerUrl ? {
-      default: { name: 'Explorer', url: chain.explorerUrl },
-    } : undefined,
-  }));
+export const createDynamicChains = (grpcChains: Chain[]): ViemChain[] => {
+  return grpcChains.map((chain) =>
+    defineChain({
+      id:
+        typeof chain.chainId === "string"
+          ? parseInt(chain.chainId, 10)
+          : chain.chainId,
+      name: chain.network,
+      network: chain.network,
+      nativeCurrency: {
+        decimals: 18,
+        name: "Ether",
+        symbol: "ETH",
+      },
+      rpcUrls: {
+        default: { http: [chain.rpcUrl] },
+        public: { http: [chain.rpcUrl] },
+      },
+      blockExplorers: chain.explorerUrl
+        ? {
+            default: { name: "Explorer", url: chain.explorerUrl },
+          }
+        : undefined,
+    }),
+  );
 };
 
 // Track if we've already updated the config to prevent multiple initializations
 let hasUpdatedConfig = false;
 
 // Function to update the wagmi config with chains from gRPC config
-export const updateWagmiConfig = (grpcChains: Chain[]) => {
+export const updateWagmiConfig = (grpcChains: Chain[]): Config => {
   // Prevent multiple updates
   if (hasUpdatedConfig) {
-    console.log('Wagmi config already updated, skipping duplicate update');
     return wagmiConfig;
   }
-  
+
   const dynamicChains = createDynamicChains(grpcChains);
   const newConfig = createWagmiConfig(dynamicChains);
-  
+
   // Update the global wagmi config
   wagmiConfig = newConfig;
-  
-  // Recreate Web3Modal with the new config
-  web3Modal = createWeb3Modal({
-    wagmiConfig: newConfig,
-    projectId,
-    themeMode: 'dark',
-    themeVariables: {
-      '--w3m-z-index': 9999
-    }
-  });
-  
+
   hasUpdatedConfig = true;
-  console.log('Updated wagmi config with chains:', dynamicChains.map(c => ({ id: c.id, name: c.name })));
-  
+
   return newConfig;
-}; 
+};

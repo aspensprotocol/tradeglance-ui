@@ -1,51 +1,110 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { execSync } from "child_process";
-
-// Get git commit hash
-const getGitCommitHash = () => {
-  try {
-    return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-  } catch (error) {
-    console.warn('Could not get git commit hash:', error);
-    return 'unknown';
-  }
-};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  optimizeDeps: {
-    include: ['google-protobuf', 'grpc-web'],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis'
-      }
-    }
-  },
-  build: {
-    rollupOptions: {
-      external: ['google-protobuf/google-protobuf.js'],
+  server: {
+    port: 3000,
+    host: true,
+    cors: true,
+    hmr: {
+      overlay: true,
+    },
+    // Enhanced logging for all server events
+    middlewareMode: false,
+    fs: {
+      strict: false,
+    },
+    // Add fallback for client-side routing (SPA support)
+    // This ensures that all routes fall back to index.html, allowing React Router to handle them
+    historyApiFallback: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/api/, ""),
+        configure: (proxy) => {
+          // Enhanced error logging
+          proxy.on("error", (err, req, res) => {
+            console.error("🔴 PROXY ERROR:", err);
+            console.error("🔴 Request details:", {
+              method: req.method,
+              url: req.url,
+              headers: req.headers,
+            });
+
+            // Send a more helpful error response
+            if (!res.headersSent) {
+              res.writeHead(500, {
+                "Content-Type": "application/json",
+              });
+              res.end(
+                JSON.stringify({
+                  error: "Proxy Error",
+                  message: err.message,
+                  name: err.name,
+                }),
+              );
+            }
+          });
+
+          // Request and response handling
+          proxy.on("proxyReq", () => {
+            // Handle proxy requests
+          });
+
+          // Response handling
+          proxy.on("proxyRes", () => {
+            // Handle proxy responses
+          });
+        },
+        // Important settings for gRPC-Web streaming
+        ws: true,
+        timeout: 0,
+      },
     },
   },
+  build: {
+    target: "esnext",
+    rollupOptions: {
+      external: ["google-protobuf/google-protobuf.js"],
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          router: ["react-router-dom"],
+          web3: ["wagmi", "viem"],
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-select",
+            "@radix-ui/react-toast",
+          ],
+          utils: ["clsx", "class-variance-authority", "tailwind-merge"],
+        },
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
   define: {
-    global: 'globalThis',
-    // Inject git commit hash as environment variable
-    'import.meta.env.VITE_GIT_COMMIT_HASH': JSON.stringify(getGitCommitHash()),
+    global: "globalThis",
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom"],
   },
   ssr: {
-    noExternal: ['google-protobuf', 'grpc-web']
+    noExternal: ["google-protobuf", "grpc-web"],
+  },
+  // Performance optimizations
+  esbuild: {
+    drop: mode === "production" ? ["console", "debugger"] : [],
   },
 }));

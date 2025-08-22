@@ -1,495 +1,464 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { arborterService } from '../lib/grpc-client';
-import { 
-  OrderbookEntry, 
-  Trade, 
-  Order,
-  Side,
-  OrderStatus
-} from '../protos/gen/arborter_pb';
-import { weiToDecimal, formatDecimal } from '../lib/number-utils';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { arborterService } from "../lib/grpc-client";
+import { Side } from "../protos/gen/arborter_pb";
+import type { OrderbookEntry } from "../protos/gen/arborter_pb";
+import { useTradingPairs } from "./useTradingPairs";
+import { formatDecimalConsistent } from "../lib/number-utils";
+import type { OrderbookData, SharedOrderbookData } from "../lib/shared-types";
+import { useGlobalOrderbookCache } from "./useGlobalOrderbookCache";
 
-// Use proper protobuf types for orderbook data
-export interface OrderbookOrder {
-  price: string;
-  quantity: string;
-  total: string;
-  orderId: string;
-  side: 'bid' | 'ask';
-}
-
-export interface OrderbookData {
-  bids: OrderbookOrder[];
-  asks: OrderbookOrder[];
-  spread: number;
-  spreadPercentage: number;
-  lastUpdate: Date;
-}
-
-// Use proper protobuf types for open orders
-export interface OpenOrder {
-  id: string;
-  price: string;
-  quantity: string;
-  side: 'buy' | 'sell';
-  timestamp: Date;
-  makerAddress: string;
-}
-
-export interface SharedOrderbookData {
+export function useSharedOrderbookData(
+  marketId: string,
+  filterByTrader?: string,
+): {
   orderbook: OrderbookData;
-  openOrders: OpenOrder[];
+  openOrders: OrderbookEntry[];
+  loading: boolean;
+  initialLoading: boolean;
+  error: string | null;
+  refresh: () => void;
   lastUpdate: Date;
-}
+  setFilterByTrader: (trader: string | undefined) => void;
+} {
+  // Get global cache to check for existing data
+  const globalCache = useGlobalOrderbookCache();
 
-export function useSharedOrderbookData(marketId: string, filterByTrader?: string) {
+  // Get trading pairs to extract token decimals
+  const { tradingPairs } = useTradingPairs();
+
+  // Find current trading pair
+  const currentTradingPair = tradingPairs.find((pair) => pair.id === marketId);
+
   const [data, setData] = useState<SharedOrderbookData>({
     orderbook: {
       bids: [],
       asks: [],
       spread: 0,
       spreadPercentage: 0,
-      lastUpdate: new Date()
+      lastUpdate: new Date(),
     },
     openOrders: [],
-    lastUpdate: new Date()
+    lastUpdate: new Date(),
   });
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const lastFetchTime = useRef<number>(0);
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [retryCount, setRetryCount] = useState<number>(0);
   const maxRetries = 3;
+  const hasInitializedRef = useRef<boolean>(false);
+  const lastMarketIdRef = useRef<string>("");
+  const lastFilterRef = useRef<string | undefined>(undefined);
 
-  // Process orderbook data into the expected format
-  const processOrderbookData = useCallback((entries: OrderbookEntry[]): OrderbookData => {
-    const bids: OrderbookOrder[] = [];
-    const asks: OrderbookOrder[] = [];
+  // Check if we have cached data first
+  const cachedData = globalCache.getCachedData(marketId, filterByTrader);
+  const hasCachedData =
+    cachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
 
-    if (!entries || entries.length === 0) {
-      return {
-        bids: [],
-        asks: [],
-        spread: 0,
-        spreadPercentage: 0,
-        lastUpdate: new Date()
-      };
-    }
+  // Check if this is a real market change or just a re-render
+  const isRealMarketChange =
+    lastMarketIdRef.current !== marketId ||
+    lastFilterRef.current !== filterByTrader;
 
-    console.log('Processing orderbook data:', entries.length, 'entries');
-    
-    // Less aggressive deduplication - only remove exact duplicates
-    const uniqueEntries = entries.filter((entry, index, self) => {
-      const isDuplicate = self.findIndex(e => 
-        e.orderId?.toString() === entry.orderId?.toString() && 
-        e.side === entry.side &&
-        e.price === entry.price &&
-        e.quantity === entry.quantity
-      ) !== index;
-      
-      if (isDuplicate) {
-        console.log('Removing duplicate entry:', {
-          orderId: entry.orderId,
-          side: entry.side,
-          price: entry.price,
-          quantity: entry.quantity
-        });
-      }
-      
-      return !isDuplicate;
-    });
-    
-    if (uniqueEntries.length !== entries.length) {
-      console.log('Orderbook deduplication:', {
-        original: entries.length,
-        unique: uniqueEntries.length,
-        duplicates: entries.length - uniqueEntries.length
+  // Update refs
+  useEffect(() => {
+    lastMarketIdRef.current = marketId;
+    lastFilterRef.current = filterByTrader;
+  }, [marketId, filterByTrader]);
+
+  // Initialize with cached data if available
+  useEffect(() => {
+    if (hasCachedData && !hasInitializedRef.current) {
+      setData({
+        orderbook: cachedData.orderbook,
+        openOrders: cachedData.openOrders,
+        lastUpdate: cachedData.lastUpdate,
       });
+      setInitialLoading(false);
+      hasInitializedRef.current = true;
     }
-    
-    uniqueEntries.forEach((entry, index) => {
-      if (entry.side === undefined || entry.side === null) {
-        console.warn('Entry missing side:', entry);
-        return;
+  }, [hasCachedData, cachedData, marketId, filterByTrader]);
+
+  // Data processing functions
+  const processOrderbookData = useCallback(
+    (entries: OrderbookEntry[]): OrderbookData => {
+      if (!entries || entries.length === 0) {
+        return {
+          bids: [],
+          asks: [],
+          spread: 0,
+          spreadPercentage: 0,
+          lastUpdate: new Date(),
+        };
       }
 
-      // Less strict validation - only check for absolutely required fields
-      if (!entry.price || !entry.quantity) {
-        console.warn('Entry missing absolutely required fields:', {
-          orderId: entry.orderId,
-          hasPrice: !!entry.price,
-          hasQuantity: !!entry.quantity,
-          side: entry.side
-        });
-        return;
+      if (!currentTradingPair) {
+        return {
+          bids: entries.filter((entry) => entry.side === Side.BID),
+          asks: entries.filter((entry) => entry.side === Side.ASK),
+          spread: 0,
+          spreadPercentage: 0,
+          lastUpdate: new Date(),
+        };
       }
 
-      const priceDecimal = weiToDecimal(entry.price || '0');
-      const quantityDecimal = weiToDecimal(entry.quantity || '0');
+      const bids: OrderbookEntry[] = [];
+      const asks: OrderbookEntry[] = [];
 
-      const priceNum = parseFloat(priceDecimal);
-      const quantityNum = parseFloat(quantityDecimal);
-      const totalDecimal = (!isNaN(priceNum) && !isNaN(quantityNum)) ? (priceNum * quantityNum).toString() : '0';
+      // Process entries in a single pass for better performance
+      entries.forEach((entry) => {
+        if (
+          entry.side === undefined ||
+          entry.side === null ||
+          !entry.price ||
+          !entry.quantity
+        ) {
+          return;
+        }
 
-      const priceFormatted = formatDecimal(priceDecimal);
-      const quantityFormatted = formatDecimal(quantityDecimal);
-      const totalFormatted = formatDecimal(totalDecimal, 6);
+        // The backend sends values in pair decimal format, not wei format
+        const pairDecimals = currentTradingPair?.pairDecimals || 8;
 
-      let side: 'bid' | 'ask';
-      if (entry.side === 1) {
-        side = 'bid';
-      } else if (entry.side === 2) {
-        side = 'ask';
-      } else {
-        console.warn('Unknown side value:', entry.side, 'for entry:', entry);
-        side = 'bid'; // fallback
-      }
+        // Convert from pair decimal format to human-readable format
+        const priceDecimal = formatDecimalConsistent(
+          parseFloat(entry.price || "0") / Math.pow(10, pairDecimals),
+        );
+        const quantityDecimal = formatDecimalConsistent(
+          parseFloat(entry.quantity || "0") / Math.pow(10, pairDecimals),
+        );
 
-      const order: OrderbookOrder = {
-        price: priceFormatted,
-        quantity: quantityFormatted,
-        total: totalFormatted,
-        orderId: entry.orderId?.toString() || `order-${index}`,
-        side: side
+        // Create a new entry with properly formatted values
+        const formattedEntry: OrderbookEntry = {
+          ...entry,
+          price: priceDecimal,
+          quantity: quantityDecimal,
+        };
+
+        if (entry.side === Side.BID) {
+          bids.push(formattedEntry);
+        } else if (entry.side === Side.ASK) {
+          asks.push(formattedEntry);
+        }
+      });
+
+      // Sort bids in descending order (highest first) and asks in ascending order (lowest first)
+      bids.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+      asks.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+
+      // Calculate spread
+      const spread =
+        asks.length > 0 && bids.length > 0
+          ? parseFloat(asks[0].price) - parseFloat(bids[0].price)
+          : 0;
+      const spreadPercentage =
+        asks.length > 0 && bids.length > 0
+          ? (spread / parseFloat(bids[0].price)) * 100
+          : 0;
+
+      return {
+        bids,
+        asks,
+        spread,
+        spreadPercentage,
+        lastUpdate: new Date(),
       };
+    },
+    [currentTradingPair],
+  );
 
-      if (order.side === 'bid') {
-        bids.push(order);
-      } else {
-        asks.push(order);
+  const processOpenOrdersData = useCallback(
+    (entries: OrderbookEntry[]): OrderbookEntry[] => {
+      if (!entries || entries.length === 0) {
+        return [];
       }
-    });
 
-    // Sort bids (highest first) and asks (lowest first)
-    bids.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-    asks.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      // Filter out entries with missing required fields
+      const validEntries = entries.filter((entry) => {
+        return (
+          entry.side !== undefined &&
+          entry.side !== null &&
+          entry.price &&
+          entry.quantity &&
+          entry.orderId
+        );
+      });
 
-    const lowestAsk = asks.length > 0 ? parseFloat(asks[0].price) : 0;
-    const highestBid = bids.length > 0 ? parseFloat(bids[0].price) : 0;
-    const spread = lowestAsk - highestBid;
-    const spreadPercentage = lowestAsk > 0 ? (spread / lowestAsk) * 100 : 0;
+      if (!currentTradingPair) {
+        return validEntries;
+      }
 
-    console.log('Orderbook processed:', {
-      totalEntries: entries.length,
-      uniqueEntries: uniqueEntries.length,
-      bids: bids.length,
-      asks: asks.length,
-      spread,
-      spreadPercentage
-    });
+      // Process entries with proper decimal conversion
+      return validEntries.map((entry) => {
+        const pairDecimals = currentTradingPair.pairDecimals || 8;
 
-    return {
-      bids,
-      asks,
-      spread,
-      spreadPercentage,
-      lastUpdate: new Date()
-    };
-  }, []);
+        const priceDecimal = formatDecimalConsistent(
+          parseFloat(entry.price || "0") / Math.pow(10, pairDecimals),
+        );
+        const quantityDecimal = formatDecimalConsistent(
+          parseFloat(entry.quantity || "0") / Math.pow(10, pairDecimals),
+        );
 
-  // Process orderbook data into open orders format
-  const processOpenOrdersData = useCallback((orderbookEntries: OrderbookEntry[]): OpenOrder[] => {
-    console.log('Processing open orders from', orderbookEntries.length, 'orderbook entries');
-    
-    const openOrders = orderbookEntries
-      .filter(entry => {
-        // Only include entries that are actual open orders
-        // ORDER_STATUS_ADDED = 1 (open order)
-        // ORDER_STATUS_FILLED = 2 (filled order - closed)
-        // ORDER_STATUS_CANCELLED = 3 (cancelled order - closed)
-        const isOpen = entry.status === 1;
-        
-        // Less strict validation - only check for absolutely required fields
-        const hasRequiredFields = entry.price && entry.quantity && entry.side !== undefined;
-        
-        if (!isOpen) {
-          console.log('Filtering out non-open order:', {
-            orderId: entry.orderId,
-            status: entry.status,
-            side: entry.side
-          });
-        }
-        
-        if (!hasRequiredFields) {
-          console.log('Filtering out incomplete entry:', {
-            orderId: entry.orderId,
-            hasPrice: !!entry.price,
-            hasQuantity: !!entry.quantity,
-            hasSide: entry.side !== undefined
-          });
-        }
-        
-        return isOpen && hasRequiredFields;
-      })
-      .map(entry => ({
-        id: entry.orderId?.toString() || `open-order-${Date.now()}`,
-        side: (entry.side === 1 ? 'buy' : 'sell') as 'buy' | 'sell',
-        price: formatDecimal(weiToDecimal(entry.price || '0')),
-        quantity: formatDecimal(weiToDecimal(entry.quantity || '0')),
-        timestamp: entry.timestamp ? new Date(Number(entry.timestamp)) : new Date(),
-        makerAddress: entry.makerBaseAddress || ''
-      }));
-    
-    console.log('Open orders processed:', openOrders.length, 'orders');
-    return openOrders;
-  }, []);
+        return {
+          ...entry,
+          price: priceDecimal,
+          quantity: quantityDecimal,
+        };
+      });
+    },
+    [currentTradingPair],
+  );
 
-  // Fetch orderbook data and process it for both uses
-  const fetchData = useCallback(async () => {
-    console.log('useSharedOrderbookData: fetchData called with:', {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      marketIdTrimmed: marketId?.trim(),
-      loading,
-      retryCount,
-      maxRetries
-    });
-    
-    if (!marketId || marketId.trim() === '') {
-      console.log('useSharedOrderbookData: Skipping fetch - no marketId or empty marketId:', marketId);
+  // Fetch function
+  const fetchOrderbookData = useCallback(async () => {
+    if (!marketId || marketId.trim() === "") {
       return;
     }
 
-    // Prevent multiple simultaneous fetches
-    if (loading) {
-      console.log('useSharedOrderbookData: Skipping fetch - already loading');
-      return;
-    }
-
-    // Check if we need to fetch (avoid fetching too frequently)
     const now = Date.now();
-    if (now - lastFetchTime.current < 5000) { // 5 second minimum between fetches
-      console.log('useSharedOrderbookData: Skipping fetch - too soon since last fetch');
+    const minFetchInterval = 1000;
+
+    // Prevent too frequent requests
+    if (now - lastFetchTime.current < minFetchInterval) {
       return;
     }
 
+    lastFetchTime.current = now;
     setLoading(true);
     setError(null);
 
     try {
-      console.log('Fetching shared orderbook data for market:', marketId);
-      
-      const response = await arborterService.getOrderbookSnapshot(marketId, true, filterByTrader);
-      
-      console.log('useSharedOrderbookData: Response received:', {
-        response,
-        responseType: typeof response,
-        isArray: Array.isArray(response),
-        length: Array.isArray(response) ? response.length : 'N/A',
-        firstEntry: Array.isArray(response) && response.length > 0 ? response[0] : null
-      });
-      
-      if (response && Array.isArray(response)) {
-        console.log('Orderbook response received:', {
-          length: response.length,
-          firstEntry: response[0],
-          lastEntry: response[response.length - 1],
-          sampleEntries: response.slice(0, 3)
+      // Fetch orderbook data
+      const orderbookEntries = await arborterService.getOrderbook(
+        marketId,
+        true, // continueStream
+        true, // historicalOpenOrders
+        filterByTrader,
+      );
+
+      if (orderbookEntries && orderbookEntries.length > 0) {
+        // Process the orderbook data
+        const processedOrderbook = processOrderbookData(orderbookEntries);
+        const processedOpenOrders = processOpenOrdersData(orderbookEntries);
+
+        setData((prevData) => {
+          const newData = {
+            ...prevData,
+            orderbook: processedOrderbook,
+            openOrders: processedOpenOrders,
+            lastUpdate: new Date(),
+          };
+
+          // Save to global cache
+          globalCache.setCachedData(marketId, newData, filterByTrader);
+
+          return newData;
         });
-        
-        console.log('useSharedOrderbookData: Processing orderbook data...');
-        const orderbook = processOrderbookData(response);
-        console.log('useSharedOrderbookData: Orderbook processed:', {
-          bids: orderbook.bids.length,
-          asks: orderbook.asks.length,
-          spread: orderbook.spread,
-          spreadPercentage: orderbook.spreadPercentage
-        });
-        
-        console.log('useSharedOrderbookData: Processing open orders data...');
-        const openOrders = processOpenOrdersData(response);
-        console.log('useSharedOrderbookData: Open orders processed:', openOrders.length);
-        
-        // Deduplicate open orders by ID to prevent duplicates
-        const uniqueOpenOrders = openOrders.filter((order, index, self) => {
-          const firstIndex = self.findIndex(o => o.id === order.id);
-          const isDuplicate = firstIndex !== index;
-          if (isDuplicate) {
-            console.log('Removing duplicate open order:', {
-              id: order.id,
-              firstIndex,
-              currentIndex: index
-            });
-          }
-          return !isDuplicate;
-        });
-        
-        if (uniqueOpenOrders.length !== openOrders.length) {
-          console.log('Open orders deduplication:', {
-            original: openOrders.length,
-            unique: uniqueOpenOrders.length,
-            duplicates: openOrders.length - uniqueOpenOrders.length
-          });
-        }
-        
-        console.log('useSharedOrderbookData: Setting data...');
-        setData({
-          orderbook,
-          openOrders: uniqueOpenOrders,
-          lastUpdate: new Date()
-        });
-        
-        lastFetchTime.current = now;
-        console.log('Shared orderbook data updated:', {
-          orderbookEntries: response.length,
-          openOrders: uniqueOpenOrders.length,
-          bids: orderbook.bids.length,
-          asks: orderbook.asks.length
-        });
-        
-        // Log the actual data being set
-        console.log('useSharedOrderbookData: Data set successfully:', {
-          orderbook: {
-            bids: orderbook.bids.length,
-            asks: orderbook.asks.length,
-            spread: orderbook.spread,
-            spreadPercentage: orderbook.spreadPercentage
-          },
-          openOrders: uniqueOpenOrders.length,
-          lastUpdate: new Date()
-        });
-        
-        // Set initialLoading to false after first successful fetch
-        setInitialLoading(false);
-      } else {
-        console.warn('No orderbook data in response:', response);
-        setError('No orderbook data received');
       }
-    } catch (error) {
-      console.error('useSharedOrderbookData: Error fetching orderbook data:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch orderbook data';
-      setError(errorMessage);
-      
-      // Increment retry count
-      setRetryCount(prev => {
-        const newCount = prev + 1;
-        console.log('useSharedOrderbookData: Retry count incremented to:', newCount);
-        return newCount;
-      });
+
+      setRetryCount(0);
+      setInitialLoading(false);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+
+      if (retryCount < maxRetries) {
+        setRetryCount((prev) => prev + 1);
+        // Retry after a delay
+        setTimeout(
+          () => {
+            fetchOrderbookData();
+          },
+          1000 * (retryCount + 1),
+        );
+      } else {
+        setError(`Failed to fetch orderbook data: ${errorMessage}`);
+        setInitialLoading(false);
+      }
     } finally {
-      console.log('useSharedOrderbookData: Fetch completed, setting loading to false');
       setLoading(false);
-      // Don't set initialLoading to false here - only set it after successful data fetch
     }
-  }, [marketId, filterByTrader, processOrderbookData, processOpenOrdersData, loading, retryCount]);
+  }, [
+    marketId,
+    filterByTrader,
+    processOrderbookData,
+    processOpenOrdersData,
+    retryCount,
+    maxRetries,
+    globalCache,
+  ]);
 
-  // Initial data fetch
+  // Initial fetch and market ID change handling
   useEffect(() => {
-    console.log('useSharedOrderbookData: Initial fetch effect triggered:', {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      filterByTrader
-    });
-    
-    if (marketId && marketId.trim() !== '') {
-      console.log('useSharedOrderbookData: Triggering initial fetch for marketId:', marketId);
-      fetchData();
-    } else {
-      console.log('useSharedOrderbookData: Skipping initial fetch - no valid marketId');
+    if (marketId && marketId.trim() !== "" && isRealMarketChange) {
+      // Check if we have cached data for this market
+      const marketCachedData = globalCache.getCachedData(
+        marketId,
+        filterByTrader,
+      );
+      const hasMarketCachedData =
+        marketCachedData &&
+        !globalCache.isDataStale(marketId, undefined, filterByTrader);
+
+      if (hasMarketCachedData) {
+        // If we have cached data, use it instead of resetting
+        setData({
+          orderbook: marketCachedData.orderbook,
+          openOrders: marketCachedData.openOrders,
+          lastUpdate: marketCachedData.lastUpdate,
+        });
+        setInitialLoading(false);
+        hasInitializedRef.current = true;
+      } else {
+        // Reset state when market ID changes and no cached data
+        setData({
+          orderbook: {
+            bids: [],
+            asks: [],
+            spread: 0,
+            spreadPercentage: 0,
+            lastUpdate: new Date(),
+          },
+          openOrders: [],
+          lastUpdate: new Date(),
+        });
+
+        setError(null);
+        setInitialLoading(true);
+        lastFetchTime.current = 0;
+        setRetryCount(0);
+        hasInitializedRef.current = false;
+      }
     }
-  }, [marketId, filterByTrader, fetchData]);
+  }, [
+    marketId,
+    filterByTrader,
+    globalCache,
+    isRealMarketChange,
+    hasCachedData,
+  ]);
 
-  // Clear data when marketId changes to prevent stale data
+  // Set up initial fetch
   useEffect(() => {
-    console.log('useSharedOrderbookData: Market ID change effect triggered:', {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId
-    });
-    
-    console.log('Market ID changed in shared orderbook data, clearing previous data');
-    
-    // Clear all data immediately when marketId changes
-    setData({
+    if (marketId && marketId.trim() !== "" && retryCount < maxRetries) {
+      if (
+        hasCachedData &&
+        !globalCache.isDataStale(marketId, undefined, filterByTrader)
+      ) {
+        setInitialLoading(false);
+        return;
+      }
+
+      if (isRealMarketChange || !hasCachedData) {
+        fetchOrderbookData();
+      }
+    }
+  }, [
+    marketId,
+    retryCount,
+    maxRetries,
+    hasCachedData,
+    globalCache,
+    filterByTrader,
+    isRealMarketChange,
+    fetchOrderbookData,
+  ]);
+
+  // Listen for orderbook refresh events
+  useEffect(() => {
+    const handleOrderbookRefresh = () => {
+      if (marketId && marketId.trim() !== "") {
+        fetchOrderbookData();
+      }
+    };
+
+    window.addEventListener("orderbook-refresh", handleOrderbookRefresh);
+    return () => {
+      window.removeEventListener("orderbook-refresh", handleOrderbookRefresh);
+    };
+  }, [marketId, fetchOrderbookData]);
+
+  // Re-process data when trading pair becomes available
+  useEffect(() => {
+    if (currentTradingPair && data.orderbook.bids.length > 0) {
+      const currentEntries = [...data.orderbook.bids, ...data.orderbook.asks];
+
+      if (currentEntries.length > 0) {
+        const processedOrderbook = processOrderbookData(currentEntries);
+        const processedOpenOrders = processOpenOrdersData(currentEntries);
+
+        const updateDataWithCache = (prevData: SharedOrderbookData) => {
+          const newData = {
+            ...prevData,
+            orderbook: processedOrderbook,
+            openOrders: processedOpenOrders,
+            lastUpdate: new Date(),
+          };
+
+          globalCache.setCachedData(marketId, newData, filterByTrader);
+
+          return newData;
+        };
+
+        setData(updateDataWithCache);
+      }
+    }
+  }, [
+    currentTradingPair,
+    processOrderbookData,
+    processOpenOrdersData,
+    data.orderbook.bids,
+    data.orderbook.asks,
+    marketId,
+    filterByTrader,
+    globalCache,
+  ]);
+
+  const refresh = useCallback(() => {
+    setRetryCount(0);
+    fetchOrderbookData();
+  }, [fetchOrderbookData]);
+
+  const setFilterByTrader = useCallback(() => {
+    // This would need to be implemented to actually update the filter
+    // For now, we'll just log the change
+  }, []);
+
+  // Determine loading states
+  const isInitialLoading: boolean = initialLoading && retryCount === 0;
+  const isLoading: boolean = loading && retryCount === 0;
+
+  // Safety check: Return early with loading state if marketId is invalid
+  if (!marketId || typeof marketId !== "string" || marketId.trim() === "") {
+    return {
       orderbook: {
         bids: [],
         asks: [],
         spread: 0,
         spreadPercentage: 0,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
       },
       openOrders: [],
-      lastUpdate: new Date()
-    });
-    
-    // Clear any existing polling
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
-    }
-    
-    setError(null);
-    setInitialLoading(true); // Reset to loading state for new market
-    lastFetchTime.current = 0;
-    setRetryCount(0); // Reset retry count for new market
-  }, [marketId]); // Only depend on marketId to prevent infinite loops
-
-  // Set up polling
-  useEffect(() => {
-    console.log('useSharedOrderbookData: Polling effect triggered:', {
-      marketId,
-      marketIdType: typeof marketId,
-      marketIdTruthy: !!marketId,
-      retryCount,
-      maxRetries
-    });
-    
-    if (!marketId || marketId.trim() === '') {
-      console.log('useSharedOrderbookData: Skipping polling - no marketId or empty marketId:', marketId);
-      return;
-    }
-    
-    // Don't poll if we've exceeded the retry limit
-    if (retryCount >= maxRetries) {
-      console.warn('Max retries exceeded in shared orderbook data, stopping polling');
-      return;
-    }
-
-    // Clear any existing polling before setting up new one
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
-    }
-
-    console.log('useSharedOrderbookData: Setting up polling for marketId:', marketId);
-    pollingInterval.current = setInterval(() => {
-      console.log('useSharedOrderbookData: Polling interval triggered for marketId:', marketId);
-      fetchData();
-    }, 10000); // Poll every 10 seconds
-
-    return () => {
-      if (pollingInterval.current) {
-        console.log('useSharedOrderbookData: Cleaning up polling interval for marketId:', marketId);
-        clearInterval(pollingInterval.current);
-        pollingInterval.current = null;
-      }
+      loading: true,
+      initialLoading: true,
+      error: "Invalid market ID provided",
+      refresh: () => {
+        // No-op: cannot refresh with invalid marketId
+      },
+      lastUpdate: new Date(),
+      setFilterByTrader: () => {
+        // No-op: cannot set filter with invalid marketId
+      },
     };
-  }, [marketId, fetchData, retryCount, maxRetries]);
-
-  // Debug logging for data changes
-  useEffect(() => {
-    console.log('useSharedOrderbookData: Data state changed:', {
-      loading,
-      error
-    });
-  }, [loading, error]); // Only depend on loading and error to prevent infinite loops
-
-  const refresh = useCallback(() => {
-    console.log('useSharedOrderbookData: Manual refresh triggered for marketId:', marketId);
-    setRetryCount(0); // Reset retry count on manual refresh
-    fetchData();
-  }, [marketId, fetchData]);
+  }
 
   return {
     orderbook: data.orderbook,
     openOrders: data.openOrders,
-    loading,
-    initialLoading,
+    loading: isLoading,
+    initialLoading: isInitialLoading,
     error,
     refresh,
-    lastUpdate: data.lastUpdate
+    lastUpdate: data.lastUpdate,
+    setFilterByTrader,
   };
 }

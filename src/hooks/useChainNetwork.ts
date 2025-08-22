@@ -1,18 +1,22 @@
-import { useConfig } from './useConfig';
-import { Chain } from '../protos/gen/arborter_config_pb';
+import { useConfig } from "./useConfig";
+import type { Chain } from "../protos/gen/arborter_config_pb";
 
-export const useChainNetwork = () => {
+export const useChainNetwork = (): {
+  getChainNetwork: (chainId: number | null) => string | null;
+} => {
   const { config } = useConfig();
 
-  // Helper to get the chain network from config by chainId
-  const getChainNetwork = (chainId: number | null) => {
-    if (!config || !chainId) return null;
-    const chain = config.chains?.find((c: Chain) => {
-      const configChainId = typeof c.chainId === 'string' ? parseInt(c.chainId, 10) : c.chainId;
+  const getChainNetwork = (chainId: number | null): string | null => {
+    if (!chainId || !config || !config.chains) return null;
+
+    const chain: Chain | undefined = config.chains.find((c: Chain) => {
+      const configChainId: number =
+        typeof c.chainId === "string" ? parseInt(c.chainId, 10) : c.chainId;
       return configChainId === chainId;
     });
-    return chain ? chain.network || null : null;
+
+    return chain?.network || null;
   };
 
   return { getChainNetwork };
-}; 
+};

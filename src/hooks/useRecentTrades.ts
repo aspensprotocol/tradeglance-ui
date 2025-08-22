@@ -1,233 +1,336 @@
-import { useState, useEffect, useCallback } from 'react';
-import { arborterService } from '../lib/grpc-client';
-import { weiToDecimal } from '../lib/number-utils';
-import { Trade, TradeRole } from '../protos/gen/arborter_pb';
-import { useDataFetching } from './useDataFetching';
+import { useState, useEffect, useCallback } from "react";
+import { arborterService } from "../lib/grpc-client";
+import type { Trade } from "../protos/gen/arborter_pb";
+import { useTradingPairs } from "./useTradingPairs";
+import { formatDecimalConsistent } from "../lib/number-utils";
+import type { RecentTrade, SharedTradesData } from "../lib/shared-types";
+import { useGlobalTradesCache } from "./useGlobalTradesCache";
 
-export interface RecentTrade {
-  id: string;
-  price: string;
-  quantity: string;
-  side: string;
-  timestamp: Date;
-  makerId: string;
-  takerId: string;
-  makerBaseAddress: string;
-  makerQuoteAddress: string;
-  takerBaseAddress: string;
-  takerQuoteAddress: string;
-  buyerIs: number;
-  sellerIs: number;
-}
+export function useRecentTrades(
+  marketId: string,
+  filterByTrader?: string,
+): {
+  trades: RecentTrade[];
+  loading: boolean;
+  initialLoading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+} {
+  // Get trading pairs to extract token decimals
+  const { tradingPairs } = useTradingPairs();
 
-export function useRecentTrades(marketId: string, filterByTrader?: string) {
-  // Process trades data into the expected format using proper protobuf types
-  const processTradesData = useCallback((tradesData: Trade[]): RecentTrade[] => {
-    console.log('\n=== PROCESSING TRADES DATA ===');
-    console.log('Number of trades to process:', tradesData.length);
-    console.log('Raw trades data received:', tradesData);
-    
-    return tradesData.map((trade, index) => {
-      console.log(`\n--- Processing Trade ${index} ---`);
-      console.log('Full trade object:', trade);
-      
-      // Log all available fields
-      console.log('All trade fields:');
-      console.log('  timestamp:', trade.timestamp, 'type:', typeof trade.timestamp);
-      console.log('  price:', trade.price, 'type:', typeof trade.price);
-      console.log('  qty:', trade.qty, 'type:', typeof trade.qty);
-      console.log('  makerId:', trade.makerId, 'type:', typeof trade.makerId);
-      console.log('  takerId:', trade.takerId, 'type:', typeof trade.takerId);
-      console.log('  makerBaseAddress:', trade.makerBaseAddress, 'type:', typeof trade.makerBaseAddress);
-      console.log('  makerQuoteAddress:', trade.makerQuoteAddress, 'type:', typeof trade.makerQuoteAddress);
-      console.log('  takerBaseAddress:', trade.takerBaseAddress, 'type:', typeof trade.takerBaseAddress);
-      console.log('  takerQuoteAddress:', trade.takerQuoteAddress, 'type:', typeof trade.takerQuoteAddress);
-      console.log('  buyerIs:', trade.buyerIs, 'type:', typeof trade.buyerIs);
-      console.log('  sellerIs:', trade.sellerIs, 'type:', typeof trade.sellerIs);
-      console.log('  orderHit:', trade.orderHit, 'type:', typeof trade.orderHit);
-      
-      console.log('\nTrade timestamp details:');
-      console.log('  Raw value:', trade.timestamp);
-      console.log('  Type:', typeof trade.timestamp);
-      console.log('  Constructor:', trade.timestamp?.constructor?.name);
-      console.log('  Is bigint:', typeof trade.timestamp === 'bigint');
-      console.log('  Is number:', typeof trade.timestamp === 'number');
-      console.log('  Is string:', typeof trade.timestamp === 'string');
-      
-      console.log('\nTrade side determination fields:');
-      console.log('  buyerIs:', trade.buyerIs, 'type:', typeof trade.buyerIs);
-      console.log('  sellerIs:', trade.sellerIs, 'type:', typeof trade.sellerIs);
-      console.log('  orderHit:', trade.orderHit, 'type:', typeof trade.orderHit);
-      
-      // Parse timestamp correctly - use the same approach as Open Orders tab
-      let timestamp: Date;
-      if (trade.timestamp) {
-        // Use the same timestamp parsing logic as Open Orders tab
-        // Just treat the timestamp as milliseconds directly
-        timestamp = new Date(Number(trade.timestamp));
-        console.log('  Timestamp parsed as milliseconds:', timestamp, 'ISO:', timestamp.toISOString());
-      } else {
-        // No timestamp provided, use current time
-        timestamp = new Date();
-        console.log('  No timestamp provided, using current time:', timestamp, 'ISO:', timestamp.toISOString());
-      }
+  // Get global trades cache
+  const globalTradesCache = useGlobalTradesCache();
 
-      // Determine side based on TradeRole enum values
-      // TradeRole.MAKER = 1, TradeRole.TAKER = 2
-      // buyerIs indicates who is the buyer (MAKER or TAKER)
-      console.log('\nTrade side determination:');
-      console.log('  buyerIs:', trade.buyerIs, 'type:', typeof trade.buyerIs);
-      console.log('  sellerIs:', trade.sellerIs, 'type:', typeof trade.sellerIs);
-      console.log('  orderHit:', trade.orderHit, 'type:', typeof trade.orderHit);
-      
-      let side: string;
-      // The side should be determined by the order that was hit, not by buyerIs/sellerIs
-      // For now, use a simple heuristic: if we have orderHit, it's a valid trade
-      if (trade.orderHit) {
-        // This is a completed trade, determine side based on the order that was hit
-        // We'll use a placeholder side for now since the actual side logic needs more context
-        side = 'buy'; // Placeholder - this should be determined by the order details
-        console.log('  -> Side: BUY (placeholder - orderHit present)');
-      } else {
-        side = 'buy'; // Default to buy if no orderHit
-        console.log('  -> Side: BUY (default - no orderHit)');
-      }
+  // Find the current trading pair to get token decimals
+  const currentTradingPair = tradingPairs.find((pair) => pair.id === marketId);
 
-      const processedTrade: RecentTrade = {
-        id: trade.orderHit?.toString() || `trade-${Date.now()}-${index}`, // Fallback ID if no orderHit
-        price: weiToDecimal(trade.price || '0'),
-        quantity: weiToDecimal(trade.qty || '0'),
-        side: side,
-        timestamp: timestamp,
-        makerId: trade.makerId || '',
-        takerId: trade.takerId || '',
-        makerBaseAddress: trade.makerBaseAddress || '',
-        makerQuoteAddress: trade.makerQuoteAddress || '',
-        takerBaseAddress: trade.takerBaseAddress || '',
-        takerQuoteAddress: trade.takerQuoteAddress || '',
-        buyerIs: trade.buyerIs || 0,
-        sellerIs: trade.sellerIs || 0
-      };
-      
-      console.log('\nProcessed trade result:');
-      console.log('  ID:', processedTrade.id);
-      console.log('  Price:', processedTrade.price);
-      console.log('  Quantity:', processedTrade.quantity);
-      console.log('  Side:', processedTrade.side);
-      console.log('  Timestamp:', processedTrade.timestamp.toISOString());
-      console.log('  Timestamp raw:', processedTrade.timestamp.getTime());
-      console.log('  Full processed trade:', processedTrade);
-      
-      return processedTrade;
-    });
-  }, []);
+  const [trades, setTrades] = useState<RecentTrade[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const maxRetries = 5; // Increased to 5 for better reliability with streaming
 
-  // Fetch function for the common hook - now uses snapshot instead of streaming
-  const fetchTradesData = useCallback(async (marketId: string, filterByTrader?: string): Promise<RecentTrade[]> => {
-    try {
-      console.log('=== FETCHING RECENT TRADES ===');
-      console.log('Market ID:', marketId);
-      console.log('Filter by trader:', filterByTrader);
-      
-      // Use snapshot endpoint instead of streaming
-      const tradesData = await arborterService.getTradesSnapshot(marketId, true, filterByTrader);
-      
-      console.log('=== RAW TRADES RESPONSE FROM SERVER ===');
-      console.log('Response type:', typeof tradesData);
-      console.log('Response constructor:', tradesData?.constructor?.name);
-      console.log('Is array:', Array.isArray(tradesData));
-      console.log('Response length:', tradesData?.length);
-      console.log('Full response:', tradesData);
-      
-      // Log the first trade in detail if available
-      if (tradesData && Array.isArray(tradesData) && tradesData.length > 0) {
-        console.log('\n=== FIRST TRADE DETAILS ===');
-        const firstTrade = tradesData[0];
-        console.log('First trade:', firstTrade);
-        console.log('First trade keys:', Object.keys(firstTrade));
-        console.log('First trade prototype:', Object.getPrototypeOf(firstTrade));
-        console.log('First trade constructor:', firstTrade.constructor);
-        console.log('First trade toString:', firstTrade.toString());
-      }
-      
-      if (tradesData && Array.isArray(tradesData)) {
-        const processedTrades = processTradesData(tradesData as Trade[]);
-        
-        // Better deduplication - use orderHit + timestamp to create unique IDs
-        // Multiple trades can have the same orderHit, so we need to make them unique
-        const uniqueTrades = processedTrades.filter((trade, index, self) => {
-          // Create a unique identifier combining orderHit and timestamp
+  // Process trades data into the expected format
+  const processTradesData = useCallback(
+    (tradesData: Trade[]): RecentTrade[] => {
+      if (!tradesData || tradesData.length === 0) return [];
+
+      // Convert protobuf Trade objects to RecentTrade interface
+      const processedTrades: RecentTrade[] = tradesData.map((trade: Trade) => {
+        // The backend sends values in pair decimal format, not wei format
+        // So we need to divide by 10^pairDecimals, not 10^tokenDecimals
+        const pairDecimals = currentTradingPair?.pairDecimals || 8;
+
+        // Convert from pair decimal format to human-readable format
+        const priceDecimal = parseFloat(
+          formatDecimalConsistent(
+            (
+              parseFloat(trade.price?.toString() || "0") /
+              Math.pow(10, pairDecimals)
+            ).toString(),
+          ),
+        );
+
+        const quantityDecimal = parseFloat(
+          formatDecimalConsistent(
+            (
+              parseFloat(trade.qty?.toString() || "0") /
+              Math.pow(10, pairDecimals)
+            ).toString(),
+          ),
+        );
+
+        return {
+          id: trade.orderHit?.toString() || `trade-${Date.now()}`,
+          side: trade.buyerIs === 1 ? "buy" : "sell", // 1 = MAKER, 2 = TAKER
+          price: priceDecimal,
+          quantity: quantityDecimal,
+          timestamp: new Date(Number(trade.timestamp) || Date.now()),
+          trader: trade.makerBaseAddress || "", // For backwards compatibility
+          makerAddress: trade.makerBaseAddress || "",
+          takerAddress: trade.takerBaseAddress || "",
+          marketId, // Use the marketId parameter instead of makerBaseAddress
+        };
+      });
+
+      // Remove duplicates based on trade ID and timestamp
+      const uniqueTrades: RecentTrade[] = processedTrades.filter(
+        (trade: RecentTrade, index: number, self: RecentTrade[]) => {
           const tradeUniqueId = `${trade.id}-${trade.timestamp.getTime()}`;
-          
-          const firstIndex = self.findIndex(t => {
+
+          const firstIndex: number = self.findIndex((t: RecentTrade) => {
             const otherUniqueId = `${t.id}-${t.timestamp.getTime()}`;
             return otherUniqueId === tradeUniqueId;
           });
-          
-          const isDuplicate = firstIndex !== index;
+
+          const isDuplicate: boolean = firstIndex !== index;
+
           if (isDuplicate) {
-            console.log('Removing duplicate trade:', {
-              id: trade.id,
-              timestamp: trade.timestamp.toISOString(),
-              uniqueId: tradeUniqueId,
-              firstIndex,
-              currentIndex: index
-            });
+            // Duplicate trade removed
           }
+
           return !isDuplicate;
-        });
-        
-        if (uniqueTrades.length !== processedTrades.length) {
-          console.log('Trade deduplication:', {
-            original: processedTrades.length,
-            unique: uniqueTrades.length,
-            duplicates: processedTrades.length - uniqueTrades.length
-          });
-        }
-        
-        console.log('Recent trades fetched successfully:', uniqueTrades.length);
-        return uniqueTrades;
-      } else {
-        console.warn('No trades data in response:', tradesData);
+        },
+      );
+
+      if (uniqueTrades.length !== processedTrades.length) {
+        // Duplicates removed during processing
+      }
+
+      // Sort by timestamp (newest first)
+      uniqueTrades.sort(
+        (a: RecentTrade, b: RecentTrade) =>
+          b.timestamp.getTime() - a.timestamp.getTime(),
+      );
+
+      return uniqueTrades;
+    },
+    [currentTradingPair, marketId],
+  );
+
+  // Fetch trades data with timeout
+  const fetchTradesData = useCallback(
+    async (
+      marketIdParam: string,
+      filterByTraderParam?: string,
+    ): Promise<RecentTrade[]> => {
+      // For continuous streaming, don't use timeout race - let the stream run
+      const tradesData: Trade[] = await arborterService.getTrades(
+        marketIdParam,
+        undefined,
+        true,
+        filterByTraderParam,
+      );
+
+      if (!tradesData || tradesData.length === 0) {
         return [];
       }
-    } catch (error) {
-      console.error('Error fetching recent trades:', error);
-      throw error;
-    }
-  }, [processTradesData]);
 
-  // Use the common data fetching hook with polling for real-time updates
-  const { data: trades, loading, initialLoading, error, refetch } = useDataFetching({
-    marketId: marketId || '', // Ensure marketId is always a string
-    filterByTrader,
-    fetchFunction: fetchTradesData,
-    pollingInterval: marketId ? 5000 : 0, // Only poll when marketId is available
-    debounceMs: 300
-  });
+      const processedTrades: RecentTrade[] = processTradesData(
+        tradesData as Trade[],
+      );
 
-  // Log when trades data changes to help debug duplication
+      // Remove duplicates
+      const uniqueTrades: RecentTrade[] = processedTrades.filter(
+        (trade: RecentTrade, index: number, self: RecentTrade[]) => {
+          const tradeUniqueId = `${trade.id}-${trade.timestamp.getTime()}`;
+          const firstIndex: number = self.findIndex((t: RecentTrade) => {
+            const otherUniqueId = `${t.id}-${t.timestamp.getTime()}`;
+            return otherUniqueId === tradeUniqueId;
+          });
+          const isDuplicate: boolean = firstIndex !== index;
+
+          if (isDuplicate) {
+            // Duplicate trade removed during fetch
+          }
+
+          return !isDuplicate;
+        },
+      );
+
+      return uniqueTrades;
+    },
+    [processTradesData],
+  );
+
+  // Fetch data effect
   useEffect(() => {
-    if (trades && trades.length > 0) {
-      console.log('Recent trades data updated:', {
-        count: trades.length,
-        firstTrade: trades[0],
-        lastTrade: trades[trades.length - 1],
-        allIds: trades.map(t => t.id)
-      });
+    if (!marketId || marketId.trim() === "") {
+      setInitialLoading(false);
+      setTrades([]);
+      return;
     }
-  }, [trades]);
 
-  // Only show loading on initial load, not during polling updates
-  // This prevents the spinning wheel from appearing every 5 seconds
-  const isInitialLoading = initialLoading;
-  const isLoading = initialLoading; // Only show loading on first load
+    // Check cache first
+    const cachedData = globalTradesCache.getCachedData(
+      marketId,
+      filterByTrader,
+    );
+    if (
+      cachedData &&
+      !globalTradesCache.isDataStale(marketId, 5 * 60 * 1000, filterByTrader)
+    ) {
+      setTrades(cachedData.trades);
+      setInitialLoading(false);
+      setLoading(false);
+      setError(null);
+      return;
+    }
 
-  return { 
-    trades: trades || [], 
-    loading: isLoading, 
+    const fetchData = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const tradesData: RecentTrade[] = await fetchTradesData(
+          marketId,
+          filterByTrader,
+        );
+
+        if (tradesData && tradesData.length > 0) {
+          setTrades(tradesData);
+
+          // Cache the trades data
+          const sharedTradesData: SharedTradesData = {
+            trades: tradesData,
+            lastUpdate: new Date(),
+          };
+          globalTradesCache.setCachedData(
+            marketId,
+            sharedTradesData,
+            filterByTrader,
+          );
+        } else {
+          setTrades([]);
+
+          // Cache empty state too
+          const sharedTradesData: SharedTradesData = {
+            trades: [],
+            lastUpdate: new Date(),
+          };
+          globalTradesCache.setCachedData(
+            marketId,
+            sharedTradesData,
+            filterByTrader,
+          );
+        }
+
+        setInitialLoading(false);
+        setRetryCount(0); // Reset retry count on successful fetch
+      } catch (err: unknown) {
+        const errorMessage: string =
+          err instanceof Error ? err.message : "Unknown error occurred";
+
+        // Check if this is a streaming error (network error, incomplete chunked encoding)
+        const isStreamingError =
+          errorMessage.includes("network error") ||
+          errorMessage.includes("ERR_INCOMPLETE_CHUNKED_ENCODING") ||
+          errorMessage.includes("Request timeout");
+
+        if (isStreamingError && retryCount < maxRetries) {
+          // Don't set error state for streaming errors, just retry
+          // Don't set initialLoading to false yet, keep trying
+        } else if (isStreamingError && retryCount >= maxRetries) {
+          setError("Connection issues - please refresh to retry");
+          setInitialLoading(false);
+        } else {
+          // Non-streaming error, show immediately
+          setError(errorMessage);
+          setInitialLoading(false);
+        }
+
+        // Set empty state on error to prevent UI from hanging
+        setTrades([]);
+
+        // Retry logic with shorter delays
+        if (retryCount < maxRetries) {
+          const delay: number = Math.min(1000 * (retryCount + 1), 3000); // Increased max delay to 3 seconds
+
+          setTimeout(() => {
+            setRetryCount((prev: number) => prev + 1);
+          }, delay);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [
+    marketId,
+    filterByTrader,
+    fetchTradesData,
+    retryCount,
+    maxRetries,
+    globalTradesCache,
+  ]);
+
+  // Manual refresh function
+  const refresh = useCallback(async (): Promise<void> => {
+    if (!marketId || marketId.trim() === "") {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      setRetryCount(0); // Reset retry count on manual refresh
+
+      const tradesData: RecentTrade[] = await fetchTradesData(
+        marketId,
+        filterByTrader,
+      );
+
+      if (tradesData && tradesData.length > 0) {
+        setTrades(tradesData);
+
+        // Cache the refreshed trades data
+        const sharedTradesData: SharedTradesData = {
+          trades: tradesData,
+          lastUpdate: new Date(),
+        };
+        globalTradesCache.setCachedData(
+          marketId,
+          sharedTradesData,
+          filterByTrader,
+        );
+      } else {
+        setTrades([]);
+
+        // Cache empty state too
+        const sharedTradesData: SharedTradesData = {
+          trades: [],
+          lastUpdate: new Date(),
+        };
+        globalTradesCache.setCachedData(
+          marketId,
+          sharedTradesData,
+          filterByTrader,
+        );
+      }
+    } catch (err: unknown) {
+      const errorMessage: string =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      setError(errorMessage);
+
+      // Set empty state on error to prevent UI from hanging
+      setTrades([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [marketId, filterByTrader, fetchTradesData, globalTradesCache]);
+
+  // Determine loading states - be more aggressive about showing "no data"
+  const isInitialLoading: boolean = initialLoading && retryCount === 0; // Only show initial loading on first attempt
+  const isLoading: boolean = loading && retryCount === 0; // Only show loading on first attempt
+
+  return {
+    trades,
+    loading: isLoading,
     initialLoading: isInitialLoading,
-    error, 
-    refresh: refetch 
+    error,
+    refresh,
   };
-} 
+}

@@ -1,59 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
-import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { useToast } from "@/hooks/use-toast";
-import { BaseOrQuote } from '@/protos/gen/arborter_config_pb';
+import type { Chain } from "@/protos/gen/arborter_config_pb";
+
+// MetaMask Chain Permissions Update (November 2024):
+// - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
+// - Users must manually switch chains in MetaMask
+// - This hook now only manages local network state, doesn't attempt to switch chains
 
 export interface NetworkState {
   senderNetwork: string;
   receiverNetwork: string;
 }
 
-export const useNetworkManagement = () => {
+export const useNetworkManagement = (): {
+  networkState: NetworkState;
+  currentChainId: number | null;
+  handleSenderNetworkChange: (network: string) => void;
+  handleReceiverNetworkChange: (network: string) => void;
+  swapNetworks: () => void;
+  validateNetworks: () => { isValid: boolean; errorMessage?: string };
+  getCurrentChainConfig: () => Chain | null;
+  getAllChains: () => Chain[];
+} => {
   const [networkState, setNetworkState] = useState<NetworkState>({
     senderNetwork: "",
-    receiverNetwork: ""
+    receiverNetwork: "",
   });
+  const [hasInitialized, setHasInitialized] = useState<boolean>(false);
 
   const { currentChainId } = useChainMonitor();
-  const { switchToNetwork } = useNetworkSwitch();
   const { toast } = useToast();
 
   // Auto-detect and fill network parameters based on current chain and available chains
   useEffect(() => {
-    if (currentChainId) {
+    if (hasInitialized) return; // Prevent multiple initializations
+
+    if (
+      currentChainId &&
+      currentChainId > 0 &&
+      configUtils.getAllChains().length > 0
+    ) {
+      // Only run when we have a valid chain ID and config
       // Get current chain info
       const currentChain = configUtils.getChainByChainId(currentChainId);
-      
+
       if (currentChain) {
         // Set sender network to current network
         const newSenderNetwork = currentChain.network;
-        
+
         // Get all available chains for receiver network options
         const allChains = configUtils.getAllChains();
-        const otherChains = allChains.filter(chain => chain.chainId !== currentChainId);
-        
+        const otherChains = allChains.filter(
+          (chain) => chain.chainId !== currentChainId,
+        );
+
         // Set receiver network to the first available other chain, or current if no others
-        const newReceiverNetwork = otherChains.length > 0 ? otherChains[0].network : currentChain.network;
-        
+        const newReceiverNetwork =
+          otherChains.length > 0
+            ? otherChains[0].network
+            : currentChain.network;
+
         setNetworkState({
           senderNetwork: newSenderNetwork,
-          receiverNetwork: newReceiverNetwork
-        });
-        
-        console.log('NetworkManagement: Auto-detected networks:', {
-          currentChainId,
-          currentNetwork: currentChain.network,
-          senderNetwork: newSenderNetwork,
           receiverNetwork: newReceiverNetwork,
-          availableChains: allChains.map(c => ({ chainId: c.chainId, network: c.network }))
         });
+
+        setHasInitialized(true);
       }
     }
-  }, [currentChainId]);
+  }, [currentChainId, hasInitialized]);
 
-  const handleSenderNetworkChange = async (newNetwork: string) => {
+  const handleSenderNetworkChange = (newNetwork: string): void => {
     try {
       // Get the chain config for the new network
       const newChainConfig = configUtils.getChainByNetwork(newNetwork);
@@ -66,48 +85,39 @@ export const useNetworkManagement = () => {
         return;
       }
 
-      // Switch MetaMask to the new network
-      const chainId = typeof newChainConfig.chainId === 'string' ? parseInt(newChainConfig.chainId, 10) : newChainConfig.chainId;
-      const success = await switchToNetwork(newChainConfig);
-      
-      if (!success) {
-        toast({
-          title: "Network switch failed",
-          description: "Failed to switch to the selected network",
-          variant: "destructive",
-        });
-        return;
-      }
+      // With MetaMask Chain Permissions, we don't automatically switch networks
+      // Instead, we provide guidance to the user
 
       // Update sender network
-      setNetworkState(prev => ({ ...prev, senderNetwork: newNetwork }));
+      setNetworkState((prev) => ({ ...prev, senderNetwork: newNetwork }));
 
       // Auto-update receiver network to a different network
       const allChains = configUtils.getAllChains();
-      const otherChains = allChains.filter(chain => chain.network !== newNetwork);
-      
+      const otherChains = allChains.filter(
+        (chain: Chain) => chain.network !== newNetwork,
+      );
+
       if (otherChains.length > 0) {
-        setNetworkState(prev => ({ ...prev, receiverNetwork: otherChains[0].network }));
+        setNetworkState((prev) => ({
+          ...prev,
+          receiverNetwork: otherChains[0].network,
+        }));
       }
-
-      console.log('Network switched:', {
-        newSenderNetwork: newNetwork,
-        newReceiverNetwork: otherChains.length > 0 ? otherChains[0].network : 'none',
-        chainId
-      });
-
     } catch (error: unknown) {
-      console.error('Error switching network:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to switch network in MetaMask";
+      console.error("Error updating network configuration:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to update network configuration";
       toast({
-        title: "Network switch failed",
+        title: "Network configuration failed",
         description: errorMessage,
         variant: "destructive",
       });
     }
   };
 
-  const handleReceiverNetworkChange = (newNetwork: string) => {
+  const handleReceiverNetworkChange = (newNetwork: string): void => {
     // Prevent setting receiver network to the same as sender network
     if (newNetwork === networkState.senderNetwork) {
       toast({
@@ -118,10 +128,10 @@ export const useNetworkManagement = () => {
       return;
     }
 
-    setNetworkState(prev => ({ ...prev, receiverNetwork: newNetwork }));
+    setNetworkState((prev) => ({ ...prev, receiverNetwork: newNetwork }));
   };
 
-  const swapNetworks = async () => {
+  const swapNetworks = (): void => {
     // Store current values before swapping
     const oldSenderNetwork = networkState.senderNetwork;
     const oldReceiverNetwork = networkState.receiverNetwork;
@@ -129,59 +139,37 @@ export const useNetworkManagement = () => {
     // Swap the networks
     setNetworkState({
       senderNetwork: oldReceiverNetwork,
-      receiverNetwork: oldSenderNetwork
+      receiverNetwork: oldSenderNetwork,
     });
 
-    // Switch MetaMask to the new sender network (which was the old receiver network)
-    try {
-      const newSenderChainConfig = configUtils.getChainByNetwork(oldReceiverNetwork);
-      if (newSenderChainConfig) {
-        const success = await switchToNetwork(newSenderChainConfig);
-        
-        if (!success) {
-          toast({
-            title: "Network switch failed",
-            description: "Failed to switch to the new sender network",
-            variant: "destructive",
-          });
-          // Revert the swap if network switch fails
-          setNetworkState({
-            senderNetwork: oldSenderNetwork,
-            receiverNetwork: oldReceiverNetwork
-          });
-        }
-      }
-    } catch (error: unknown) {
-      console.error('Error switching network during swap:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to switch network during swap";
-      toast({
-        title: "Network switch failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      // Revert the swap on error
-      setNetworkState({
-        senderNetwork: oldSenderNetwork,
-        receiverNetwork: oldReceiverNetwork
-      });
-    }
+    // With MetaMask Chain Permissions, we don't automatically switch networks
+    // Users need to manually switch networks in MetaMask
+
+    toast({
+      title: "Networks swapped",
+      description: `Please manually switch to ${oldReceiverNetwork} in MetaMask to complete the swap`,
+      variant: "default",
+    });
   };
 
   const validateNetworks = (): { isValid: boolean; errorMessage?: string } => {
     if (networkState.senderNetwork === networkState.receiverNetwork) {
       return {
         isValid: false,
-        errorMessage: "Sender and receiver networks must be different for bridging."
+        errorMessage:
+          "Sender and receiver networks must be different for bridging.",
       };
     }
     return { isValid: true };
   };
 
-  const getCurrentChainConfig = () => {
-    return currentChainId ? configUtils.getChainByChainId(currentChainId) : null;
+  const getCurrentChainConfig = (): Chain | null => {
+    return currentChainId
+      ? configUtils.getChainByChainId(currentChainId)
+      : null;
   };
 
-  const getAllChains = () => {
+  const getAllChains = (): Chain[] => {
     return configUtils.getAllChains();
   };
 

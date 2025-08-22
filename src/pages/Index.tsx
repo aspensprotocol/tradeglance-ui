@@ -1,79 +1,135 @@
+import { useEffect, useState } from "react";
 import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
-import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useTradingPairs } from "@/hooks/useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
+import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
-const Index = () => {
-  // Get dynamic trading pairs from config
-  const { tradingPairs, loading: pairsLoading, getTradingPairById } = useTradingPairs();
+interface IndexProps {
+  selectedPair: string;
+  setSelectedPair: (pair: string) => void;
+  currentTradingPair?: TradingPair;
+  tradingPairs: TradingPair[];
+  pairsLoading: boolean;
+}
 
-  // Set default selected pair to first available pair, or empty string if none available
-  const [selectedPair, setSelectedPair] = useState<string>("");
-  
-  // Update selected pair when trading pairs load
-  useEffect(() => {
-    if (tradingPairs.length > 0 && !selectedPair) {
-      setSelectedPair(tradingPairs[0].id);
-    }
-  }, [tradingPairs, selectedPair]);
-  
-  // Get the current trading pair object
-  const currentTradingPair = getTradingPairById(selectedPair);
+const Index = ({
+  selectedPair,
+  setSelectedPair,
+  currentTradingPair,
+  tradingPairs,
+  pairsLoading,
+}: IndexProps): JSX.Element => {
+  // Manage trading side state at the Index level to share between TradeForm and ActivityPanel
+  const [currentTradingSide, setCurrentTradingSide] = useState<
+    BaseOrQuote.BASE | BaseOrQuote.QUOTE
+  >(BaseOrQuote.BASE);
 
   // Debug logging
-  console.log('Index page render:', {
-    tradingPairs: tradingPairs.map(p => ({ 
-      id: p.id, 
-      marketId: p.marketId, 
-      displayName: p.displayName,
-      marketIdType: typeof p.marketId,
-      marketIdTruthy: !!p.marketId
-    })),
-    selectedPair,
-    currentTradingPair,
-    currentTradingPairMarketId: currentTradingPair?.marketId,
-    currentTradingPairMarketIdType: typeof currentTradingPair?.marketId,
-    pairsLoading
-  });
+  // Debug: Track component mounting/unmounting
+  useEffect(() => {
+    // Debug: Track component mounting/unmounting
+  }, []);
 
   return (
-    <Layout footerPosition="fixed">
-      <div className="grid grid-cols-4 gap-4 h-full">
+    <>
+      {/* Mobile-first responsive grid layout */}
+      <main
+        className="
+        grid gap-3 h-full
+        grid-cols-1 
+        sm:grid-cols-2 
+        lg:grid-cols-4 
+        lg:gap-4
+        xl:gap-4
+        min-h-0
+        overflow-hidden
+      "
+      >
         {pairsLoading ? (
-          <div className="col-span-4">
+          <section
+            className="
+            col-span-1 
+            sm:col-span-2 
+            lg:col-span-4
+          "
+          >
             <LoadingSpinner message="Loading trading pairs..." />
-          </div>
-        ) : (
+          </section>
+        ) : currentTradingPair?.id ? (
           <>
-            <div className="col-span-2">
-              <ActivityPanel 
-                key={currentTradingPair?.marketId || 'no-market'} 
-                tradingPair={currentTradingPair} 
+            {/* Activity Panel - Full width on mobile, bottom on tablet, top on desktop */}
+            <section
+              className="
+              col-span-1 
+              sm:col-span-2 
+              lg:col-span-2 
+              order-1
+              sm:order-3
+              lg:order-1
+              h-full
+              min-h-0
+            "
+            >
+              <ActivityPanel
+                key={currentTradingPair?.id || "no-market"}
+                tradingPair={currentTradingPair || undefined}
+                currentTradingSide={currentTradingSide}
               />
-            </div>
-            <div className="col-span-1">
-              <VerticalOrderBook 
-                key={`orderbook-${currentTradingPair?.marketId || 'no-market'}`}
-                tradingPair={currentTradingPair} 
-                selectedPair={selectedPair} 
-                onPairChange={setSelectedPair} 
-                tradingPairs={tradingPairs} 
+            </section>
+
+            {/* Trade Form - Full width on mobile, first column on tablet, last column on desktop */}
+            <section
+              className="
+              col-span-1 
+              sm:col-span-1 
+              lg:col-span-1 
+              order-2 sm:order-1 lg:order-3
+              h-full
+              min-h-0
+            "
+            >
+              <TradeForm
+                key={`tradeform-${currentTradingPair?.id || "no-market"}`}
+                tradingPair={currentTradingPair || undefined}
+                onTradingSideChange={setCurrentTradingSide}
               />
-            </div>
-            <div className="col-span-1">
-              <TradeForm 
-                key={`tradeform-${currentTradingPair?.marketId || 'no-market'}`}
-                selectedPair={selectedPair} 
-                tradingPair={currentTradingPair} 
+            </section>
+
+            {/* Orderbook - Full width on mobile, second column on tablet, third column on desktop */}
+            <aside
+              className="
+              col-span-1 
+              sm:col-span-1 
+              lg:col-span-1 
+              order-3 sm:order-2 lg:order-2
+              h-full
+              min-h-0
+            "
+            >
+              <VerticalOrderBook
+                key={`orderbook-${currentTradingPair?.id || "no-market"}`}
+                tradingPair={currentTradingPair || undefined}
+                selectedPair={selectedPair}
+                onPairChange={setSelectedPair}
+                tradingPairs={tradingPairs}
               />
-            </div>
+            </aside>
           </>
+        ) : (
+          <section
+            className="
+            col-span-1 
+            sm:col-span-2 
+            lg:col-span-4
+          "
+          >
+            <LoadingSpinner message="No trading pairs available..." />
+          </section>
         )}
-      </div>
-    </Layout>
+      </main>
+    </>
   );
 };
 

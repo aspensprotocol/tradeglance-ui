@@ -1,42 +1,55 @@
-import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useTradingPairs } from "@/hooks/useTradingPairs";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useEffect } from "react";
 import SimpleForm from "@/components/SimpleForm";
+import type { TradingPair } from "@/lib/shared-types";
 
-const Simple = () => {
-  // Get dynamic trading pairs from config
-  const { tradingPairs, loading: pairsLoading, getTradingPairById } = useTradingPairs();
-  
-  // Monitor chain changes
-  const { currentChainId } = useChainMonitor();
+interface SimpleProps {
+  selectedPair: string;
+  setSelectedPair: (pair: string) => void;
+  currentTradingPair?: TradingPair;
+  tradingPairs: TradingPair[];
+  pairsLoading: boolean;
+}
 
-  // Set default selected pair to first available pair, or empty string if none available
-  const [selectedPair, setSelectedPair] = useState<string>("");
-  
-  // Update selected pair when trading pairs load
+const Simple = ({
+  selectedPair,
+  setSelectedPair,
+  currentTradingPair,
+  tradingPairs,
+  pairsLoading,
+}: SimpleProps): JSX.Element => {
+  // Use the current trading pair from props
+  const defaultPair = currentTradingPair;
+
+  // Component lifecycle tracking
   useEffect(() => {
-    if (tradingPairs.length > 0 && !selectedPair) {
-      setSelectedPair(tradingPairs[0].id);
-    }
-  }, [tradingPairs, selectedPair]);
-  
-  // Get the current trading pair object
-  const currentTradingPair = getTradingPairById(selectedPair);
+    return () => {
+      // Cleanup on unmount
+    };
+  }, []);
 
   return (
-    <Layout footerPosition="fixed">
-      <div className="flex items-center justify-center h-full">
-        {pairsLoading || !currentChainId ? (
-          <LoadingSpinner 
-            message={pairsLoading ? "Loading trading pairs..." : "Detecting network..."} 
-          />
+    <>
+      <main className="flex items-center justify-center h-full min-h-0 overflow-hidden">
+        {pairsLoading ? (
+          <section className="text-center">
+            <p>Loading trading pairs...</p>
+          </section>
+        ) : defaultPair ? (
+          <section className="flex flex-col items-center gap-4">
+            <SimpleForm
+              selectedPair={selectedPair}
+              setSelectedPair={setSelectedPair}
+              tradingPair={defaultPair}
+              tradingPairs={tradingPairs}
+            />
+          </section>
         ) : (
-          <SimpleForm selectedPair={selectedPair} tradingPair={currentTradingPair} />
+          <section className="text-center">
+            <p>No trading pairs available</p>
+          </section>
         )}
-      </div>
-    </Layout>
+      </main>
+    </>
   );
 };
 

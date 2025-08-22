@@ -2,7 +2,7 @@ static_resources:
   listeners:
     - address:
         socket_address:
-          address:  0.0.0.0 
+          address: 0.0.0.0
           port_value: 8811
       filter_chains:
         - filters:
@@ -83,17 +83,17 @@ static_resources:
                         - match:
                             prefix: "/xyz.aspens.arborter_config.v1.ConfigService/"
                           route:
-                            cluster: arborter 
+                            cluster: arborter
                         # Route all /xyz.aspens.arborter.v1.ArborterService/ requests to backend
                         - match:
                             prefix: "/xyz.aspens.arborter.v1.ArborterService/"
                           route:
-                            cluster: arborter 
+                            cluster: arborter
                         # Catch-all route (optional, for other gRPC services)
                         - match:
                             prefix: "/"
                           route:
-                            cluster: arborter 
+                            cluster: arborter
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config:
@@ -109,7 +109,7 @@ static_resources:
                       stream_idle_timeout: 0s
                       request_timeout: 0s
   clusters:
-    - name: arborter 
+    - name: arborter
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
       typed_extension_protocol_options:

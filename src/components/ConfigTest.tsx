@@ -1,104 +1,227 @@
-import React from 'react';
-import { useConfig } from '../hooks/useConfig';
-import { Navigation } from './Navigation';
+import { useConfig } from "../hooks/useConfig";
+import { Layout } from "./Layout";
+import type { Chain, Market } from "../protos/gen/arborter_config_pb";
 
-export const ConfigTest: React.FC = () => {
+export const ConfigTest = (): JSX.Element => {
   const { config, loading, error, refetch } = useConfig();
 
   if (loading) {
-    return <div>Loading config...</div>;
+    return (
+      <Layout scrollable>
+        <article className="text-center py-8">
+          <span className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4 block"></span>
+          <h2 className="text-xl font-bold mb-2">Loading Configuration...</h2>
+          <p className="text-gray-600">
+            Fetching configuration from backend...
+          </p>
+        </article>
+      </Layout>
+    );
   }
 
   if (error) {
     return (
-      <div>
-        <div>Error: {error}</div>
-        <button onClick={refetch}>Retry</button>
-      </div>
+      <Layout scrollable>
+        <article className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto mt-8">
+          <h2 className="text-xl font-bold text-red-800 mb-4">
+            Configuration Error
+          </h2>
+          <section className="text-red-700 mb-4">
+            <p className="mb-2">
+              <strong>Error:</strong> {error}
+            </p>
+            <p className="text-sm">This usually means:</p>
+            <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+              <li>The backend service is not running</li>
+              <li>There's a network connectivity issue</li>
+              <li>The gRPC endpoint is not accessible</li>
+              <li>There's a configuration issue with the backend</li>
+            </ul>
+          </section>
+          <nav className="flex gap-3">
+            <button
+              onClick={refetch}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              Reload Page
+            </button>
+          </nav>
+        </article>
+      </Layout>
     );
   }
 
   if (!config) {
-    return <div>No config data</div>;
+    return (
+      <Layout scrollable>
+        <article className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto mt-8">
+          <h2 className="text-xl font-bold text-yellow-800 mb-4">
+            No Configuration Data
+          </h2>
+          <p className="text-yellow-700 mb-4">
+            The configuration was loaded but contains no data. This might
+            indicate:
+          </p>
+          <ul className="list-disc list-inside text-yellow-700 text-sm mb-4 space-y-1">
+            <li>The backend service is running but has no configuration</li>
+            <li>There's an issue with the configuration format</li>
+            <li>The backend needs to be initialized</li>
+          </ul>
+          <button
+            onClick={refetch}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </article>
+      </Layout>
+    );
   }
 
   if (!config.chains || !config.markets) {
     return (
-      <div>
-        <div>Config structure is incomplete</div>
-        <div>Chains: {config.chains ? 'present' : 'missing'}</div>
-        <div>Markets: {config.markets ? 'present' : 'missing'}</div>
-        <button onClick={refetch}>Retry</button>
-      </div>
+      <Layout scrollable>
+        <article className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto mt-8">
+          <h2 className="text-xl font-bold text-yellow-800 mb-4">
+            Incomplete Configuration
+          </h2>
+          <section className="text-yellow-700 mb-4">
+            <p className="mb-2">Configuration structure is incomplete:</p>
+            <section className="grid grid-cols-2 gap-4 text-sm">
+              <span>
+                <span className="text-yellow-600">Chains:</span>{" "}
+                {config.chains ? config.chains.length : "Missing"}
+              </span>
+              <span>
+                <span className="text-yellow-600">Markets:</span>{" "}
+                {config.markets ? config.markets.length : "Missing"}
+              </span>
+            </section>
+          </section>
+          <button
+            onClick={refetch}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </article>
+      </Layout>
     );
   }
 
   // Debug: Log the config structure
-  console.log('Config structure:', JSON.stringify(config, null, 2));
-  console.log('Config type:', typeof config);
-  console.log('Config chains:', config.chains);
-  console.log('Config markets:', config.markets);
-  console.log('Config chains length:', config.chains?.length);
-  console.log('Config markets length:', config.markets?.length);
 
   return (
-    <div className="min-h-screen bg-neutral-soft/30">
-      <div className="container mx-auto">
-        <div className="p-4">
-          <Navigation />
-        </div>
-        
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-4">Arborter Config</h2>
-      
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Chains ({config.chains.length})</h3>
-        {config.chains.map((chain, index) => (
-          <div key={index} className="border p-3 mb-2 rounded">
-            <div><strong>Network:</strong> {chain.network}</div>
-            <div><strong>Chain ID:</strong> {chain.chainId}</div>
-            <div><strong>RPC URL:</strong> {chain.rpcUrl}</div>
-            <div><strong>Service Address:</strong> {chain.serviceAddress}</div>
-            <div><strong>Trade Contract:</strong> {chain.tradeContract?.address || 'Not configured'}</div>
-            <div><strong>Base or Quote:</strong> {chain.baseOrQuote || 'Not set'}</div>
-            {chain.explorerUrl && (
-              <div>
-                <strong>Scanner:</strong> <a href={chain.explorerUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">{chain.explorerUrl}</a>
-              </div>
-            )}
-            <div><strong>Tokens:</strong> {Object.keys(chain.tokens).length}</div>
-            {Object.entries(chain.tokens).map(([symbol, token]) => (
-              <div key={symbol} className="ml-4 mt-1">
-                <div><strong>{symbol}:</strong> {token.address} (decimals: {token.decimals})</div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+    <Layout scrollable>
+      <article className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">Arborter Configuration</h2>
+        <button
+          onClick={refetch}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Refresh Config
+        </button>
+      </article>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Markets ({config.markets.length})</h3>
-        {config.markets.map((market, index) => (
-          <div key={index} className="border p-3 mb-2 rounded">
-            <div><strong>Name:</strong> {market.name}</div>
-            <div><strong>Slug:</strong> {market.slug}</div>
-            <div><strong>Base Chain:</strong> {market.baseChainNetwork}</div>
-            <div><strong>Quote Chain:</strong> {market.quoteChainNetwork}</div>
-            <div><strong>Base Token:</strong> {market.baseChainTokenSymbol}</div>
-            <div><strong>Quote Token:</strong> {market.quoteChainTokenSymbol}</div>
-            <div><strong>Market ID:</strong> {market.marketId || 'Not assigned'}</div>
-          </div>
-        ))}
-      </div>
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">
+          Chains ({config.chains.length})
+        </h3>
+        {config.chains.map((chain: Chain, index: number) => (
+          <article
+            key={index}
+            className="border p-4 mb-3 rounded bg-white overflow-hidden"
+          >
+            <section className="space-y-2">
+              <p className="break-words">
+                <strong>Network:</strong> {chain.network}
+              </p>
+              <p className="break-words">
+                <strong>Chain ID:</strong> {chain.chainId}
+              </p>
+              <p className="break-all">
+                <strong>RPC URL:</strong>{" "}
+                <span className="text-xs sm:text-sm">{chain.rpcUrl}</span>
+              </p>
+              <p className="break-all">
+                <strong>Service Address:</strong>{" "}
+                <span className="text-xs sm:text-sm">
+                  {chain.serviceAddress}
+                </span>
+              </p>
+              <p className="break-all">
+                <strong>Trade Contract:</strong>{" "}
+                <span className="text-xs sm:text-sm">
+                  {chain.tradeContract?.address || "Not configured"}
+                </span>
+              </p>
+              <p className="break-words">
+                <strong>Base or Quote:</strong> {chain.baseOrQuote || "Not set"}
+              </p>
+            </section>
 
-      <button 
-        onClick={refetch}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Refresh Config
-      </button>
-        </div>
-      </div>
-    </div>
+            <section className="mt-4">
+              <p>
+                <strong>Tokens:</strong>
+              </p>
+              <nav className="ml-4 mt-2 space-y-1">
+                {Object.entries(chain.tokens).map(([symbol, token]) => (
+                  <p key={symbol} className="text-sm break-all">
+                    <strong>{symbol}:</strong>{" "}
+                    <span className="text-xs">{token.address}</span> (Decimals:{" "}
+                    {token.decimals})
+                  </p>
+                ))}
+              </nav>
+            </section>
+          </article>
+        ))}
+      </section>
+
+      <section className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">
+          Markets ({config.markets.length})
+        </h3>
+        {config.markets.map((market: Market, index: number) => (
+          <article
+            key={index}
+            className="border p-4 mb-3 rounded bg-white overflow-hidden"
+          >
+            <section className="space-y-2">
+              <p className="break-words">
+                <strong>Name:</strong> {market.name}
+              </p>
+              <p className="break-words">
+                <strong>Slug:</strong> {market.slug}
+              </p>
+              <p className="break-words">
+                <strong>Base Chain:</strong> {market.baseChainNetwork}
+              </p>
+              <p className="break-words">
+                <strong>Quote Chain:</strong> {market.quoteChainNetwork}
+              </p>
+              <p className="break-words">
+                <strong>Base Token:</strong> {market.baseChainTokenSymbol}
+              </p>
+              <p className="break-words">
+                <strong>Quote Token:</strong> {market.quoteChainTokenSymbol}
+              </p>
+              <p className="break-all">
+                <strong>Market ID:</strong>{" "}
+                <span className="text-xs sm:text-sm">
+                  {market.marketId || "Not assigned"}
+                </span>
+              </p>
+            </section>
+          </article>
+        ))}
+      </section>
+    </Layout>
   );
 };

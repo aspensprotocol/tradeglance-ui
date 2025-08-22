@@ -20,4 +20,4 @@ services:
 
 networks:
   tradeglance-network:
-    driver: bridge 
+    driver: bridge

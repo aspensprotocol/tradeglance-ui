@@ -1,33 +1,53 @@
 import { Layout } from "@/components/Layout";
 import { DocumentationViewer } from "@/components/DocumentationViewer";
-import { renderMarkdown } from "@/lib/markdown-utils";
-import { useState, useEffect } from "react";
+import { MarkdownRenderer } from "@/lib/markdown-utils";
 
-const Docs = () => {
-  const [markdownContent, setMarkdownContent] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+// Pre-compiled markdown content - this gets bundled during build time
+// No runtime fetching needed, eliminating the 403 error
+// Auto-updated from public/docs/README.md during build
+const markdownContent = `# 📈 Aspens App Example Demo
 
-  useEffect(() => {
-    // Load the markdown content from the docs directory
-    const loadDocumentation = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/docs/README.md');
-        if (response.ok) {
-          const content = await response.text();
-          setMarkdownContent(content);
-        } else {
-          // Fallback content if README is not found
-          setMarkdownContent(`# 📈 Aspens App Example Demo
-
-## 📈 Cross chain + CLOBs + TEEs = 😀
+## ⛓️‍💥 Cross chain + CLOBs + TEEs = 😀
 
 This is a simple cross chain limit order dex built to demonstrate what is possible to build using [Aspens](https://aspens.xyz/), a protocol that aims to **make cross chain chill** 😎. In this example, we're showing a dex that trades across chains, with 2 different modes, i.e. [pro](/pro) or [simple](/simple). For more information of what aspens is, read our [docs](https://docs.aspens.xyz). Here's a video demonstration of how to use the dapp:
 
+![video demo](vids/vid-demo.mp4)
 
+And here is a step by step guide on how to use it:
 
+### 🛬 Landing page:
 
-## 🚀 Aspens for builders
+![landing page](imgs/1.png)
+
+### 💰 Firstly, navigate to the token minting page:
+
+![Navigate](imgs/2.png)
+
+### 💸 Then, mint tokens on the chain that you want:
+
+![Mint](imgs/3.png)
+
+### 💵 In order to deposit funds, press on this button:
+
+![Deposit](imgs/4.png)
+
+### 📝 Choose how much you want to deposit in this prompt:
+
+![Deposit view](imgs/5.png)
+
+### 📈 Then, you are read to trade:
+
+![Navigate to trade](imgs/6.png)
+
+### 🤓 Through either our pro view:
+
+![Pro view](imgs/7.png)
+
+### 😎 Or, our simple view:
+
+![Simple view](imgs/8.png)
+
+## 🌳 Aspens for builders
 
 This is only one example of many that we envision can be built on Aspens. When you build with Aspens, you are in charge. You will have your own **AMS**, Aspens Market Stack, which includes:
 
@@ -43,42 +63,31 @@ Some examples we thought about that can be built on top of Aspens include:
 - Portfolio management
 - Memecoin launcher
 - Chain agnostic private transaction protocol
+- Telegram trading bot
 
-We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧`);
-        }
-      } catch (error) {
-        console.error('Error loading documentation:', error);
-        setMarkdownContent('# Error Loading Documentation\n\nPlease check the docs/README.md file.');
-      } finally {
-        setLoading(false);
-      }
-    };
+We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧`;
 
-    loadDocumentation();
-  }, []);
+const Docs = (): JSX.Element => {
+  // Fallback content if markdown is empty (shouldn't happen with pre-compiled content)
+  const content =
+    markdownContent.trim() ||
+    `# Documentation Not Available
 
-  if (loading) {
-    return (
-      <Layout footerPosition="fixed">
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading documentation...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+The documentation content could not be loaded. This might happen if:
+- The build script failed to update the documentation
+- The README.md file is missing or corrupted
+
+Please run \`npm run update-docs\` to manually update the documentation, or check the build process.`;
 
   return (
-    <Layout footerPosition="fixed">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <Layout scrollable>
+      <main className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8">
         <DocumentationViewer>
-          {renderMarkdown(markdownContent)}
+          <MarkdownRenderer content={content} />
         </DocumentationViewer>
-      </div>
+      </main>
     </Layout>
   );
 };
 
-export default Docs; 
+export default Docs;

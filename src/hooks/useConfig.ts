@@ -1,103 +1,120 @@
-import { useState, useEffect, useCallback } from 'react';
-import { configService } from '../lib/grpc-client';
-import { configUtils } from '../lib/config-utils';
-import { updateWagmiConfig } from '../lib/web3modal-config';
-import { Configuration } from '../protos/gen/arborter_config_pb';
+import { useState, useCallback, useEffect } from "react";
+import { configService } from "../lib/grpc-client";
+import { configUtils } from "../lib/config-utils";
+import type {
+  Configuration,
+  Chain,
+  Market,
+  Token,
+} from "../protos/gen/arborter_config_pb";
 
-interface UseConfigReturn {
+export interface UseConfigReturn {
   config: Configuration | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  fetchConfig: () => Promise<void>;
+  refresh: () => Promise<void>;
+  refetch: () => Promise<void>; // Add refetch alias for backward compatibility
 }
 
-export const useConfig = (): UseConfigReturn => {
+export function useConfig(): UseConfigReturn {
   const [config, setConfig] = useState<Configuration | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasAttemptedFetch, setHasAttemptedFetch] = useState<boolean>(false);
-  const [hasUpdatedWagmi, setHasUpdatedWagmi] = useState<boolean>(false);
 
-  const fetchConfig = useCallback(async () => {
-    // Prevent multiple fetch attempts
-    if (hasAttemptedFetch) {
-      return;
-    }
+  const fetchConfig = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
 
     try {
-      setLoading(true);
-      setError(null);
-      setHasAttemptedFetch(true);
-      
       const response = await configService.getConfig();
-      
+
       if (response.config) {
-        // Extract the actual config data from the nested structure
-        const configData = response.config;
-        
-        // Debug: Log the actual config data from gRPC
-        console.log('Raw gRPC config response:', response);
-        console.log('Config data structure:', configData);
-        console.log('Chains with explorer URLs:', configData.chains?.map(c => ({
-          network: c.network,
-          chainId: c.chainId,
-          explorerUrl: c.explorerUrl,
-          hasExplorerUrl: !!c.explorerUrl
-        })));
-        
-        setConfig(configData);
-        // Set the config in our utils for easy access
-        configUtils.setConfig(configData);
-        
-        // Update wagmi configuration with chains from gRPC config - only once
-        if (configData.chains && configData.chains.length > 0 && !hasUpdatedWagmi) {
-          console.log('Updating wagmi config with chains from gRPC config:', configData.chains);
-          try {
-            updateWagmiConfig(configData.chains);
-            setHasUpdatedWagmi(true);
-            console.log('Successfully updated wagmi config with gRPC chains');
-          } catch (updateError) {
-            console.warn('Failed to update wagmi config:', updateError);
-            // Don't fail the entire config load if wagmi update fails
-          }
-        }
-        
-        // If we got a fallback config, show a warning
-        if (response.error && response.error.includes('fallback')) {
-          console.warn('Using fallback configuration - backend not available');
-          const isDev = import.meta.env.DEV;
-          const errorMsg = isDev 
-            ? 'Backend not available - using fallback configuration. Start your backend service or set VITE_GRPC_WEB_PROXY_URL in .env.local'
-            : 'Backend not available - using fallback configuration';
-          setError(errorMsg);
-        }
+        setConfig(response.config);
+        // Update the global configUtils instance so other parts of the app can access it
+        configUtils.setConfig(response.config);
       } else {
-        setError(response.error || 'Failed to fetch configuration');
-        setConfig(null);
+        setError("Empty configuration received from backend");
       }
-    } catch (err) {
-      console.error('useConfig: Failed to fetch config:', err);
-      const isDev = import.meta.env.DEV;
-      let errorMsg = err instanceof Error ? err.message : 'Failed to fetch configuration';
-      
-      if (isDev && errorMsg.includes('unsupported content type')) {
-        errorMsg = 'Backend not available - check if your gRPC service is running and VITE_GRPC_WEB_PROXY_URL is set correctly';
+    } catch (err: unknown) {
+      const errorMessage: string =
+        err instanceof Error ? err.message : "Unknown error occurred";
+
+      // Provide more specific error messages based on the error type
+      let userFriendlyError = errorMessage;
+      if (errorMessage.includes("Failed to fetch")) {
+        userFriendlyError =
+          "Network error: Unable to connect to the backend service. Please check if the backend is running.";
+      } else if (errorMessage.includes("gRPC")) {
+        userFriendlyError =
+          "gRPC error: There was an issue with the gRPC communication. Please check the backend service.";
+      } else if (errorMessage.includes("timeout")) {
+        userFriendlyError =
+          "Request timeout: The backend service is not responding. Please check if it is running.";
       }
-      
-      setError(errorMsg);
+
+      setError(userFriendlyError);
     } finally {
       setLoading(false);
     }
-  }, [hasAttemptedFetch, hasUpdatedWagmi]);
+  }, []);
 
+  const refresh = useCallback(async (): Promise<void> => {
+    await fetchConfig();
+  }, [fetchConfig]);
+
+  // Automatically fetch config when hook is first used
   useEffect(() => {
     fetchConfig();
-  }, [fetchConfig]); // Include fetchConfig in dependencies
+  }, [fetchConfig]);
 
   return {
     config,
     loading,
     error,
-    refetch: fetchConfig,
+    fetchConfig,
+    refresh,
+    refetch: refresh, // Add alias for backward compatibility
   };
-}; 
+}
+
+// Helper hooks for specific config data
+export function useChains(): Chain[] {
+  const { config } = useConfig();
+  return config?.chains || [];
+}
+
+export function useMarkets(): Market[] {
+  const { config } = useConfig();
+  return config?.markets || [];
+}
+
+export function useTokens(): Token[] {
+  const { config } = useConfig();
+  const chains: Chain[] = config?.chains || [];
+  const tokens: Token[] = [];
+
+  chains.forEach((chain: Chain) => {
+    Object.values(chain.tokens).forEach((token: Token) => {
+      tokens.push(token);
+    });
+  });
+
+  return tokens;
+}
+
+// Helper functions for finding specific config items
+export function useChainById(chainId: number): Chain | null {
+  const chains: Chain[] = useChains();
+  return chains.find((chain: Chain) => chain.chainId === chainId) || null;
+}
+
+export function useMarketById(marketId: string): Market | null {
+  const markets: Market[] = useMarkets();
+  return markets.find((market: Market) => market.marketId === marketId) || null;
+}
+
+export function useTokenBySymbol(symbol: string): Token | null {
+  const tokens: Token[] = useTokens();
+  return tokens.find((token: Token) => token.symbol === symbol) || null;
+}
