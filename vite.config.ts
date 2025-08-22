@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => ({
     fs: {
       strict: false,
     },
+    // Add fallback for client-side routing (SPA support)
+    // This ensures that all routes fall back to index.html, allowing React Router to handle them
+    historyApiFallback: true,
     proxy: {
       "/api": {
         target: "http://localhost:8080",

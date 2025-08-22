@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import type { TradingPair } from "@/hooks/useTradingPairs";
+import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface IndexProps {
   selectedPair: string;
@@ -20,6 +21,9 @@ const Index = ({
   tradingPairs, 
   pairsLoading 
 }: IndexProps): JSX.Element => {
+
+  // Manage trading side state at the Index level to share between TradeForm and ActivityPanel
+  const [currentTradingSide, setCurrentTradingSide] = useState<BaseOrQuote.BASE | BaseOrQuote.QUOTE>(BaseOrQuote.BASE);
 
   // Debug logging
   console.log("Index page render:", {
@@ -88,6 +92,7 @@ const Index = ({
               <ActivityPanel
                 key={currentTradingPair?.id || "no-market"}
                 tradingPair={currentTradingPair || undefined}
+                currentTradingSide={currentTradingSide}
               />
             </section>
 
@@ -105,6 +110,7 @@ const Index = ({
               <TradeForm
                 key={`tradeform-${currentTradingPair?.id || "no-market"}`}
                 tradingPair={currentTradingPair || undefined}
+                onTradingSideChange={setCurrentTradingSide}
               />
             </section>
 

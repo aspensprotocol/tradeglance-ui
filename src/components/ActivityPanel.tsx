@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
-import { useBalanceManager } from "@/hooks/useBalanceManager";
+
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useRecentTrades } from "@/hooks/useRecentTrades";
 import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
@@ -13,12 +13,14 @@ import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import { triggerBalanceRefresh } from "../lib/utils";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 import { formatDecimalConsistent } from "@/lib/number-utils";
+import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface ActivityPanelProps {
   tradingPair?: TradingPair;
+  currentTradingSide?: BaseOrQuote.BASE | BaseOrQuote.QUOTE;
 }
 
-const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
+const ActivityPanel = ({ tradingPair, currentTradingSide }: ActivityPanelProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
   const [showMineOnly, setShowMineOnly] = useState(false);
@@ -42,7 +44,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     allBalancesLoading: balancesLoading,
     error: balancesError,
     refreshAll: refreshBalances,
-  } = useUnifiedBalance(tradingPair, undefined);
+  } = useUnifiedBalance(tradingPair, currentTradingSide);
 
   // Get the market ID from the trading pair
   const marketId = tradingPair?.id;
@@ -118,8 +120,7 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
     });
   }, [activeTab, marketId]);
 
-  // Get trading balances for the current trading pair
-  useBalanceManager(tradingPair);
+  // Get trading balances for the current trading pair (using useUnifiedBalance instead)
 
   // Get wallet token balance (balanceOf)
   useTokenBalance(
@@ -299,14 +300,14 @@ const ActivityPanel = ({ tradingPair }: ActivityPanelProps) => {
                       <span className="text-right truncate">
                         {formatDecimalConsistent(trade.quantity)} {tradingPair?.baseSymbol || "ATOM"}
                       </span>
-                      <span className="text-right truncate text-gray-500 hidden sm:block">
-                        {trade.trader
-                          ? `${trade.trader.slice(0, 6)}...${trade.trader.slice(-4)}`
+                      <span className="text-right truncate text-gray-500 hidden sm:block" title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}>
+                        M: {trade.makerAddress || trade.trader
+                          ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
                           : "Unknown"}
                       </span>
-                      <span className="text-right truncate text-gray-500">
-                        {trade.trader
-                          ? `${trade.trader.slice(0, 6)}...${trade.trader.slice(-4)}`
+                      <span className="text-right truncate text-gray-500" title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}>
+                        {trade.makerAddress || trade.trader
+                          ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
                           : "Unknown"}
                       </span>
                       <span className="text-right truncate text-gray-500">

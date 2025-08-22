@@ -17,7 +17,8 @@ import type {
   Chain,
   Market,
   Token,
-  Configuration
+  Configuration,
+  BaseOrQuote
 } from "../protos/gen/arborter_config_pb";
 
 // Re-export proto types for convenience
@@ -32,7 +33,8 @@ export type {
   Chain,
   Market,
   Token,
-  Configuration
+  Configuration,
+  BaseOrQuote
 };
 
 // Consolidated orderbook data interface using proto types
@@ -58,7 +60,9 @@ export interface RecentTrade {
   price: number;
   quantity: number;
   timestamp: Date;
-  trader: string;
+  trader: string; // For backwards compatibility - will contain maker address
+  makerAddress: string;
+  takerAddress: string;
   marketId: string;
 }
 
@@ -112,6 +116,20 @@ export interface CachedOrderbookData {
   filterByTrader?: string; // Optional field to track if data was filtered by trader
 }
 
+// Cached trades data interface
+export interface CachedTradesData {
+  marketId: string;
+  trades: RecentTrade[];
+  lastUpdate: Date;
+  filterByTrader?: string;
+}
+
+// Shared trades data interface
+export interface SharedTradesData {
+  trades: RecentTrade[];
+  lastUpdate: Date;
+}
+
 // Global orderbook cache context type
 export interface GlobalOrderbookCacheContextType {
   getCachedData: (marketId: string, filterByTrader?: string) => CachedOrderbookData | null;
@@ -130,6 +148,28 @@ export interface GlobalOrderbookCacheContextType {
       orderbookAsks: number;
       hasOpenOrders: boolean;
       openOrdersCount: number;
+      lastUpdate: string;
+      ageMs: number;
+    }[];
+  };
+  shouldClearCache: (marketId: string, filterByTrader?: string) => boolean;
+}
+
+// Global trades cache context type
+export interface GlobalTradesCacheContextType {
+  getCachedData: (marketId: string, filterByTrader?: string) => CachedTradesData | null;
+  setCachedData: (marketId: string, data: SharedTradesData, filterByTrader?: string) => void;
+  clearCache: (marketId?: string, filterByTrader?: string) => void;
+  isDataStale: (marketId: string, maxAgeMs?: number, filterByTrader?: string) => boolean;
+  getCacheStats: () => {
+    totalEntries: number;
+    keys: string[];
+    entries: {
+      key: string;
+      marketId: string;
+      filterByTrader?: string;
+      hasTradesData: boolean;
+      tradesCount: number;
       lastUpdate: string;
       ageMs: number;
     }[];
@@ -171,6 +211,7 @@ export interface VerticalOrderBookProps {
 export interface TradeFormProps {
   tradingPair?: TradingPair;
   onOrderSubmitted?: () => void;
+  onTradingSideChange?: (side: BaseOrQuote.BASE | BaseOrQuote.QUOTE) => void;
 }
 
 // View context types

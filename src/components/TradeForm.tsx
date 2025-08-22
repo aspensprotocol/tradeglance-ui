@@ -9,7 +9,7 @@ import type { TradeFormProps } from "@/lib/shared-types";
 
 
 
-const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
+const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.Element => {
   // Use the shared form logic hook
   const {
     formState,
@@ -39,7 +39,10 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
         <fieldset className="flex bg-[#2a2d3a] rounded-lg p-1 mb-2 sm:mb-3 lg:mb-4">
           {/* Buy button - always left */}
           <button
-            onClick={() => handleSideChange(BaseOrQuote.QUOTE)}
+            onClick={() => {
+              handleSideChange(BaseOrQuote.QUOTE);
+              onTradingSideChange?.(BaseOrQuote.QUOTE);
+            }}
             className={cn(
               "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
               tradingState.activeTab === BaseOrQuote.QUOTE
@@ -51,7 +54,10 @@ const TradeForm = ({ tradingPair }: TradeFormProps): JSX.Element => {
           </button>
           {/* Sell button - always right */}
           <button
-            onClick={() => handleSideChange(BaseOrQuote.BASE)}
+            onClick={() => {
+              handleSideChange(BaseOrQuote.BASE);
+              onTradingSideChange?.(BaseOrQuote.BASE);
+            }}
             className={cn(
               "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
               tradingState.activeTab === BaseOrQuote.BASE

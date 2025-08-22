@@ -222,6 +222,18 @@ const DepositWithdrawModal = ({
   const depositedBalanceLoading: boolean = balancesLoading;
   const depositedBalanceError = null; // useAllBalances doesn't provide per-token errors
 
+  // Debug logging
+  console.log("DepositWithdrawModal balance data:", {
+    selectedToken: selectedTokenData?.symbol,
+    selectedChainId,
+    allBalances,
+    depositedBalanceData,
+    depositedBalance,
+    tokenBalance,
+    balancesLoading,
+    balanceLoading
+  });
+
   // Check if selected chain is supported
   const isSelectedChainSupported: boolean = chains.some(
     (chain: Chain) => chain.chainId === selectedChainId,

@@ -5,8 +5,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "./lib/web3modal-config";
 import { GlobalOrderbookCacheProvider } from "@/contexts/GlobalOrderbookCache";
+import { GlobalTradesCacheProvider } from "@/contexts/GlobalTradesCache";
 
 import { ViewProvider } from "@/contexts/ViewContext";
+import { RouteGuard } from "./components/RouteGuard";
 import Home from "./pages/Home";
 import Trading from "./pages/Trading";
 import Docs from "./pages/Docs";
@@ -18,21 +20,25 @@ const App = (): JSX.Element => (
   <WagmiProvider config={wagmiConfig}>
     <TooltipProvider>
       <GlobalOrderbookCacheProvider>
-        <ViewProvider>
+        <GlobalTradesCacheProvider>
+          <ViewProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/trading" element={<Trading />} />
-              <Route path="/docs" element={<Docs />} />
-              <Route path="/mint" element={<Mint />} />
-              <Route path="/config" element={<ConfigTest />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <RouteGuard>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/trading" element={<Trading />} />
+                <Route path="/docs" element={<Docs />} />
+                <Route path="/mint" element={<Mint />} />
+                <Route path="/config" element={<ConfigTest />} />
+                {/* Catch-all route for any other paths - this ensures React Router handles all routes */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </RouteGuard>
           </BrowserRouter>
-        </ViewProvider>
+          </ViewProvider>
+        </GlobalTradesCacheProvider>
       </GlobalOrderbookCacheProvider>
     </TooltipProvider>
   </WagmiProvider>

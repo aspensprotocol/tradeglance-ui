@@ -4,41 +4,41 @@
 
 This is a simple cross chain limit order dex built to demonstrate what is possible to build using [Aspens](https://aspens.xyz/), a protocol that aims to **make cross chain chill** 😎. In this example, we're showing a dex that trades across chains, with 2 different modes, i.e. [pro](/pro) or [simple](/simple). For more information of what aspens is, read our [docs](https://docs.aspens.xyz). Here's a video demonstration of how to use the dapp:
 
-![video demo](/vids/vid-demo.mp4)
+![video demo](vids/vid-demo.mp4)
 
 And here is a step by step guide on how to use it:
 
 ### 🛬 Landing page:
 
-![landing page](/imgs/1.png)
+![landing page](imgs/1.png)
 
 ### 💰 Firstly, navigate to the token minting page:
 
-![Navigate](/imgs/2.png)
+![Navigate](imgs/2.png)
 
 ### 💸 Then, mint tokens on the chain that you want:
 
-![Mint](/imgs/3.png)
+![Mint](imgs/3.png)
 
 ### 💵 In order to deposit funds, press on this button:
 
-![Deposit](/imgs/4.png)
+![Deposit](imgs/4.png)
 
 ### 📝 Choose how much you want to deposit in this prompt:
 
-![Deposit view](/imgs/5.png)
+![Deposit view](imgs/5.png)
 
 ### 📈 Then, you are read to trade:
 
-![Navigate to trade](/imgs/6.png)
+![Navigate to trade](imgs/6.png)
 
 ### 🤓 Through either our pro view:
 
-![Pro view](/imgs/7.png)
+![Pro view](imgs/7.png)
 
 ### 😎 Or, our simple view:
 
-![Simple view](/imgs/8.png)
+![Simple view](imgs/8.png)
 
 ## 🌳 Aspens for builders
 

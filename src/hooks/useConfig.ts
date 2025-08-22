@@ -23,11 +23,18 @@ export function useConfig(): UseConfigReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchConfig = useCallback(async (): Promise<void> => {
+    console.log("🔍 useConfig: fetchConfig called");
     setLoading(true);
     setError(null);
 
     try {
+      console.log("🔍 useConfig: Calling configService.getConfig()");
       const response = await configService.getConfig();
+      console.log("🔍 useConfig: Response received:", {
+        hasResponse: !!response,
+        hasConfig: !!response?.config,
+        configType: typeof response?.config
+      });
 
       if (response.config) {
         console.log("🔍 useConfig: Received configuration:", {
@@ -53,6 +60,16 @@ export function useConfig(): UseConfigReturn {
             : null,
         });
 
+        console.log("🔍 useConfig: Setting config with:", {
+          chainsCount: response.config.chains?.length || 0,
+          marketsCount: response.config.markets?.length || 0,
+          sampleChain: response.config.chains?.[0] ? {
+            chainId: response.config.chains[0].chainId,
+            network: response.config.chains[0].network,
+            tokensCount: Object.keys(response.config.chains[0].tokens).length
+          } : null
+        });
+        
         setConfig(response.config);
         // Update the global configUtils instance so other parts of the app can access it
         configUtils.setConfig(response.config);
