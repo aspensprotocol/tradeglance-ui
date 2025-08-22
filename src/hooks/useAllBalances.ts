@@ -178,20 +178,7 @@ export const useAllBalances = (): {
   );
 
   const fetchAllBalances = useCallback(async () => {
-    console.log("🔍 useAllBalances: fetchAllBalances called with:", {
-      isConnected,
-      address,
-      hasConfig: !!config,
-      configChains: config?.chains?.length || 0,
-      configMarkets: config?.markets?.length || 0,
-    });
-
     if (!isConnected || !address || !config) {
-      console.log("❌ useAllBalances: Missing required data:", {
-        isConnected,
-        hasAddress: !!address,
-        hasConfig: !!config,
-      });
       setBalances([]);
       return;
     }
@@ -203,40 +190,15 @@ export const useAllBalances = (): {
       const allBalances: TokenBalance[] = [];
 
       // Check balances for all tokens across all chains
-      console.log(
-        "🔍 useAllBalances: Processing chains:",
-        config.chains.length,
-      );
 
       for (const chain of config.chains) {
-        console.log("🔍 useAllBalances: Processing chain:", {
-          chainId: chain.chainId,
-          network: chain.network,
-          tokensCount: Object.keys(chain.tokens).length,
-          hasTradeContract: !!chain.tradeContract,
-        });
-
         const chainTokens = Object.keys(chain.tokens);
 
         for (const tokenSymbol of chainTokens) {
           const token = chain.tokens[tokenSymbol];
           if (!token || !chain.tradeContract) {
-            console.log("⚠️ useAllBalances: Skipping token/chain:", {
-              tokenSymbol,
-              hasToken: !!token,
-              hasTradeContract: !!chain.tradeContract,
-            });
             continue;
           }
-
-          console.log("🔍 useAllBalances: Checking balances for token:", {
-            tokenSymbol,
-            chainId: chain.chainId,
-            tokenAddress: token.address,
-            decimals: token.decimals,
-            rpcUrl: chain.rpcUrl,
-            tradeContractAddress: chain.tradeContract.address,
-          });
 
           const balance = await checkTokenBalances(
             tokenSymbol,
@@ -248,14 +210,12 @@ export const useAllBalances = (): {
             chain.tradeContract.address,
           );
 
-          console.log("🔍 useAllBalances: Balance result:", balance);
           allBalances.push(balance);
         }
       }
 
       // Return all balances, even if they're 0, so we can see what's happening
       setBalances(allBalances);
-      console.log("All balances fetched:", allBalances);
     } catch (err) {
       console.error("Failed to fetch all balances:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch balances");

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import SimpleForm from "@/components/SimpleForm";
-import type { TradingPair } from "@/hooks/useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
 import { useToast } from "@/hooks/use-toast";
 
 interface SimpleProps {
@@ -23,11 +23,10 @@ const Simple = ({
   // Use the current trading pair from props
   const defaultPair = currentTradingPair;
 
-  // Debug: Track component mounting/unmounting
+  // Component lifecycle tracking
   useEffect(() => {
-    console.log("🚀 Simple component MOUNTED");
     return () => {
-      console.log("💀 Simple component UNMOUNTED");
+      // Cleanup on unmount
     };
   }, []);
 
@@ -55,7 +54,7 @@ const Simple = ({
             <p>Loading trading pairs...</p>
           </section>
         ) : defaultPair ? (
-          <div className="flex flex-col items-center gap-4">
+          <section className="flex flex-col items-center gap-4">
             <button
               onClick={testToasts}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mb-4"
@@ -68,7 +67,7 @@ const Simple = ({
               tradingPair={defaultPair}
               tradingPairs={tradingPairs}
             />
-          </div>
+          </section>
         ) : (
           <section className="text-center">
             <p>No trading pairs available</p>

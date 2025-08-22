@@ -44,10 +44,6 @@ export const useContract = (): {
           method: "eth_chainId",
         });
         const chainIdNumber = parseInt(chainId, 16);
-        console.log(
-          "useContract: Current chain ID from MetaMask:",
-          chainIdNumber,
-        );
         setCurrentChainId(chainIdNumber);
       } catch (err) {
         console.error("useContract: Error getting chain ID:", err);
@@ -59,7 +55,6 @@ export const useContract = (): {
   // Listen for chain changes
   const handleChainChanged = (chainId: string): void => {
     const chainIdNumber = parseInt(chainId, 16);
-    console.log("useContract: Chain changed to:", chainIdNumber);
     setCurrentChainId(chainIdNumber);
   };
 
@@ -170,32 +165,19 @@ export const useContract = (): {
     try {
       const chainConfig = configUtils.getChainByChainId(chainId);
       if (!chainConfig) {
-        console.log(
-          "checkTokenApprovalSupport: No chain config found for chain",
-          chainId,
-        );
         return false;
       }
 
       const tradeContractAddress = configUtils.getTradeContractAddress(chainId);
       if (!tradeContractAddress) {
-        console.warn("No trade contract address found for chain", chainId);
         return false;
       }
-
-      console.log("checkTokenApprovalSupport: Testing allowance for:", {
-        tokenAddress,
-        userAddress: address,
-        tradeContractAddress,
-        chainId,
-        rpcUrl: chainConfig.rpcUrl,
-      });
 
       // Create custom public client with the correct RPC URL
       const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
 
       // Try to read the allowance to see if the contract responds
-      const allowanceResult = await customPublicClient.readContract({
+      await customPublicClient.readContract({
         address: tokenAddress as `0x${string}`,
         abi: [
           {
@@ -213,16 +195,8 @@ export const useContract = (): {
         args: [address as `0x${string}`, tradeContractAddress as `0x${string}`],
       });
 
-      console.log(
-        "checkTokenApprovalSupport: Allowance test successful, result:",
-        allowanceResult,
-      );
       return true;
-    } catch (err) {
-      console.warn(
-        "Token contract does not support standard ERC20 allowance:",
-        err,
-      );
+    } catch {
       return false;
     }
   };
@@ -262,13 +236,6 @@ export const useContract = (): {
       // Convert amount using correct decimals
       const amountWei = parseUnits(amount, decimals || 18);
 
-      console.log(
-        `Converting ${amount} with ${decimals} decimals to: ${amountWei}`,
-      );
-      console.log(
-        `Current wallet chain ID: ${currentChainId}, Target chain ID: ${targetChainId}`,
-      );
-
       // Check if wallet is on the correct chain
       if (currentChainId !== targetChainId) {
         throw new Error(
@@ -277,16 +244,13 @@ export const useContract = (): {
       }
 
       // Check if the token contract supports approval
-      console.log("Checking if token supports approval...");
       const supportsApproval = await checkTokenApprovalSupport(
         token,
         targetChainId,
       );
-      console.log("Token approval support result:", supportsApproval);
 
       if (supportsApproval) {
         // First, approve the contract to spend our tokens
-        console.log("Approving token spending...");
         const tokenContract = {
           address: token as `0x${string}`,
           abi: [
@@ -303,7 +267,7 @@ export const useContract = (): {
           ],
         };
 
-        const approveHash = await walletClient.writeContract({
+        await walletClient.writeContract({
           address: token as `0x${string}`,
           abi: tokenContract.abi,
           functionName: "approve",
@@ -312,25 +276,11 @@ export const useContract = (): {
           chain: getChainById(targetChainId),
         });
 
-        console.log("Approval successful:", approveHash);
-
         // Wait a moment for the approval to be processed
         await new Promise((resolve) => setTimeout(resolve, 2000));
-      } else {
-        console.log(
-          "Token contract does not support standard ERC20 approval, skipping approval step",
-        );
       }
 
       // Now attempt the deposit
-      console.log("Attempting deposit with:", {
-        contractAddress: tradeContractAddress,
-        tokenAddress: token,
-        amountWei: amountWei.toString(),
-        account: address,
-        chain: getChainById(targetChainId),
-      });
-
       const hash = await walletClient.writeContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MidribV2ABI.abi,
@@ -340,10 +290,7 @@ export const useContract = (): {
         chain: getChainById(targetChainId),
       });
 
-      console.log("Deposit transaction submitted:", hash);
-
       // Wait for transaction confirmation using custom public client
-      console.log("Waiting for transaction confirmation...");
       setIsConfirming(true);
       if (!chainConfig) throw new Error("Chain configuration not found");
       const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
@@ -355,7 +302,6 @@ export const useContract = (): {
       });
 
       setIsConfirming(false);
-      console.log("Transaction confirmed in block:", receipt.blockNumber);
 
       // Check if transaction was successful
       if (receipt.status === "reverted") {
@@ -367,7 +313,6 @@ export const useContract = (): {
         console.warn("Transaction has no logs, which might indicate a failure");
       }
 
-      console.log("Deposit transaction successful");
       return hash;
     } catch (err: unknown) {
       console.error("Deposit failed:", err);
@@ -434,13 +379,6 @@ export const useContract = (): {
       // Convert amount using correct decimals
       const amountWei = parseUnits(amount, decimals || 18);
 
-      console.log(
-        `Converting ${amount} with ${decimals} decimals to: ${amountWei}`,
-      );
-      console.log(
-        `Current wallet chain ID: ${currentChainId}, Target chain ID: ${targetChainId}`,
-      );
-
       // Check if wallet is on the correct chain
       if (currentChainId !== targetChainId) {
         throw new Error(
@@ -449,14 +387,6 @@ export const useContract = (): {
       }
 
       // Attempt the withdrawal
-      console.log("Attempting withdrawal with:", {
-        contractAddress: tradeContractAddress,
-        tokenAddress: token,
-        amountWei: amountWei.toString(),
-        account: address,
-        chain: getChainById(targetChainId),
-      });
-
       const hash = await walletClient.writeContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MidribV2ABI.abi,
@@ -466,10 +396,7 @@ export const useContract = (): {
         chain: getChainById(targetChainId),
       });
 
-      console.log("Withdrawal transaction submitted:", hash);
-
       // Wait for transaction confirmation using custom public client
-      console.log("Waiting for transaction confirmation...");
       setIsConfirming(true);
       if (!chainConfig) throw new Error("Chain configuration not found");
       const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
@@ -481,7 +408,6 @@ export const useContract = (): {
       });
 
       setIsConfirming(false);
-      console.log("Transaction confirmed in block:", receipt.blockNumber);
 
       // Check if transaction was successful
       if (receipt.status === "reverted") {
@@ -493,7 +419,6 @@ export const useContract = (): {
         console.warn("Transaction has no logs, which might indicate a failure");
       }
 
-      console.log("Withdrawal transaction successful");
       return hash;
     } catch (err: unknown) {
       console.error("Withdrawal failed:", err);

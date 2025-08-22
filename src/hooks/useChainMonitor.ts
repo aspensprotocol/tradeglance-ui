@@ -7,9 +7,6 @@ import type { Chain } from "../protos/gen/arborter_config_pb";
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
 // - Users must manually switch chains in MetaMask
 // - This hook now only monitors chain state, doesn't attempt to switch chains
-console.log(
-  "MetaMask Chain Permissions: useChainMonitor hook initialized - no automatic chain switching",
-);
 
 export const useChainMonitor = (): {
   currentChainId: number | null;
@@ -50,20 +47,10 @@ export const useChainMonitor = (): {
 
       const tradeContractAddress: string | null =
         configUtils.getTradeContractAddress(chainId);
-      const chainConfig: Chain | null = configUtils.getChainByChainId(chainId);
       const supported = !!tradeContractAddress;
 
       setCurrentChainId(chainId);
       setIsSupported(supported);
-
-      console.log("Chain support check:", {
-        chainId,
-        supported,
-        tradeContractAddress,
-        chainConfig: chainConfig
-          ? { network: chainConfig.network, chainId: chainConfig.chainId }
-          : null,
-      });
     },
     [config],
   );
@@ -76,15 +63,6 @@ export const useChainMonitor = (): {
 
     const allChains: Chain[] = configUtils.getAllChains();
     setSupportedChains(allChains);
-
-    console.log(
-      "Supported chains updated:",
-      allChains.map((chain: Chain) => ({
-        network: chain.network,
-        chainId: chain.chainId,
-        baseOrQuote: chain.baseOrQuote,
-      })),
-    );
   }, [config]);
 
   // Initialize chain monitoring
@@ -106,7 +84,6 @@ export const useChainMonitor = (): {
           method: "eth_accounts",
         });
         if (accounts.length === 0) {
-          console.log("MetaMask not connected - no accounts found");
           setCurrentChainId(null);
           setIsSupported(false);
           setIsInitialized(true);
@@ -118,8 +95,7 @@ export const useChainMonitor = (): {
         await checkChainSupport(chainId);
         updateSupportedChains();
         setIsInitialized(true);
-      } catch (error) {
-        console.log("MetaMask not connected or error getting chain ID:", error);
+      } catch {
         setCurrentChainId(null);
         setIsSupported(false);
         setIsInitialized(true);
@@ -145,13 +121,12 @@ export const useChainMonitor = (): {
 
     const handleChainChanged = (chainId: string): void => {
       const chainIdNumber: number = parseInt(chainId, 16);
-      console.log("Chain changed to:", chainIdNumber);
+
       checkChainSupport(chainIdNumber);
     };
 
     const handleAccountsChanged = (accounts: string[]): void => {
       if (accounts.length === 0) {
-        console.log("No accounts found, user disconnected");
         setCurrentChainId(null);
         setIsSupported(false);
       }

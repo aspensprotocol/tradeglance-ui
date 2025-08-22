@@ -5,71 +5,66 @@
  * This script runs during the build process to ensure documentation is always up-to-date
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const projectRoot = path.resolve(__dirname, '..');
-const readmePath = path.join(projectRoot, 'docs-source', 'README.md');
-const docsComponentPath = path.join(projectRoot, 'src', 'pages', 'Docs.tsx');
+const projectRoot = path.resolve(__dirname, "..");
+const readmePath = path.join(projectRoot, "docs-source", "README.md");
+const docsComponentPath = path.join(projectRoot, "src", "pages", "Docs.tsx");
 
 function updateDocsComponent() {
   try {
     // Check if README.md exists
     if (!fs.existsSync(readmePath)) {
-      console.log('⚠️  README.md not found at docs-source/README.md, using default content');
       return;
     }
 
     // Read the README.md content
-    const readmeContent = fs.readFileSync(readmePath, 'utf8');
-    
+    const readmeContent = fs.readFileSync(readmePath, "utf8");
+
     // Escape only the characters that need escaping in template literals
     // Don't escape $ unless it's actually part of a template expression
     const escapedContent = readmeContent
-      .replace(/\\/g, '\\\\')  // Escape backslashes first
-      .replace(/`/g, '\\`');   // Escape backticks
-    
+      .replace(/\\/g, "\\\\") // Escape backslashes first
+      .replace(/`/g, "\\`"); // Escape backticks
+
     // Read the current Docs.tsx file
-    let docsComponent = fs.readFileSync(docsComponentPath, 'utf8');
-    
+    let docsComponent = fs.readFileSync(docsComponentPath, "utf8");
+
     // Check if the file has the expected structure
-    if (!docsComponent.includes('const markdownContent =')) {
-      console.log('⚠️  Docs.tsx does not have the expected structure, skipping update');
+    if (!docsComponent.includes("const markdownContent =")) {
       return;
     }
-    
+
     // Create the new markdown content
     const newMarkdownContent = `// Pre-compiled markdown content - this gets bundled during build time
 // No runtime fetching needed, eliminating the 403 error
 // Auto-updated from public/docs/README.md during build
 const markdownContent = \`${escapedContent}\`;`;
-    
+
     // Replace the existing markdown content
     const updatedComponent = docsComponent.replace(
       /\/\/ Pre-compiled markdown content[\s\S]*?const markdownContent = `[\s\S]*?`;/,
-      newMarkdownContent
+      newMarkdownContent,
     );
-    
+
     // Check if the replacement was successful
     if (updatedComponent === docsComponent) {
-      console.log('⚠️  No changes were made to Docs.tsx, the file might not match the expected pattern');
       return;
     }
-    
+
     // Write the updated component back
     fs.writeFileSync(docsComponentPath, updatedComponent);
-    
-    console.log('✅ Successfully updated Docs.tsx with latest README.md content');
-    console.log(`📝 Content length: ${readmeContent.length} characters`);
-    
+
+    // Successfully updated Docs.tsx with latest README.md content
   } catch (error) {
-    console.error('❌ Error updating Docs.tsx:', error.message);
+    console.error("❌ Error updating Docs.tsx:", error.message);
     // Don't exit with error code during build, just log the issue
-    if (process.argv.includes('--exit-on-error')) {
+    if (process.argv.includes("--exit-on-error")) {
       process.exit(1);
     }
   }

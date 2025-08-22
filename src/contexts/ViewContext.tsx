@@ -9,17 +9,9 @@ interface ViewProviderProps {
 export function ViewProvider({ children }: ViewProviderProps): JSX.Element {
   const [viewMode, setViewModeState] = useState<"simple" | "pro">("pro");
 
-  const setViewMode = useCallback(
-    (mode: "simple" | "pro") => {
-      console.log("🔄 ViewContext: Switching view mode:", {
-        from: viewMode,
-        to: mode,
-        timestamp: new Date().toISOString(),
-      });
-      setViewModeState(mode);
-    },
-    [viewMode],
-  );
+  const setViewMode = useCallback((mode: "simple" | "pro") => {
+    setViewModeState(mode);
+  }, []);
 
   const contextValue: ViewContextType = {
     viewMode,

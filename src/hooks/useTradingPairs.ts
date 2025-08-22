@@ -1,22 +1,6 @@
-import { useMemo } from "react";
 import { useConfig } from "./useConfig";
 import type { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
-
-export interface TradingPair {
-  id: string;
-  baseSymbol: string;
-  quoteSymbol: string;
-  displayName: string;
-  baseChainNetwork: string;
-  quoteChainNetwork: string;
-  baseChainTokenAddress: string;
-  quoteChainTokenAddress: string;
-  baseChainTokenDecimals: number;
-  quoteChainTokenDecimals: number;
-  pairDecimals: number;
-  baseChainId: number;
-  quoteChainId: number;
-}
+import type { TradingPair } from "../lib/shared-types";
 
 export const useTradingPairs = (): {
   tradingPairs: TradingPair[];
@@ -27,8 +11,8 @@ export const useTradingPairs = (): {
 } => {
   const { config, loading: configLoading, error: configError } = useConfig();
 
-  // Memoize the trading pairs calculation to avoid recalculation on every render
-  const tradingPairs = useMemo((): TradingPair[] => {
+  // Calculate trading pairs from config
+  const tradingPairs: TradingPair[] = (() => {
     if (!config || !config.chains || !config.markets) {
       return [];
     }
@@ -46,7 +30,7 @@ export const useTradingPairs = (): {
 
     const results: TradingPair[] = [];
 
-    markets.forEach((market: Market, index: number) => {
+    markets.forEach((market: Market) => {
       // Find the base and quote chains for this market
       const baseChain: Chain | undefined = chainMap.get(
         market.baseChainNetwork,
@@ -110,26 +94,11 @@ export const useTradingPairs = (): {
         quoteChainId,
       };
 
-      // Debug logging for the first few trading pairs
-      if (index < 3) {
-        console.log("🔍 useTradingPairs: Created trading pair:", {
-          id: tradingPair.id,
-          displayName: tradingPair.displayName,
-          baseSymbol: tradingPair.baseSymbol,
-          quoteSymbol: tradingPair.quoteSymbol,
-          baseChainTokenDecimals: tradingPair.baseChainTokenDecimals,
-          quoteChainTokenDecimals: tradingPair.quoteChainTokenDecimals,
-          pairDecimals: tradingPair.pairDecimals,
-          marketPairDecimals: market.pairDecimals,
-          marketPairDecimalsType: typeof market.pairDecimals,
-        });
-      }
-
       results.push(tradingPair);
     });
 
     return results;
-  }, [config]);
+  })();
 
   const loading: boolean =
     configLoading || (!!config && tradingPairs.length === 0);
@@ -137,26 +106,17 @@ export const useTradingPairs = (): {
     configError ||
     (!!config && tradingPairs.length === 0 ? "No trading pairs found" : null);
 
-  // Memoize the lookup functions to prevent recreation on every render
-  const getTradingPairById = useMemo(
-    () =>
-      (id: string): TradingPair | null => {
-        return tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
-      },
-    [tradingPairs],
-  );
+  // Create lookup functions
+  const getTradingPairById = (id: string): TradingPair | null => {
+    return tradingPairs.find((pair: TradingPair) => pair.id === id) || null;
+  };
 
-  const getTradingPairByMarketId = useMemo(
-    () =>
-      (marketId: string): TradingPair | null => {
-        return (
-          tradingPairs.find((pair: TradingPair) =>
-            pair.id.includes(marketId),
-          ) || null
-        );
-      },
-    [tradingPairs],
-  );
+  const getTradingPairByMarketId = (marketId: string): TradingPair | null => {
+    return (
+      tradingPairs.find((pair: TradingPair) => pair.id.includes(marketId)) ||
+      null
+    );
+  };
 
   return {
     tradingPairs,

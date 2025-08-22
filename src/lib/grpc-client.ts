@@ -136,23 +136,8 @@ export const configService = {
   // Get configuration
   async getConfig(): Promise<GetConfigResponse> {
     try {
-      console.log("🔧 configService.getConfig called");
-      console.log("🔧 gRPC: Creating GetConfigRequest...");
-      const request: GetConfigRequest = create(GetConfigRequestSchema, {});
-      console.log("🔧 gRPC: Request created:", request);
-
-      console.log("🔧 gRPC: Calling configClient.getConfig...");
-      console.log(
-        "🔧 gRPC: Transport created with baseUrl:",
-        import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
-      );
-      console.log(
-        "🔧 gRPC: ConfigService methods:",
-        Object.keys(ConfigService.methods),
-      );
-
+      const request = create(GetConfigRequestSchema, {});
       const response: GetConfigResponse = await configClient.getConfig(request);
-      console.log("🔧 gRPC: Response received:", response);
       return response;
     } catch (error: unknown) {
       console.error("❌ gRPC: Failed to get config:", error);
@@ -427,37 +412,26 @@ export const arborterService = {
         timeoutPromise,
       ]);
 
-      console.log("📡 arborterClient.orderbook response received:", {
-        hasResponse: !!response,
-        responseType: typeof response,
-        isAsyncIterable:
-          response && typeof response[Symbol.asyncIterator] === "function",
-      });
-
       const entries: OrderbookEntry[] = [];
 
       // Proper streaming with error handling
       try {
-        console.log("🔄 Starting to iterate over orderbook stream...");
         let entryCount = 0;
 
         for await (const entry of response) {
           // Only log every 10th entry to reduce console spam
           if (entryCount % 10 === 0) {
-            console.log(`🔍 Orderbook Entry ${entryCount + 1} received`);
+            // Logging disabled for performance
           }
 
           entries.push(entry);
           entryCount++;
 
           if (entryCount % 50 === 0) {
-            console.log(`📊 Processed ${entryCount} orderbook entries...`);
+            // Batch processing complete
           }
         }
 
-        console.log(
-          `✅ Orderbook: Stream completed, returning ${entries.length} entries`,
-        );
         return entries;
       } catch (streamError) {
         console.warn(
@@ -478,9 +452,6 @@ export const arborterService = {
         }
 
         if (entries.length > 0) {
-          console.log(
-            `⚡ Returning ${entries.length} collected orderbook entries despite error`,
-          );
           return entries;
         }
         // No data collected, return empty array
@@ -510,16 +481,6 @@ export const arborterService = {
     filterByTrader?: string,
   ): Promise<Trade[]> {
     try {
-      console.log("🚀 arborterService.getTrades called:", {
-        marketId,
-        marketIdType: typeof marketId,
-        marketIdTruthy: !!marketId,
-        continueStream,
-        historicalClosedTrades,
-        filterByTrader,
-        transportBaseUrl: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
-      });
-
       const request: TradeRequest = create(TradeRequestSchema, {
         marketId,
         continueStream,
@@ -527,66 +488,16 @@ export const arborterService = {
         filterByTrader,
       });
 
-      console.log("📤 TradeRequest created:", {
-        requestKeys: Object.keys(request),
-        requestValues: {
-          marketId: request.marketId,
-          continueStream: request.continueStream,
-          historicalClosedTrades: request.historicalClosedTrades,
-          filterByTrader: request.filterByTrader,
-        },
-      });
-
-      console.log("🚀 Fetching trades for market:", marketId);
       const response = await arborterClient.trades(request);
-      console.log("📡 arborterClient.trades response received:", {
-        hasResponse: !!response,
-        responseType: typeof response,
-        isAsyncIterable:
-          response && typeof response[Symbol.asyncIterator] === "function",
-      });
 
       const trades: Trade[] = [];
 
       // Proper streaming without aggressive timeouts
       try {
-        console.log("🔄 Starting to iterate over trades stream...");
-        let tradeCount = 0;
-
         for await (const trade of response) {
-          // CRITICAL DEBUGGING: Log every single trade as it comes in
-          console.log(`🔍 Trade Entry ${tradeCount + 1}:`, {
-            tradeId: tradeCount + 1,
-            hasTrade: !!trade,
-            tradeType: typeof trade,
-            tradeKeys: trade ? Object.keys(trade) : [],
-            price: trade?.price,
-            qty: trade?.qty,
-            timestamp: trade?.timestamp,
-            makerId: trade?.makerId,
-            takerId: trade?.takerId,
-            priceType: typeof trade?.price,
-            qtyType: typeof trade?.qty,
-            priceLength:
-              typeof trade?.price === "string" ? trade?.price.length : "N/A",
-            qtyLength:
-              typeof trade?.qty === "string" ? trade?.qty.length : "N/A",
-            priceValue: trade?.price,
-            qtyValue: trade?.qty,
-            rawTrade: trade,
-          });
-
           trades.push(trade);
-          tradeCount++;
-
-          if (tradeCount % 5 === 0) {
-            console.log(`📊 Processed ${tradeCount} trades...`);
-          }
         }
 
-        console.log(
-          `✅ Trades: Stream completed, returning ${trades.length} trades`,
-        );
         return trades;
       } catch (streamError) {
         console.warn(
@@ -594,9 +505,6 @@ export const arborterService = {
           streamError,
         );
         if (trades.length > 0) {
-          console.log(
-            `⚡ Returning ${trades.length} collected trades despite error`,
-          );
           return trades;
         }
         // No data collected, return empty array
@@ -695,10 +603,6 @@ export const arborterService = {
         historicalOpenOrders,
         filterByTrader,
       });
-      console.log(
-        "🚀 Starting real-time orderbook stream for market:",
-        marketId,
-      );
 
       const response = await arborterClient.orderbook(request);
       const entries: OrderbookEntry[] = [];
@@ -715,9 +619,6 @@ export const arborterService = {
 
         // Limit to prevent memory issues
         if (entries.length >= 200) {
-          console.log(
-            `⚡ Orderbook: Reached limit, stopping stream at ${entries.length} entries`,
-          );
           break;
         }
       }
@@ -730,7 +631,6 @@ export const arborterService = {
 
       // If no data was yielded, yield empty array to indicate completion
       if (!hasYieldedData) {
-        console.log("📭 Orderbook: No data in stream, yielding empty array");
         yield [];
       }
     } catch (error) {
@@ -754,7 +654,6 @@ export const arborterService = {
         historicalClosedTrades,
         filterByTrader,
       });
-      console.log("🚀 Starting real-time trades stream for market:", marketId);
 
       const response = await arborterClient.trades(request);
       const trades: Trade[] = [];
@@ -771,9 +670,6 @@ export const arborterService = {
 
         // Limit to prevent memory issues
         if (trades.length >= 100) {
-          console.log(
-            `⚡ Trades: Reached limit, stopping stream at ${trades.length} trades`,
-          );
           break;
         }
       }
@@ -786,7 +682,6 @@ export const arborterService = {
 
       // If no data was yielded, yield empty array to indicate completion
       if (!hasYieldedData) {
-        console.log("📭 Trades: No data in stream, yielding empty array");
         yield [];
       }
     } catch (error) {

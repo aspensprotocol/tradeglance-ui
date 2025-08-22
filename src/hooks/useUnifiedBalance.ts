@@ -2,7 +2,7 @@ import { useEffect, useCallback } from "react";
 import { useBalanceManager } from "./useBalanceManager";
 import { useAllBalances } from "./useAllBalances";
 import { useBalanceCache } from "./useBalanceCache";
-import type { TradingPair } from "./useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
 import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface UnifiedBalanceData {

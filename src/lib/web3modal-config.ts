@@ -19,7 +19,7 @@ const createWagmiConfig = (
   // Create transports object dynamically with retry logic
   const transports: Record<number, ReturnType<typeof http>> = {};
   allChains.forEach((chain) => {
-    transports[chain.id] = http({
+    transports[chain.id] = http(chain.rpcUrls.default.http[0], {
       batch: { batchSize: 1 }, // Disable batching to avoid connection issues
       retryCount: 3,
       retryDelay: 1000,
@@ -93,7 +93,6 @@ let hasUpdatedConfig = false;
 export const updateWagmiConfig = (grpcChains: Chain[]): Config => {
   // Prevent multiple updates
   if (hasUpdatedConfig) {
-    console.log("Wagmi config already updated, skipping duplicate update");
     return wagmiConfig;
   }
 
@@ -104,10 +103,6 @@ export const updateWagmiConfig = (grpcChains: Chain[]): Config => {
   wagmiConfig = newConfig;
 
   hasUpdatedConfig = true;
-  console.log(
-    "Updated wagmi config with chains:",
-    dynamicChains.map((c) => ({ id: c.id, name: c.name })),
-  );
 
   return newConfig;
 };

@@ -25,14 +25,6 @@ window.addEventListener("unhandledrejection", (event) => {
   });
 });
 
-// Log application startup
-console.log("🚀 Application starting up...");
-console.log("📊 Environment:", {
-  NODE_ENV: import.meta.env.MODE,
-  BASE_URL: import.meta.env.BASE_URL,
-  VITE_GRPC_WEB_PROXY_URL: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
-});
-
 // Create a client with performance-optimized settings
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,10 +48,7 @@ if (PERFORMANCE_CONFIG.ui.enablePerformanceMonitoring) {
     if (event.type === "updated" && event.query.state.status === "success") {
       const duration = Date.now() - event.query.state.dataUpdatedAt;
       if (duration > 100) {
-        // Only log slow queries
-        console.log(
-          `⏱️ Slow Query: ${event.query.queryHash} took ${duration}ms`,
-        );
+        // Only log slow queries (silent in production)
       }
     }
   });

@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
+import { useTradingPairs } from "./useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
+import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 import { arborterService } from "@/lib/grpc-client";
 import type { OrderCreationData } from "@/lib/shared-types";
-import { signOrderWithGlobalProtobuf } from "@/lib/signing-utils";
-import { ExecutionType, OrderSchema, Side } from "@/protos/gen/arborter_pb";
+import { Side } from "@/protos/gen/arborter_pb";
+import { ExecutionType, OrderSchema } from "@/protos/gen/arborter_pb";
 import { create } from "@bufbuild/protobuf";
-import { useToast } from "@/hooks/use-toast";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
-import { useTradingPairs } from "@/hooks/useTradingPairs";
 import { triggerBalanceRefresh, triggerOrderbookRefresh } from "@/lib/utils";
-import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
-import type { TradingPair } from "@/hooks/useTradingPairs";
+import { useChainMonitor } from "@/hooks/useChainMonitor";
+import { useToast } from "@/hooks/use-toast";
+import { signOrderWithGlobalProtobuf } from "@/lib/signing-utils";
 
 export interface TradingFormState {
   amount: string;
@@ -270,9 +271,20 @@ export const useTradingLogic = ({
       }
 
       // Sign the order with MetaMask using the target chain ID
+      const signMessage = async (message: string): Promise<string> => {
+        if (!window.ethereum) {
+          throw new Error("MetaMask is not installed");
+        }
+        return await window.ethereum.request({
+          method: "personal_sign",
+          params: [message, address],
+        });
+      };
+
       const signatureHash: Uint8Array = await signOrderWithGlobalProtobuf(
         orderData,
         targetChainId,
+        signMessage,
       );
 
       // Create the order object for gRPC using protobuf Order type
@@ -289,12 +301,7 @@ export const useTradingLogic = ({
       });
 
       // Send the order
-      const response = await arborterService.sendOrder(
-        orderForGrpc,
-        signatureHash,
-      );
-
-      console.log("Order sent successfully:", response);
+      await arborterService.sendOrder(orderForGrpc, signatureHash);
 
       // Success toast - convert TradingSide to display text
       // Enum 1 (BASE) = SELL, Enum 2 (QUOTE) = BUY

@@ -36,16 +36,6 @@ const Trading = (): JSX.Element => {
     (pair) => pair.id === selectedPair,
   );
 
-  // Debug logging to track view switches and state persistence
-  console.log("🔍 Trading component render:", {
-    viewMode,
-    selectedPair,
-    currentTradingPairId: currentTradingPair?.id,
-    tradingPairsCount: tradingPairs.length,
-    pairsLoading,
-    timestamp: new Date().toISOString(),
-  });
-
   return (
     <Layout footerPosition="fixed">
       {/* Keep both components mounted to preserve orderbook cache */}

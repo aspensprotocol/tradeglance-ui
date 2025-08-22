@@ -1,22 +1,5 @@
 import { createContext } from "react";
-import type { OrderbookEntry } from "../protos/gen/arborter_pb";
-
-export interface OrderbookContextType {
-  orderbook: {
-    bids: OrderbookEntry[];
-    asks: OrderbookEntry[];
-    spread: number;
-    spreadPercentage: number;
-    lastUpdate: Date;
-  };
-  openOrders: OrderbookEntry[];
-  loading: boolean;
-  initialLoading: boolean;
-  error: string | null;
-  refresh: () => void;
-  lastUpdate: Date;
-  setFilterByTrader: (trader: string | undefined) => void;
-}
+import type { OrderbookContextType } from "../lib/shared-types";
 
 export const OrderbookContext = createContext<OrderbookContextType | undefined>(
   undefined,

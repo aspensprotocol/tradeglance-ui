@@ -8,9 +8,6 @@ import { useToast } from "./use-toast";
 // the old wallet_switchEthereumChain and wallet_addEthereumChain methods. This update
 // requires users to manually switch networks in MetaMask instead of automatic switching.
 // See: https://metamask.io/news/metamask-feature-update-chain-permissions
-console.log(
-  "NetworkSwitch: Using MetaMask Chain Permissions system - automatic chain switching disabled",
-);
 
 export const useNetworkSwitch = (): {
   switchToNetwork: (chainConfig: Chain) => Promise<boolean>;
@@ -32,21 +29,8 @@ export const useNetworkSwitch = (): {
 
     setIsSwitching(true);
     try {
-      const chainId =
-        typeof chainConfig.chainId === "string"
-          ? parseInt(chainConfig.chainId, 10)
-          : chainConfig.chainId;
-      const chainIdHex = `0x${chainId.toString(16)}`;
-
-      console.log(
-        `Attempting to switch to network: ${chainConfig.network} (${chainIdHex})`,
-      );
-
       // With MetaMask's new Chain Permissions system, we can't automatically switch chains
       // Instead, we provide guidance to the user
-      console.log(
-        `MetaMask Chain Permissions: User should manually switch to ${chainConfig.network} (${chainIdHex})`,
-      );
 
       toast({
         title: "Manual network switch required",

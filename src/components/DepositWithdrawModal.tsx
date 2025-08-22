@@ -149,8 +149,6 @@ const DepositWithdrawModal = ({
   const chains = getAllChains();
 
   // Debug: Log the chains data
-  console.log("DepositWithdrawModal: Available chains:", chains);
-  console.log("DepositWithdrawModal: Current chain ID:", currentChainId);
 
   // Get all tokens from all chains with chain prefixes
   const allTokens = useMemo((): {
@@ -222,18 +220,6 @@ const DepositWithdrawModal = ({
   const depositedBalanceLoading: boolean = balancesLoading;
   const depositedBalanceError = null; // useAllBalances doesn't provide per-token errors
 
-  // Debug logging
-  console.log("DepositWithdrawModal balance data:", {
-    selectedToken: selectedTokenData?.symbol,
-    selectedChainId,
-    allBalances,
-    depositedBalanceData,
-    depositedBalance,
-    tokenBalance,
-    balancesLoading,
-    balanceLoading,
-  });
-
   // Check if selected chain is supported
   const isSelectedChainSupported: boolean = chains.some(
     (chain: Chain) => chain.chainId === selectedChainId,
@@ -242,10 +228,6 @@ const DepositWithdrawModal = ({
   // Auto-select first token if available and none selected
   useEffect(() => {
     if (allTokens.length > 0 && !selectedToken) {
-      console.log(
-        "DepositWithdrawModal: Auto-selecting first token:",
-        allTokens[0].value,
-      );
       setSelectedToken(allTokens[0].value);
     }
   }, [allTokens, selectedToken]);
@@ -257,13 +239,6 @@ const DepositWithdrawModal = ({
       selectedChainId &&
       selectedChainId !== currentChainId
     ) {
-      console.log(
-        "DepositWithdrawModal: Token requires chain",
-        selectedChainId,
-        "but user is on chain",
-        currentChainId,
-      );
-
       // With MetaMask Chain Permissions, we don't automatically switch networks
       // Instead, we provide guidance to the user
       if (currentChainId) {
@@ -416,7 +391,6 @@ const DepositWithdrawModal = ({
 
       // Add a delay and trigger another refresh to ensure blockchain state has updated
       setTimeout(() => {
-        console.log("DepositWithdrawModal: Triggering delayed balance refresh");
         triggerBalanceRefresh();
 
         // Call success callback
@@ -427,7 +401,6 @@ const DepositWithdrawModal = ({
 
       // Add another refresh after a longer delay to catch any delayed updates
       setTimeout(() => {
-        console.log("DepositWithdrawModal: Triggering final balance refresh");
         triggerBalanceRefresh();
       }, 5000); // Wait 5 seconds for final blockchain state update
 

@@ -14,10 +14,6 @@ class ConfigUtils {
 
   setConfig(config: Configuration): void {
     this.config = config;
-    console.log("ConfigUtils: Configuration updated with", {
-      chainsCount: config.chains?.length || 0,
-      marketsCount: config.markets?.length || 0,
-    });
   }
 
   getConfig(): Configuration | null {

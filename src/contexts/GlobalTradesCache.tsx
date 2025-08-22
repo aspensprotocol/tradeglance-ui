@@ -45,43 +45,21 @@ export function GlobalTradesCacheProvider({
 
   const getCachedData = useCallback(
     (marketId: string, filterByTrader?: string): CachedTradesData | null => {
-      // Create a cache key that includes the filter
       const cacheKey = filterByTrader
         ? `${marketId}:${filterByTrader}`
         : marketId;
       const cached = cache.get(cacheKey);
 
-      // Enhanced debugging with stack trace
-      const stackTrace = new Error().stack;
-      console.log("🔍 GlobalTradesCache getCachedData:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        hasCached: !!cached,
-        cacheSize: cache.size,
-        allCacheKeys: Array.from(cache.keys()),
-        timestamp: new Date().toISOString(),
-        stackTrace: stackTrace?.split("\n").slice(1, 4).join("\n"), // First few lines of stack
-      });
+      if (!cached) {
+        return null;
+      }
 
-      if (!cached) return null;
-
-      // Check if data is stale (older than 5 minutes)
+      // Check if data is stale
       const now = Date.now();
-      const maxAge = 5 * 60 * 1000; // 5 minutes
-      const age = now - cached.lastUpdate.getTime();
-      console.log("🔍 GlobalTradesCache data age check:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        ageMs: age,
-        maxAgeMs: maxAge,
-        isStale: age > maxAge,
-        lastUpdate: cached.lastUpdate.toISOString(),
-      });
+      const ageMs = now - cached.lastUpdate.getTime();
 
-      if (age > maxAge) {
-        console.log("🗑️ GlobalTradesCache removing stale data for:", cacheKey);
+      if (ageMs > 5 * 60 * 1000) {
+        // 5 minutes
         // Remove stale data
         setCache((prev) => {
           const newCache = new Map(prev);
@@ -91,7 +69,6 @@ export function GlobalTradesCacheProvider({
         return null;
       }
 
-      console.log("✅ GlobalTradesCache returning cached data for:", cacheKey);
       return cached;
     },
     [cache],
@@ -104,22 +81,6 @@ export function GlobalTradesCacheProvider({
         ? `${marketId}:${filterByTrader}`
         : marketId;
 
-      // Enhanced debugging with stack trace
-      const stackTrace = new Error().stack;
-      console.log("💾 GlobalTradesCache setCachedData:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        tradesCount: data.trades?.length || 0,
-        timestamp: new Date().toISOString(),
-        stackTrace: stackTrace?.split("\n").slice(1, 4).join("\n"), // First few lines of stack
-      });
-
-      // VISIBLE DEBUG: Show when data is being cached
-      if (typeof window !== "undefined" && marketId) {
-        console.warn("💾 CACHING TRADES DATA FOR MARKET:", cacheKey);
-      }
-
       setCache((prev) => {
         const newCache = new Map(prev);
         newCache.set(cacheKey, {
@@ -128,7 +89,6 @@ export function GlobalTradesCacheProvider({
           lastUpdate: data.lastUpdate,
           filterByTrader, // Store the filter for reference
         });
-        console.log("💾 GlobalTradesCache updated, new size:", newCache.size);
         return newCache;
       });
     },
@@ -141,10 +101,6 @@ export function GlobalTradesCacheProvider({
         if (filterByTrader) {
           // Clear specific filtered data
           const cacheKey = `${marketId}:${filterByTrader}`;
-          console.log(
-            "🗑️ GlobalTradesCache clearing specific filtered market:",
-            cacheKey,
-          );
           setCache((prev) => {
             const newCache = new Map(prev);
             newCache.delete(cacheKey);
@@ -152,10 +108,6 @@ export function GlobalTradesCacheProvider({
           });
         } else {
           // Clear all data for this market (both filtered and unfiltered)
-          console.log(
-            "🗑️ GlobalTradesCache clearing all data for market:",
-            marketId,
-          );
           setCache((prev) => {
             const newCache = new Map(prev);
             // Remove all entries that start with this marketId
@@ -170,7 +122,6 @@ export function GlobalTradesCacheProvider({
           });
         }
       } else {
-        console.log("🗑️ GlobalTradesCache clearing all cache");
         setCache(new Map());
       }
     },
@@ -186,15 +137,6 @@ export function GlobalTradesCacheProvider({
         const age = Date.now() - cached.lastUpdate.getTime();
         const maxAge = 5 * 60 * 1000; // 5 minutes
         if (age < maxAge) {
-          console.log(
-            "🔒 GlobalTradesCache: Preventing cache clear for recent data:",
-            {
-              marketId,
-              filterByTrader,
-              ageMs: age,
-              maxAgeMs: maxAge,
-            },
-          );
           return false;
         }
       }
@@ -215,26 +157,12 @@ export function GlobalTradesCacheProvider({
         : marketId;
       const cached = cache.get(cacheKey);
       if (!cached) {
-        console.log(
-          "🔍 GlobalTradesCache isDataStale: No cached data for:",
-          cacheKey,
-        );
         return true;
       }
 
       const now = Date.now();
       const age = now - cached.lastUpdate.getTime();
       const isStale = age > maxAgeMs;
-
-      console.log("🔍 GlobalTradesCache isDataStale check:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        ageMs: age,
-        maxAgeMs,
-        isStale,
-        lastUpdate: cached.lastUpdate.toISOString(),
-      });
 
       return isStale;
     },
@@ -256,7 +184,6 @@ export function GlobalTradesCacheProvider({
       })),
     };
 
-    console.log("📊 GlobalTradesCache Stats:", stats);
     return stats;
   }, [cache]);
 

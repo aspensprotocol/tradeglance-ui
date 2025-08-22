@@ -139,15 +139,6 @@ const Mint = (): JSX.Element => {
       // Mint 1000 tokens (adjust amount as needed)
       const mintAmount = BigInt(1000 * Math.pow(10, decimals));
 
-      console.log("Minting tokens:", {
-        chainId,
-        tokenAddress,
-        tokenSymbol,
-        decimals,
-        mintAmount: mintAmount.toString(),
-        address,
-      });
-
       // Create a simple mint function call
       const mintFunction = {
         address: tokenAddress as `0x${string}`,
@@ -183,8 +174,6 @@ const Mint = (): JSX.Element => {
         chain: getChainById(chainId),
       });
 
-      console.log("Mint successful:", hash);
-
       // Show success toast with Etherscan link
       const etherscanLink = getEtherscanLink(hash, chainId);
       const shortHash = shortenTxHash(hash);
@@ -206,8 +195,6 @@ const Mint = (): JSX.Element => {
         ),
       });
     } catch (err: unknown) {
-      console.error("Mint failed:", err);
-
       let errorMessage = "Mint failed";
 
       if (err instanceof Error) {
@@ -236,7 +223,6 @@ const Mint = (): JSX.Element => {
 
   const getChains = (): Chain[] => {
     const chains = configUtils.getAllChains();
-    console.log("Mint page: All chains from config:", chains);
     return chains;
   };
 
@@ -290,12 +276,6 @@ const Mint = (): JSX.Element => {
                           {(() => {
                             const prefix = getChainPrefix(chain.network);
                             const fullSymbol = `${prefix}${tokenSymbol}`;
-                            console.log("Token display:", {
-                              network: chain.network,
-                              prefix,
-                              tokenSymbol,
-                              fullSymbol,
-                            });
                             return fullSymbol;
                           })()}
                         </span>

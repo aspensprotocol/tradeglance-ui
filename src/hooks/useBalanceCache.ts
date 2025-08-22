@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAccount } from "wagmi";
-import type { TradingPair } from "./useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
 import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface CachedBalance {

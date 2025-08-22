@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
 import { useUnifiedBalance } from "./useUnifiedBalance";
-import type { TradingPair } from "./useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
 import type { Chain } from "../protos/gen/arborter_config_pb";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
 
@@ -333,16 +333,8 @@ export const useFormLogic = ({
       // Instead, we provide guidance to the user about which chain they should be on
       if (newSide === BaseOrQuote.BASE) {
         // Switching to BASE side (SELL) - suggest base chain
-        console.log(
-          "FormLogic: User should manually switch to base chain in MetaMask:",
-          baseChain.network,
-        );
       } else {
         // Switching to QUOTE side (BUY) - suggest quote chain
-        console.log(
-          "FormLogic: User should manually switch to quote chain in MetaMask:",
-          quoteChain.network,
-        );
       }
     },
     [activeTab, getAllChains, tradingPair],
@@ -396,20 +388,12 @@ export const useFormLogic = ({
           handleReceiverNetworkChange(quoteChain.network);
 
           // With MetaMask's new Chain Permissions system, we don't automatically switch chains
-          console.log(
-            "FormLogic: User should manually switch to base chain (sell chain) in MetaMask:",
-            baseChain.network,
-          );
         } else {
           // QUOTE side (BUY): sender = quote network, receiver = base network
           handleSenderNetworkChange(quoteChain.network);
           handleReceiverNetworkChange(baseChain.network);
 
           // With MetaMask's new Chain Permissions system, we don't automatically switch chains
-          console.log(
-            "FormLogic: User should manually switch to quote chain (buy chain) in MetaMask:",
-            quoteChain.network,
-          );
         }
       }
     }
@@ -458,9 +442,6 @@ export const useFormLogic = ({
     setUserManuallySelectedSide(false);
   }, []);
 
-  // Memoize the chains array to prevent unnecessary re-renders
-  const chains = useMemo(() => getAllChains(), [getAllChains]);
-
   return {
     // Form state
     formState,
@@ -485,7 +466,7 @@ export const useFormLogic = ({
     isConnected,
     address,
     tradingPairs,
-    chains,
+    chains: getAllChains(),
 
     // Actions
     updateAmount,

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { createPublicClient, http } from "viem";
-import type { TradingPair } from "./useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
 import { useConfig } from "./useConfig";
 import { configUtils } from "../lib/config-utils";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
@@ -72,16 +72,6 @@ export const useBalanceManager = (
 
   // Fetch balance for the current trading pair
   const fetchBalance = useCallback(async () => {
-    console.log("🔍 useBalanceManager: fetchBalance called with:", {
-      isConnected,
-      address,
-      hasTradingPair: !!tradingPair,
-      tradingPairId: tradingPair?.id,
-      currentSide,
-      hasConfig: !!config,
-      configChains: config?.chains?.length || 0,
-    });
-
     if (
       !isConnected ||
       !address ||
@@ -89,13 +79,6 @@ export const useBalanceManager = (
       !config ||
       currentSide === undefined
     ) {
-      console.log("❌ useBalanceManager: Missing required data:", {
-        isConnected,
-        hasAddress: !!address,
-        hasTradingPair: !!tradingPair,
-        hasConfig: !!config,
-        currentSide,
-      });
       setAvailableBalance("0");
       setLockedBalance("0");
       return;
@@ -123,17 +106,6 @@ export const useBalanceManager = (
 
       // Get the current chain configuration
       const currentChain = configUtils.getChainByChainId(chainId);
-      console.log("🔍 useBalanceManager: Chain config:", {
-        chainId,
-        currentChain: currentChain
-          ? {
-              network: currentChain.network,
-              hasTradeContract: !!currentChain.tradeContract,
-              tradeContractAddress: currentChain.tradeContract?.address,
-              rpcUrl: currentChain.rpcUrl,
-            }
-          : null,
-      });
 
       if (!currentChain || !currentChain.tradeContract) {
         console.warn(
@@ -174,19 +146,6 @@ export const useBalanceManager = (
 
       setAvailableBalance(depositedBalance);
       setLockedBalance(lockedBalanceFormatted);
-
-      const tokenSymbol =
-        currentSide === BaseOrQuote.QUOTE
-          ? tradingPair.quoteSymbol
-          : tradingPair.baseSymbol;
-      console.log("Balance fetched for trading pair:", {
-        tradingPair: tradingPair.id,
-        side: currentSide === BaseOrQuote.QUOTE ? "BUY" : "SELL",
-        tokenSymbol,
-        availableBalance: depositedBalance,
-        lockedBalance: lockedBalanceFormatted,
-        token: tokenSymbol,
-      });
     } catch (error) {
       console.error("Error fetching balance for trading pair:", error);
       setAvailableBalance("0");

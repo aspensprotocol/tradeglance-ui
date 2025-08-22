@@ -1,6 +1,6 @@
 import { configUtils } from "../lib/config-utils";
 import type { Chain } from "../protos/gen/arborter_config_pb";
-import type { TradingPair } from "./useTradingPairs";
+import type { TradingPair } from "../lib/shared-types";
 
 export const useTradeContracts = (): {
   getAllChains: () => Chain[];

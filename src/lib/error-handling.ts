@@ -63,7 +63,7 @@ export const handleError = (
   console.group(`[${fullOptions.type.toUpperCase()}] ${fullOptions.message}`);
   console.error(error);
   if (fullOptions.details) {
-    console.info("Details:", fullOptions.details);
+    // Details are already logged above
   }
   console.groupEnd();
 

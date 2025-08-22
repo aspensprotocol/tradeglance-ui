@@ -23,73 +23,6 @@ export function formatDecimal(value: string | number, maxDecimals = 3): string {
 }
 
 /**
- * Format large numbers with K, M, B suffixes
- */
-export function formatLargeNumber(num: number): string {
-  if (num >= 1000000000) {
-    return `${(num / 1000000000).toFixed(1)}B`;
-  }
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toString();
-}
-
-/**
- * Convert wei (smallest unit) to decimal with specified decimal places
- */
-export function weiToDecimal(weiValue: string, decimals = 18): string {
-  // Always log debug output regardless of environment
-  console.log("🔍 weiToDecimal: Starting conversion:", {
-    weiValue,
-    decimals,
-    weiValueType: typeof weiValue,
-    decimalsType: typeof decimals,
-    weiValueLength: typeof weiValue === "string" ? weiValue.length : "N/A",
-  });
-
-  if (!weiValue || weiValue === "0") return "0";
-
-  console.log("🔍 weiToDecimal: Input:", {
-    weiValue,
-    decimals,
-    weiValueType: typeof weiValue,
-  });
-
-  const wei = BigInt(weiValue);
-  const divisor = BigInt(10 ** decimals);
-  const whole: bigint = wei / divisor;
-  const remainder: bigint = wei % divisor;
-
-  console.log("🔍 weiToDecimal: Calculation:", {
-    wei: wei.toString(),
-    divisor: divisor.toString(),
-    whole: whole.toString(),
-    remainder: remainder.toString(),
-  });
-
-  // Convert remainder to string with proper padding
-  const remainderStr: string = remainder.toString().padStart(decimals, "0");
-  const trimmedRemainder: string = remainderStr.replace(/0+$/, ""); // Remove trailing zeros
-
-  const result =
-    trimmedRemainder === "" ? whole.toString() : `${whole}.${trimmedRemainder}`;
-
-  // Always log debug output regardless of environment
-  console.log("🔍 weiToDecimal: Result:", {
-    remainderStr,
-    trimmedRemainder,
-    result,
-    resultType: typeof result,
-  });
-
-  return result;
-}
-
-/**
  * Formats a decimal number to show only up to 3 decimal places, removing trailing zeros
  * Examples:
  * - 1.1035 → "1.103"
@@ -174,6 +107,56 @@ export function formatOrderbookPrice(
 }
 
 /**
+ * Formats quantity values using the trading pair's pair decimals
+ */
+export function formatOrderbookQuantity(
+  rawQuantity: string | number,
+  pairDecimals: number,
+): string {
+  return formatOrderbookValue(rawQuantity, pairDecimals, 3);
+}
+
+/**
+ * Format large numbers with K, M, B suffixes
+ */
+export function formatLargeNumber(num: number): string {
+  if (num >= 1000000000) {
+    return `${(num / 1000000000).toFixed(1)}B`;
+  }
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`;
+  }
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`;
+  }
+  return num.toString();
+}
+
+/**
+ * Convert wei (smallest unit) to decimal with specified decimal places
+ */
+export function weiToDecimal(
+  weiValue: bigint | string,
+  decimals: number,
+  maxDecimalPlaces = 3,
+): string {
+  const weiBigInt = typeof weiValue === "string" ? BigInt(weiValue) : weiValue;
+
+  if (!weiBigInt || weiBigInt === BigInt(0)) return "0";
+
+  const divisor = BigInt(10 ** decimals);
+  const quotient = weiBigInt / divisor;
+  const remainder = weiBigInt % divisor;
+
+  const decimalPart = remainder.toString().padStart(decimals, "0");
+  const trimmedDecimal = decimalPart
+    .slice(0, maxDecimalPlaces)
+    .replace(/0+$/, "");
+
+  return trimmedDecimal ? `${quotient}.${trimmedDecimal}` : quotient.toString();
+}
+
+/**
  * Format bytes to human readable format
  */
 export function formatBytes(bytes: number): string {
@@ -185,28 +168,3 @@ export function formatBytes(bytes: number): string {
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
-
-/**
- * Formats quantity values using the trading pair's pair decimals
- */
-export function formatOrderbookQuantity(
-  rawQuantity: string | number,
-  pairDecimals: number,
-): string {
-  return formatOrderbookValue(rawQuantity, pairDecimals, 3);
-}
-
-// Test the weiToDecimal function with known values
-console.log("🧪 TESTING weiToDecimal FUNCTION:");
-console.log(
-  "5000000000000 with 8 decimals should be 50.0:",
-  weiToDecimal("5000000000000", 8),
-);
-console.log(
-  "100000000 with 8 decimals should be 1.0:",
-  weiToDecimal("100000000", 8),
-);
-console.log(
-  "13415000 with 8 decimals should be 0.13415:",
-  weiToDecimal("13415000", 8),
-);

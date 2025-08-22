@@ -1,18 +1,17 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAccount } from "wagmi";
+import { useRecentTrades } from "@/hooks/useRecentTrades";
+import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
+import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useTabOptimization } from "@/hooks/useTabOptimization";
+import { triggerBalanceRefresh } from "../lib/utils";
+import { formatDecimalConsistent } from "@/lib/number-utils";
+import type { TradingPair } from "@/lib/shared-types";
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
-
-import { useTokenBalance } from "@/hooks/useTokenBalance";
-import { useRecentTrades } from "@/hooks/useRecentTrades";
 import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
 import { Side } from "@/protos/gen/arborter_pb";
-import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
-import { useTabOptimization } from "@/hooks/useTabOptimization";
-import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
-import { triggerBalanceRefresh } from "../lib/utils";
-import type { TradingPair } from "@/hooks/useTradingPairs";
-import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface ActivityPanelProps {
@@ -70,66 +69,6 @@ const ActivityPanel = ({
 
   // No need for client-side filtering since we're using API-level filtering
   const orders = openOrders;
-
-  // Debug logging
-  console.log("ActivityPanel render:", {
-    tradingPair,
-    marketId,
-    marketIdType: typeof marketId,
-    marketIdTruthy: !!marketId,
-    activeTab,
-    tradesCount: trades?.length || 0,
-    ordersCount: orders?.length || 0,
-    tradesLoading,
-    ordersLoading,
-    showMineOnly,
-    filterByTrader: showMineOnly ? address : undefined,
-    userAddress: address,
-  });
-
-  // Log when data changes to help debug accumulation
-  useEffect(() => {
-    console.log("ActivityPanel data updated:", {
-      activeTab,
-      tradesCount: trades?.length || 0,
-      ordersCount: orders?.length || 0,
-      tradesLoading,
-      ordersLoading,
-      marketId,
-      showMineOnly,
-      filterByTrader: showMineOnly ? address : undefined,
-      timestamp: new Date().toISOString(),
-    });
-  }, [
-    activeTab,
-    trades,
-    orders,
-    tradesLoading,
-    ordersLoading,
-    marketId,
-    showMineOnly,
-    address,
-  ]);
-
-  // Log when filter changes
-  useEffect(() => {
-    console.log("ActivityPanel filter changed:", {
-      showMineOnly,
-      filterByTrader: showMineOnly ? address : undefined,
-      userAddress: address,
-      marketId,
-      timestamp: new Date().toISOString(),
-    });
-  }, [showMineOnly, address, marketId]);
-
-  // Log when activeTab changes to track tab switching
-  useEffect(() => {
-    console.log("ActivityPanel tab changed:", {
-      newTab: activeTab,
-      marketId,
-      timestamp: new Date().toISOString(),
-    });
-  }, [activeTab, marketId]);
 
   // Get trading balances for the current trading pair (using useUnifiedBalance instead)
 
@@ -435,10 +374,10 @@ const ActivityPanel = ({
                         {order.side === Side.BID ? "BID" : "ASK"}
                       </span>
                       <span className="text-right truncate font-mono">
-                        {order.price}
+                        {formatDecimalConsistent(order.price)}
                       </span>
                       <span className="text-right truncate font-mono">
-                        {order.quantity}
+                        {formatDecimalConsistent(order.quantity)}
                       </span>
                       <span className="text-right text-neutral truncate text-xs">
                         {formatTime(new Date(Number(order.timestamp)))}
@@ -651,7 +590,6 @@ const ActivityPanel = ({
           triggerBalanceRefresh();
           // Refresh local balances after modal closes
           setTimeout(() => {
-            console.log("ActivityPanel: Refreshing balances after modal close");
             refreshBalances();
             // Trigger another global refresh to ensure all components update
             triggerBalanceRefresh();
@@ -659,16 +597,12 @@ const ActivityPanel = ({
         }}
         type={modalType}
         onSuccess={() => {
-          console.log(
-            "ActivityPanel: Deposit/withdraw successful, triggering balance refresh",
-          );
           // Trigger immediate global refresh
           triggerBalanceRefresh();
           // Refresh local balances
           refreshBalances();
           // Add delayed refresh to catch blockchain updates
           setTimeout(() => {
-            console.log("ActivityPanel: Delayed balance refresh after success");
             refreshBalances();
             triggerBalanceRefresh();
           }, 2000);

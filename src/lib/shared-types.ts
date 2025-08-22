@@ -273,19 +273,3 @@ export interface NetworkConfig {
     decimals: number;
   };
 }
-
-// Performance optimization types
-export interface PerformanceConfig {
-  debounceDelay: number;
-  throttleDelay: number;
-  maxConcurrentRequests: number;
-  cacheTimeout: number;
-}
-
-// Tab optimization types
-export interface TabOptimizationConfig {
-  enablePageVisibility: boolean;
-  enableRequestIdleCallback: boolean;
-  idleTimeout: number;
-  backgroundThrottle: boolean;
-}

@@ -8,9 +8,6 @@ import type { Chain } from "@/protos/gen/arborter_config_pb";
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
 // - Users must manually switch chains in MetaMask
 // - This hook now only manages local network state, doesn't attempt to switch chains
-console.log(
-  "MetaMask Chain Permissions: useNetworkManagement hook initialized - no automatic chain switching",
-);
 
 export interface NetworkState {
   senderNetwork: string;
@@ -70,17 +67,6 @@ export const useNetworkManagement = (): {
           receiverNetwork: newReceiverNetwork,
         });
 
-        console.log("NetworkManagement: Auto-detected networks:", {
-          currentChainId,
-          currentNetwork: currentChain.network,
-          senderNetwork: newSenderNetwork,
-          receiverNetwork: newReceiverNetwork,
-          availableChains: allChains.map((c: Chain) => ({
-            chainId: c.chainId,
-            network: c.network,
-          })),
-        });
-
         setHasInitialized(true);
       }
     }
@@ -101,10 +87,6 @@ export const useNetworkManagement = (): {
 
       // With MetaMask Chain Permissions, we don't automatically switch networks
       // Instead, we provide guidance to the user
-      console.log(
-        "NetworkManagement: User should manually switch to network:",
-        newNetwork,
-      );
 
       // Update sender network
       setNetworkState((prev) => ({ ...prev, senderNetwork: newNetwork }));
@@ -121,12 +103,6 @@ export const useNetworkManagement = (): {
           receiverNetwork: otherChains[0].network,
         }));
       }
-
-      console.log("Network configuration updated:", {
-        newSenderNetwork: newNetwork,
-        newReceiverNetwork:
-          otherChains.length > 0 ? otherChains[0].network : "none",
-      });
     } catch (error: unknown) {
       console.error("Error updating network configuration:", error);
       const errorMessage =
@@ -168,10 +144,6 @@ export const useNetworkManagement = (): {
 
     // With MetaMask Chain Permissions, we don't automatically switch networks
     // Users need to manually switch networks in MetaMask
-    console.log(
-      "NetworkManagement: Networks swapped, user should manually switch to:",
-      oldReceiverNetwork,
-    );
 
     toast({
       title: "Networks swapped",

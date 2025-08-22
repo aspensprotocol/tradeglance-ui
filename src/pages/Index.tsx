@@ -3,7 +3,7 @@ import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import type { TradingPair } from "@/hooks/useTradingPairs";
+import type { TradingPair } from "@/lib/shared-types";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface IndexProps {
@@ -27,27 +27,9 @@ const Index = ({
   >(BaseOrQuote.BASE);
 
   // Debug logging
-  console.log("Index page render:", {
-    tradingPairs: tradingPairs.map((p) => ({
-      id: p.id,
-      marketId: p.id,
-      displayName: p.displayName,
-      marketIdType: typeof p.id,
-      marketIdTruthy: !!p.id,
-    })),
-    selectedPair,
-    currentTradingPair,
-    currentTradingPairMarketId: currentTradingPair?.id,
-    currentTradingPairMarketIdType: typeof currentTradingPair?.id,
-    pairsLoading,
-  });
-
   // Debug: Track component mounting/unmounting
   useEffect(() => {
-    console.log("🚀 Index component MOUNTED");
-    return () => {
-      console.log("💀 Index component UNMOUNTED");
-    };
+    // Debug: Track component mounting/unmounting
   }, []);
 
   return (

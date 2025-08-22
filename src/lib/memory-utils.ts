@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { formatBytes } from "./number-utils";
 
 /**
  * Memory management utilities for performance optimization
@@ -55,8 +54,6 @@ class MemoryManager {
     this.monitoringInterval = setInterval(() => {
       this.checkMemoryUsage();
     }, intervalMs);
-
-    console.log("🧠 Memory monitoring started");
   }
 
   /**
@@ -68,7 +65,6 @@ class MemoryManager {
       this.monitoringInterval = null;
     }
     this.isMonitoring = false;
-    console.log("🧠 Memory monitoring stopped");
   }
 
   /**
@@ -86,11 +82,6 @@ class MemoryManager {
 
     const usageRatio = memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit;
 
-    // Log memory usage
-    console.log(
-      `🧠 Memory usage: ${(usageRatio * 100).toFixed(1)}% (${formatBytes(memoryInfo.usedJSHeapSize)} / ${formatBytes(memoryInfo.jsHeapSizeLimit)})`,
-    );
-
     // Take action based on thresholds
     if (usageRatio >= this.thresholds.criticalThreshold) {
       console.warn("🚨 CRITICAL: Memory usage is very high!");
@@ -99,7 +90,6 @@ class MemoryManager {
       console.warn("⚠️ WARNING: Memory usage is high");
       this.cleanup();
     } else if (usageRatio >= this.thresholds.cleanupThreshold) {
-      console.info("🧹 Memory usage is moderate, performing light cleanup");
       this.lightCleanup();
     }
   }
@@ -117,9 +107,8 @@ class MemoryManager {
     if ("gc" in window) {
       try {
         (window as { gc: () => void }).gc();
-        console.log("🧹 Light cleanup completed");
       } catch {
-        console.log("🧹 Light cleanup completed (GC not available)");
+        // Ignore errors
       }
     }
   }
@@ -140,9 +129,8 @@ class MemoryManager {
     if ("gc" in window) {
       try {
         (window as { gc: () => void }).gc();
-        console.log("🧹 Cleanup completed with GC");
       } catch {
-        console.log("🧹 Cleanup completed (GC not available)");
+        // Ignore errors
       }
     }
 
@@ -184,8 +172,6 @@ class MemoryManager {
         }
       }
     }
-
-    console.log("🚨 Emergency cleanup completed");
   }
 
   /**
@@ -309,7 +295,6 @@ export function useMemoryCleanup(threshold = 0.8): void {
   useEffect(() => {
     const handleMemoryCleanup = () => {
       // Component-specific cleanup logic
-      console.log("🧹 Component memory cleanup triggered");
     };
 
     window.addEventListener("memory-cleanup", handleMemoryCleanup);

@@ -55,19 +55,14 @@ export default defineConfig(({ mode }) => ({
             }
           });
 
-          // Detailed request logging
-          proxy.on("proxyReq", (proxyReq, req) => {
-            console.log("🔵 PROXY REQUEST:", req.method, req.url);
-            console.log("🔵 Headers:", JSON.stringify(req.headers, null, 2));
+          // Request and response handling
+          proxy.on("proxyReq", () => {
+            // Handle proxy requests
           });
 
-          // Detailed response logging
-          proxy.on("proxyRes", (proxyRes, req) => {
-            console.log("🟢 PROXY RESPONSE:", proxyRes.statusCode, req.url);
-            console.log(
-              "🟢 Response headers:",
-              JSON.stringify(proxyRes.headers, null, 2),
-            );
+          // Response handling
+          proxy.on("proxyRes", () => {
+            // Handle proxy responses
           });
         },
         // Important settings for gRPC-Web streaming

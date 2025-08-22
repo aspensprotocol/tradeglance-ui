@@ -42,14 +42,6 @@ class PerformanceMonitor {
     metric.endTime = performance.now();
     metric.duration = metric.endTime - metric.startTime;
 
-    // Log performance metrics in development
-    if (import.meta.env.DEV) {
-      console.log(
-        `⏱️ Performance: ${name} took ${metric.duration.toFixed(2)}ms`,
-        metric.metadata,
-      );
-    }
-
     return metric.duration;
   }
 

@@ -116,12 +116,6 @@ export const ConfigTest = (): JSX.Element => {
   }
 
   // Debug: Log the config structure
-  console.log("Config structure:", JSON.stringify(config, null, 2));
-  console.log("Config type:", typeof config);
-  console.log("Config chains:", config.chains);
-  console.log("Config markets:", config.markets);
-  console.log("Config chains length:", config.chains?.length);
-  console.log("Config markets length:", config.markets?.length);
 
   return (
     <Layout scrollable>

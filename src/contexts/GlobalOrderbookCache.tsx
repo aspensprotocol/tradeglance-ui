@@ -36,7 +36,7 @@ export function GlobalOrderbookCacheProvider({
         });
       },
       5 * 60 * 1000,
-    ); // Check every 5 minutes
+    );
 
     return () => {
       if (cacheTimeoutRef.current) {
@@ -47,43 +47,21 @@ export function GlobalOrderbookCacheProvider({
 
   const getCachedData = useCallback(
     (marketId: string, filterByTrader?: string): CachedOrderbookData | null => {
-      // Create a cache key that includes the filter
       const cacheKey = filterByTrader
         ? `${marketId}:${filterByTrader}`
         : marketId;
       const cached = cache.get(cacheKey);
 
-      // Enhanced debugging with stack trace
-      const stackTrace = new Error().stack;
-      console.log("🔍 GlobalCache getCachedData:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        hasCached: !!cached,
-        cacheSize: cache.size,
-        allCacheKeys: Array.from(cache.keys()),
-        timestamp: new Date().toISOString(),
-        stackTrace: stackTrace?.split("\n").slice(1, 4).join("\n"), // First few lines of stack
-      });
+      if (!cached) {
+        return null;
+      }
 
-      if (!cached) return null;
-
-      // Check if data is stale (older than 5 minutes)
+      // Check if data is stale
       const now = Date.now();
-      const maxAge = 5 * 60 * 1000; // 5 minutes
-      const age = now - cached.lastUpdate.getTime();
-      console.log("🔍 GlobalCache data age check:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        ageMs: age,
-        maxAgeMs: maxAge,
-        isStale: age > maxAge,
-        lastUpdate: cached.lastUpdate.toISOString(),
-      });
+      const ageMs = now - cached.lastUpdate.getTime();
 
-      if (age > maxAge) {
-        console.log("🗑️ GlobalCache removing stale data for:", cacheKey);
+      if (ageMs > 5 * 60 * 1000) {
+        // 5 minutes
         // Remove stale data
         setCache((prev) => {
           const newCache = new Map(prev);
@@ -93,7 +71,6 @@ export function GlobalOrderbookCacheProvider({
         return null;
       }
 
-      console.log("✅ GlobalCache returning cached data for:", cacheKey);
       return cached;
     },
     [cache],
@@ -106,24 +83,6 @@ export function GlobalOrderbookCacheProvider({
         ? `${marketId}:${filterByTrader}`
         : marketId;
 
-      // Enhanced debugging with stack trace
-      const stackTrace = new Error().stack;
-      console.log("💾 GlobalCache setCachedData:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        orderBookBids: data.orderbook?.bids?.length || 0,
-        orderBookAsks: data.orderbook?.asks?.length || 0,
-        openOrders: data.openOrders?.length || 0,
-        timestamp: new Date().toISOString(),
-        stackTrace: stackTrace?.split("\n").slice(1, 4).join("\n"), // First few lines of stack
-      });
-
-      // VISIBLE DEBUG: Show when data is being cached
-      if (typeof window !== "undefined" && marketId) {
-        console.warn("💾 CACHING DATA FOR MARKET:", cacheKey);
-      }
-
       setCache((prev) => {
         const newCache = new Map(prev);
         newCache.set(cacheKey, {
@@ -131,9 +90,8 @@ export function GlobalOrderbookCacheProvider({
           orderbook: data.orderbook,
           openOrders: data.openOrders,
           lastUpdate: data.lastUpdate,
-          filterByTrader, // Store the filter for reference
+          filterByTrader,
         });
-        console.log("💾 GlobalCache updated, new size:", newCache.size);
         return newCache;
       });
     },
@@ -146,10 +104,6 @@ export function GlobalOrderbookCacheProvider({
         if (filterByTrader) {
           // Clear specific filtered data
           const cacheKey = `${marketId}:${filterByTrader}`;
-          console.log(
-            "🗑️ GlobalCache clearing specific filtered market:",
-            cacheKey,
-          );
           setCache((prev) => {
             const newCache = new Map(prev);
             newCache.delete(cacheKey);
@@ -157,7 +111,6 @@ export function GlobalOrderbookCacheProvider({
           });
         } else {
           // Clear all data for this market (both filtered and unfiltered)
-          console.log("🗑️ GlobalCache clearing all data for market:", marketId);
           setCache((prev) => {
             const newCache = new Map(prev);
             // Remove all entries that start with this marketId
@@ -172,37 +125,10 @@ export function GlobalOrderbookCacheProvider({
           });
         }
       } else {
-        console.log("🗑️ GlobalCache clearing all cache");
         setCache(new Map());
       }
     },
     [],
-  );
-
-  // Add a method to check if we should clear cache (prevent unnecessary clearing)
-  const shouldClearCache = useCallback(
-    (marketId: string, filterByTrader?: string): boolean => {
-      // Don't clear cache if we have recent data
-      const cached = getCachedData(marketId, filterByTrader);
-      if (cached) {
-        const age = Date.now() - cached.lastUpdate.getTime();
-        const maxAge = 5 * 60 * 1000; // 5 minutes
-        if (age < maxAge) {
-          console.log(
-            "🔒 GlobalCache: Preventing cache clear for recent data:",
-            {
-              marketId,
-              filterByTrader,
-              ageMs: age,
-              maxAgeMs: maxAge,
-            },
-          );
-          return false;
-        }
-      }
-      return true;
-    },
-    [getCachedData],
   );
 
   const isDataStale = useCallback(
@@ -217,34 +143,22 @@ export function GlobalOrderbookCacheProvider({
         : marketId;
       const cached = cache.get(cacheKey);
       if (!cached) {
-        console.log(
-          "🔍 GlobalCache isDataStale: No cached data for:",
-          cacheKey,
-        );
         return true;
       }
 
       const now = Date.now();
       const age = now - cached.lastUpdate.getTime();
-      const isStale = age > maxAgeMs;
-
-      console.log("🔍 GlobalCache isDataStale check:", {
-        marketId,
-        filterByTrader,
-        cacheKey,
-        ageMs: age,
-        maxAgeMs,
-        isStale,
-        lastUpdate: cached.lastUpdate.toISOString(),
-      });
-
-      return isStale;
+      return age > maxAgeMs;
     },
     [cache],
   );
 
-  const getCacheStats = useCallback(() => {
-    const stats = {
+  const contextValue: GlobalOrderbookCacheContextType = {
+    getCachedData,
+    setCachedData,
+    clearCache,
+    isDataStale,
+    getCacheStats: () => ({
       totalEntries: cache.size,
       keys: Array.from(cache.keys()),
       entries: Array.from(cache.entries()).map(([key, data]) => ({
@@ -259,19 +173,16 @@ export function GlobalOrderbookCacheProvider({
         lastUpdate: data.lastUpdate.toISOString(),
         ageMs: Date.now() - data.lastUpdate.getTime(),
       })),
-    };
-
-    console.log("📊 GlobalCache Stats:", stats);
-    return stats;
-  }, [cache]);
-
-  const contextValue: GlobalOrderbookCacheContextType = {
-    getCachedData,
-    setCachedData,
-    clearCache,
-    isDataStale,
-    getCacheStats,
-    shouldClearCache,
+    }),
+    shouldClearCache: (marketId: string, filterByTrader?: string) => {
+      const cached = getCachedData(marketId, filterByTrader);
+      if (cached) {
+        const age = Date.now() - cached.lastUpdate.getTime();
+        const maxAge = 5 * 60 * 1000; // 5 minutes
+        return age >= maxAge;
+      }
+      return true;
+    },
   };
 
   return (
