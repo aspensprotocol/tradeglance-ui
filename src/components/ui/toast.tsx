@@ -5,8 +5,14 @@ import { X, Copy, Check } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-// Copy button component for error messages
-const CopyButton = ({ text, className }: { text: string; className?: string }) => {
+// Copy button component for all toast messages
+const CopyButton = ({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) => {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = async () => {
@@ -24,9 +30,9 @@ const CopyButton = ({ text, className }: { text: string; className?: string }) =
       onClick={handleCopy}
       className={cn(
         "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border bg-transparent text-xs font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-        className
+        className,
       )}
-      title="Copy error message"
+      title="Copy message"
     >
       {copied ? (
         <Check className="h-3 w-3 text-green-500" />
@@ -46,7 +52,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-2 sm:p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col max-w-[calc(100vw-2rem)] sm:max-w-[500px]",
+      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-2 sm:p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col max-w-[calc(100vw-2rem)] sm:max-w-[600px]",
       className,
     )}
     {...props}
@@ -78,7 +84,7 @@ const Toast = React.forwardRef<
   return (
     <ToastPrimitives.Root
       ref={ref}
-      className={cn(toastVariants({ variant }), className)}
+      className={cn(toastVariants({ variant }), "max-w-full", className)}
       {...props}
     />
   );
@@ -124,7 +130,10 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn("text-xs sm:text-sm font-semibold", className)}
+    className={cn(
+      "text-xs sm:text-sm font-semibold break-words whitespace-pre-wrap select-text cursor-text toast-title",
+      className,
+    )}
     {...props}
   />
 ));
@@ -136,7 +145,10 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn("text-xs sm:text-sm opacity-90 break-words whitespace-pre-wrap", className)}
+    className={cn(
+      "text-xs sm:text-sm opacity-90 break-words whitespace-pre-wrap select-text cursor-text toast-description",
+      className,
+    )}
     {...props}
   />
 ));
@@ -163,7 +175,9 @@ const ErrorToast = React.forwardRef<
       <section className="grid gap-2 flex-1 min-w-0">
         <ToastTitle>{title}</ToastTitle>
         <ToastDescription className="max-w-full">
-          <span className="break-words whitespace-pre-wrap">{errorMessage}</span>
+          <span className="break-words whitespace-pre-wrap select-text cursor-text toast-description">
+            {errorMessage}
+          </span>
         </ToastDescription>
       </section>
       <CopyButton text={errorMessage} className="ml-2 shrink-0" />

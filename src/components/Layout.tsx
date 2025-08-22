@@ -20,7 +20,9 @@ export const Layout = ({
   if (scrollable) {
     // Scrollable layout for pages like docs, mint, config
     return (
-      <main className={`bg-neutral-soft/30 min-h-screen flex flex-col ${className}`}>
+      <main
+        className={`bg-neutral-soft/30 min-h-screen flex flex-col ${className}`}
+      >
         <section className="container flex-shrink-0">
           <header className="p-3 sm:p-4 lg:p-6">
             <Navigation />
@@ -42,14 +44,14 @@ export const Layout = ({
 
   // Fixed layout for trading pages
   return (
-    <main className={`bg-neutral-soft/30 relative h-screen flex flex-col ${className}`}>
+    <main
+      className={`bg-neutral-soft/30 relative h-screen flex flex-col ${className}`}
+    >
       <section className="container flex-1 flex flex-col min-h-0">
         <header className="p-3 sm:p-4 lg:p-6 flex-shrink-0">
           <Navigation />
           {viewToggle && (
-            <section className="mt-3 flex justify-center">
-              {viewToggle}
-            </section>
+            <section className="mt-3 flex justify-center">{viewToggle}</section>
           )}
         </header>
         <section className="flex-1 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 lg:pb-0 min-h-0 overflow-hidden">

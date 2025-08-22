@@ -7,16 +7,19 @@ interface ViewProviderProps {
 }
 
 export function ViewProvider({ children }: ViewProviderProps): JSX.Element {
-  const [viewMode, setViewModeState] = useState<'simple' | 'pro'>('pro');
+  const [viewMode, setViewModeState] = useState<"simple" | "pro">("pro");
 
-  const setViewMode = useCallback((mode: 'simple' | 'pro') => {
-    console.log("🔄 ViewContext: Switching view mode:", {
-      from: viewMode,
-      to: mode,
-      timestamp: new Date().toISOString(),
-    });
-    setViewModeState(mode);
-  }, [viewMode]);
+  const setViewMode = useCallback(
+    (mode: "simple" | "pro") => {
+      console.log("🔄 ViewContext: Switching view mode:", {
+        from: viewMode,
+        to: mode,
+        timestamp: new Date().toISOString(),
+      });
+      setViewModeState(mode);
+    },
+    [viewMode],
+  );
 
   const contextValue: ViewContextType = {
     viewMode,
@@ -24,8 +27,6 @@ export function ViewProvider({ children }: ViewProviderProps): JSX.Element {
   };
 
   return (
-    <ViewContext.Provider value={contextValue}>
-      {children}
-    </ViewContext.Provider>
+    <ViewContext.Provider value={contextValue}>{children}</ViewContext.Provider>
   );
 }

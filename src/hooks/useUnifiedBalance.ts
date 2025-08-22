@@ -25,10 +25,10 @@ interface UnifiedBalanceData {
 
 export const useUnifiedBalance = (
   tradingPair?: TradingPair,
-  currentSide?: BaseOrQuote.BASE | BaseOrQuote.QUOTE
+  currentSide?: BaseOrQuote.BASE | BaseOrQuote.QUOTE,
 ): UnifiedBalanceData => {
   const balanceCache = useBalanceCache();
-  
+
   // Get trading pair specific balance
   const {
     availableBalance: tradingAvailableBalance,
@@ -46,32 +46,65 @@ export const useUnifiedBalance = (
   } = useAllBalances();
 
   // Check cache first for trading pair balance
-  const tradingPairCacheKey = balanceCache.getTradingPairCacheKey(tradingPair, currentSide);
-  const cachedTradingBalance = tradingPairCacheKey ? balanceCache.getCachedData(tradingPairCacheKey) : null;
+  const tradingPairCacheKey = balanceCache.getTradingPairCacheKey(
+    tradingPair,
+    currentSide,
+  );
+  const cachedTradingBalance = tradingPairCacheKey
+    ? balanceCache.getCachedData(tradingPairCacheKey)
+    : null;
 
   // Check cache first for all balances
   const allBalancesCacheKey = balanceCache.getAllBalancesCacheKey();
-  const cachedAllBalances = allBalancesCacheKey ? balanceCache.getCachedData(allBalancesCacheKey) : null;
+  const cachedAllBalances = allBalancesCacheKey
+    ? balanceCache.getCachedData(allBalancesCacheKey)
+    : null;
 
   // Use cached data if available, otherwise use fresh data
-  const availableBalance = (cachedTradingBalance as { availableBalance?: string; lockedBalance?: string })?.availableBalance || tradingAvailableBalance;
-  const lockedBalance = (cachedTradingBalance as { availableBalance?: string; lockedBalance?: string })?.lockedBalance || tradingLockedBalance;
+  const availableBalance =
+    (
+      cachedTradingBalance as {
+        availableBalance?: string;
+        lockedBalance?: string;
+      }
+    )?.availableBalance || tradingAvailableBalance;
+  const lockedBalance =
+    (
+      cachedTradingBalance as {
+        availableBalance?: string;
+        lockedBalance?: string;
+      }
+    )?.lockedBalance || tradingLockedBalance;
   const balanceLoading = tradingBalanceLoading && !cachedTradingBalance;
   const allBalancesLoading = allBalancesLoadingBase && !cachedAllBalances;
 
   // Cache the trading pair balance data
   useEffect(() => {
-    if (tradingPairCacheKey && !tradingBalanceLoading && tradingAvailableBalance !== "0") {
+    if (
+      tradingPairCacheKey &&
+      !tradingBalanceLoading &&
+      tradingAvailableBalance !== "0"
+    ) {
       balanceCache.setCachedData(tradingPairCacheKey, {
         availableBalance: tradingAvailableBalance,
         lockedBalance: tradingLockedBalance,
       });
     }
-  }, [tradingPairCacheKey, tradingAvailableBalance, tradingLockedBalance, tradingBalanceLoading, balanceCache]);
+  }, [
+    tradingPairCacheKey,
+    tradingAvailableBalance,
+    tradingLockedBalance,
+    tradingBalanceLoading,
+    balanceCache,
+  ]);
 
   // Cache the all balances data
   useEffect(() => {
-    if (allBalancesCacheKey && !allBalancesLoadingBase && allBalances.length > 0) {
+    if (
+      allBalancesCacheKey &&
+      !allBalancesLoadingBase &&
+      allBalances.length > 0
+    ) {
       balanceCache.setCachedData(allBalancesCacheKey, allBalances);
     }
   }, [allBalancesCacheKey, allBalancesLoadingBase, allBalances, balanceCache]);
@@ -83,7 +116,13 @@ export const useUnifiedBalance = (
     // Invalidate cache to force fresh data
     if (tradingPairCacheKey) balanceCache.invalidateCache(tradingPairCacheKey);
     if (allBalancesCacheKey) balanceCache.invalidateCache(allBalancesCacheKey);
-  }, [refreshAllBalances, refreshTradingBalance, tradingPairCacheKey, allBalancesCacheKey, balanceCache]);
+  }, [
+    refreshAllBalances,
+    refreshTradingBalance,
+    tradingPairCacheKey,
+    allBalancesCacheKey,
+    balanceCache,
+  ]);
 
   return {
     availableBalance,

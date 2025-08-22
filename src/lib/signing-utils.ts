@@ -47,7 +47,8 @@ export async function signOrderWithGlobalProtobuf(
       baseAccountAddress: orderData.baseAccountAddress,
       quoteAccountAddress: orderData.quoteAccountAddress,
       executionType,
-      matchingOrderIds: orderData.matchingOrderIds?.map((id) => BigInt(id)) || [], // Convert number[] to bigint[]
+      matchingOrderIds:
+        orderData.matchingOrderIds?.map((id) => BigInt(id)) || [], // Convert number[] to bigint[]
     });
 
     console.log("Created protobuf message:", orderMessage);

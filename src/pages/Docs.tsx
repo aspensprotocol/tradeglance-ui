@@ -69,7 +69,9 @@ We're currently looking for partner projects, so if you're a builder, and this s
 
 const Docs = (): JSX.Element => {
   // Fallback content if markdown is empty (shouldn't happen with pre-compiled content)
-  const content = markdownContent.trim() || `# Documentation Not Available
+  const content =
+    markdownContent.trim() ||
+    `# Documentation Not Available
 
 The documentation content could not be loaded. This might happen if:
 - The build script failed to update the documentation

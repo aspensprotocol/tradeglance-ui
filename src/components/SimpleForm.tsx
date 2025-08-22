@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TokenImage } from "@/components/ui/token-image";
 import type { TradingPair } from "@/hooks/useTradingPairs";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
@@ -23,17 +24,26 @@ interface SimpleFormProps {
   tradingPairs?: TradingPair[];
 }
 
-const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }: SimpleFormProps): JSX.Element => {
+const SimpleForm = ({
+  selectedPair,
+  setSelectedPair,
+  tradingPair,
+  tradingPairs,
+}: SimpleFormProps): JSX.Element => {
   // Get current user's wallet address for filtering
   const { address } = useAccount();
-  
+
   // State for "Mine" filter toggle
   const [showOnlyMine, setShowOnlyMine] = useState(false);
-  
+
   // State for individual token selection in Simple view
-  const [selectedBaseToken, setSelectedBaseToken] = useState<string>(tradingPair?.baseSymbol || "");
-  const [selectedQuoteToken, setSelectedQuoteToken] = useState<string>(tradingPair?.quoteSymbol || "");
-  
+  const [selectedBaseToken, setSelectedBaseToken] = useState<string>(
+    tradingPair?.baseSymbol || "",
+  );
+  const [selectedQuoteToken, setSelectedQuoteToken] = useState<string>(
+    tradingPair?.quoteSymbol || "",
+  );
+
   // Use the shared form logic hook
   const {
     formState,
@@ -64,15 +74,15 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
         quoteTokens: [] as string[],
       };
     }
-    
+
     const baseTokens = new Set<string>();
     const quoteTokens = new Set<string>();
-    
-    availableTradingPairs.forEach(pair => {
+
+    availableTradingPairs.forEach((pair) => {
       baseTokens.add(pair.baseSymbol);
       quoteTokens.add(pair.quoteSymbol);
     });
-    
+
     return {
       baseTokens: Array.from(baseTokens).sort(),
       quoteTokens: Array.from(quoteTokens).sort(),
@@ -84,18 +94,27 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
     if (!selectedBaseToken || !selectedQuoteToken || !availableTradingPairs) {
       return tradingPair;
     }
-    
-    return availableTradingPairs.find(
-      pair => pair.baseSymbol === selectedBaseToken && pair.quoteSymbol === selectedQuoteToken
-    ) || tradingPair;
-  }, [selectedBaseToken, selectedQuoteToken, availableTradingPairs, tradingPair]);
+
+    return (
+      availableTradingPairs.find(
+        (pair) =>
+          pair.baseSymbol === selectedBaseToken &&
+          pair.quoteSymbol === selectedQuoteToken,
+      ) || tradingPair
+    );
+  }, [
+    selectedBaseToken,
+    selectedQuoteToken,
+    availableTradingPairs,
+    tradingPair,
+  ]);
 
   // Update selected pair when tokens change
   const handleBaseTokenChange = (token: string) => {
     setSelectedBaseToken(token);
     if (token && selectedQuoteToken) {
       const pair = availableTradingPairs?.find(
-        p => p.baseSymbol === token && p.quoteSymbol === selectedQuoteToken
+        (p) => p.baseSymbol === token && p.quoteSymbol === selectedQuoteToken,
       );
       if (pair && setSelectedPair) {
         setSelectedPair(pair.id);
@@ -107,7 +126,7 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
     setSelectedQuoteToken(token);
     if (selectedBaseToken && token) {
       const pair = availableTradingPairs?.find(
-        p => p.baseSymbol === selectedBaseToken && p.quoteSymbol === token
+        (p) => p.baseSymbol === selectedBaseToken && p.quoteSymbol === token,
       );
       if (pair && setSelectedPair) {
         setSelectedPair(pair.id);
@@ -168,13 +187,10 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
               <section className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-xs text-gray-400">Token</span>
                 <span className="flex items-center gap-1">
-                  <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">
-                      {selectedBaseToken
-                        ? selectedBaseToken.charAt(0)
-                        : "?"}
-                    </span>
-                  </span>
+                  <TokenImage
+                    symbol={selectedBaseToken || "?"}
+                    size="w-6 h-6"
+                  />
                   <Select
                     value={selectedBaseToken}
                     onValueChange={handleBaseTokenChange}
@@ -250,7 +266,10 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
               <span className="text-gray-500">$0.00</span>
               <span className="flex items-center gap-1">
                 <span className="text-gray-400">
-                  Balance: {balanceLoading ? "Loading..." : `${formatDecimalConsistent(availableBalance)} ${currentTradingPair?.baseSymbol || "ATOM"}`}
+                  Balance:{" "}
+                  {balanceLoading
+                    ? "Loading..."
+                    : `${formatDecimalConsistent(availableBalance)} ${currentTradingPair?.baseSymbol || "ATOM"}`}
                 </span>
               </span>
             </section>
@@ -292,13 +311,10 @@ const SimpleForm = ({ selectedPair, setSelectedPair, tradingPair, tradingPairs }
               <section className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-xs text-gray-400">Token</span>
                 <span className="flex items-center gap-1">
-                  <span className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">
-                      {selectedQuoteToken
-                        ? selectedQuoteToken.charAt(0)
-                        : "?"}
-                    </span>
-                  </span>
+                  <TokenImage
+                    symbol={selectedQuoteToken || "?"}
+                    size="w-6 h-6"
+                  />
                   <Select
                     value={selectedQuoteToken}
                     onValueChange={handleQuoteTokenChange}

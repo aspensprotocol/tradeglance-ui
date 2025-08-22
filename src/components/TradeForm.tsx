@@ -1,15 +1,15 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { TokenImage } from "@/components/ui/token-image";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradeFormProps } from "@/lib/shared-types";
 
-
-
-
-
-const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.Element => {
+const TradeForm = ({
+  tradingPair,
+  onTradingSideChange,
+}: TradeFormProps): JSX.Element => {
   // Use the shared form logic hook
   const {
     formState,
@@ -113,7 +113,8 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
                   <span className="text-blue-400">Loading...</span>
                 ) : (
                   <span className="text-blue-400">
-                    {formatDecimalConsistent(availableBalance)} {tradingPair?.baseSymbol || "ATOM"}
+                    {formatDecimalConsistent(availableBalance)}{" "}
+                    {tradingPair?.baseSymbol || "ATOM"}
                   </span>
                 )}
               </span>
@@ -151,9 +152,10 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
                 {tradingPair?.baseSymbol || "ATOM"}
               </span>
               <section className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 min-w-0">
-                <span className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xs font-bold">A</span>
-                </span>
+                <TokenImage
+                  symbol={tradingPair?.baseSymbol || "ATOM"}
+                  size="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5"
+                />
                 <span className="text-xs text-gray-400 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3.5rem] lg:max-w-[4.5rem] xl:max-w-[5rem]">
                   {tradingPair?.baseSymbol || "ATOM"}
                 </span>
@@ -180,11 +182,11 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
             {/* Price Input (for limit orders) or Market Order Info */}
             {tradingState.activeOrderType === "limit" ? (
               <section className="-mt-2">
-                              <header className="flex justify-between items-center mb-1">
-                <span className="text-xs sm:text-sm font-medium text-gray-300">
-                  Price
-                </span>
-              </header>
+                <header className="flex justify-between items-center mb-1">
+                  <span className="text-xs sm:text-sm font-medium text-gray-300">
+                    Price
+                  </span>
+                </header>
                 <section className="relative">
                   <input
                     type="number"
@@ -196,9 +198,10 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
                     placeholder="0,00"
                   />
                   <section className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 min-w-0">
-                    <span className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">Q</span>
-                    </span>
+                    <TokenImage
+                      symbol={tradingPair?.quoteSymbol || "TTK"}
+                      size="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5"
+                    />
                     <span className="text-xs text-gray-400 truncate max-w-[1.5rem] sm:max-w-[2rem] md:max-w-[2.5rem] lg:max-w-[3.5rem] xl:max-w-[4rem]">
                       {tradingPair?.quoteSymbol || "TTK"}
                     </span>
@@ -208,11 +211,11 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
             ) : (
               /* Market Order Info - maintains consistent height */
               <section className="-mt-2">
-                              <header className="flex justify-between items-center mb-1">
-                <span className="text-xs sm:text-sm font-medium text-gray-300">
-                  Market Order
-                </span>
-              </header>
+                <header className="flex justify-between items-center mb-1">
+                  <span className="text-xs sm:text-sm font-medium text-gray-300">
+                    Market Order
+                  </span>
+                </header>
                 <article className="p-2 sm:p-2.5 md:p-3 bg-[#2a2d3a] rounded-lg border border-gray-600">
                   <p className="text-xs sm:text-sm text-gray-400">
                     Market orders execute at the best available price
@@ -238,11 +241,13 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
                     className={cn(
                       "font-medium",
                       tradingState.activeTab === BaseOrQuote.BASE
-                        ? "text-red-400"   // BASE = Sell (red)
+                        ? "text-red-400" // BASE = Sell (red)
                         : "text-green-400", // QUOTE = Buy (green)
                     )}
                   >
-                    {tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"}
+                    {tradingState.activeTab === BaseOrQuote.BASE
+                      ? "Sell"
+                      : "Buy"}
                   </dd>
                 </section>
                 <section className="flex justify-between">
@@ -277,8 +282,8 @@ const TradeForm = ({ tradingPair, onTradingSideChange }: TradeFormProps): JSX.El
                 parseFloat(formState.amount) <= 0 ||
                 formState.isSubmitting
               }
-                              className={cn(
-                  "w-full py-2 rounded-lg text-sm font-medium transition-colors mt-4",
+              className={cn(
+                "w-full py-2 rounded-lg text-sm font-medium transition-colors mt-4",
                 tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
                   : "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] hover:from-[#00a8b9] hover:to-[#00a8b9] text-white",

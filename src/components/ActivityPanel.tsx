@@ -20,16 +20,18 @@ interface ActivityPanelProps {
   currentTradingSide?: BaseOrQuote.BASE | BaseOrQuote.QUOTE;
 }
 
-const ActivityPanel = ({ tradingPair, currentTradingSide }: ActivityPanelProps) => {
+const ActivityPanel = ({
+  tradingPair,
+  currentTradingSide,
+}: ActivityPanelProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
   const [showMineOnly, setShowMineOnly] = useState(false);
 
   // Use tab optimization to prevent unnecessary reloads
-  const {
-    activeTab,
-    switchTab,
-  } = useTabOptimization<"trades" | "orders" | "balances">({
+  const { activeTab, switchTab } = useTabOptimization<
+    "trades" | "orders" | "balances"
+  >({
     initialTab: "trades",
     dataFetchingEnabled: true,
     cacheTimeout: 30000, // 30 seconds
@@ -98,7 +100,16 @@ const ActivityPanel = ({ tradingPair, currentTradingSide }: ActivityPanelProps) 
       filterByTrader: showMineOnly ? address : undefined,
       timestamp: new Date().toISOString(),
     });
-  }, [activeTab, trades, orders, tradesLoading, ordersLoading, marketId, showMineOnly, address]);
+  }, [
+    activeTab,
+    trades,
+    orders,
+    tradesLoading,
+    ordersLoading,
+    marketId,
+    showMineOnly,
+    address,
+  ]);
 
   // Log when filter changes
   useEffect(() => {
@@ -295,17 +306,26 @@ const ActivityPanel = ({ tradingPair, currentTradingSide }: ActivityPanelProps) 
                       className="grid grid-cols-4 sm:grid-cols-5 text-xs py-2 border-b border-gray-100 gap-1 sm:gap-2 hover:bg-gray-50"
                     >
                       <span className="text-right truncate font-medium">
-                        {formatDecimalConsistent(trade.price)} {tradingPair?.quoteSymbol || "TTK"}
+                        {formatDecimalConsistent(trade.price)}{" "}
+                        {tradingPair?.quoteSymbol || "TTK"}
                       </span>
                       <span className="text-right truncate">
-                        {formatDecimalConsistent(trade.quantity)} {tradingPair?.baseSymbol || "ATOM"}
+                        {formatDecimalConsistent(trade.quantity)}{" "}
+                        {tradingPair?.baseSymbol || "ATOM"}
                       </span>
-                      <span className="text-right truncate text-gray-500 hidden sm:block" title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}>
-                        M: {trade.makerAddress || trade.trader
+                      <span
+                        className="text-right truncate text-gray-500 hidden sm:block"
+                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}
+                      >
+                        M:{" "}
+                        {trade.makerAddress || trade.trader
                           ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
                           : "Unknown"}
                       </span>
-                      <span className="text-right truncate text-gray-500" title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}>
+                      <span
+                        className="text-right truncate text-gray-500"
+                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}
+                      >
                         {trade.makerAddress || trade.trader
                           ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
                           : "Unknown"}
@@ -504,90 +524,101 @@ const ActivityPanel = ({ tradingPair, currentTradingSide }: ActivityPanelProps) 
 
                   {/* Token Balances */}
                   <section className="space-y-4">
-                    {balances.map((balance: {
-                      symbol: string;
-                      chainId: number;
-                      network: string;
-                      walletBalance: string;
-                      depositedBalance: string;
-                      lockedBalance: string;
-                    }) => {
-                      // Get chain prefix for display
-                      const getChainPrefix = (network: string): string => {
-                        if (network.includes("flare")) return "f";
-                        if (network.includes("base")) return "b";
-                        if (network.includes("mainnet")) return "m";
-                        if (network.includes("goerli")) return "g";
-                        if (network.includes("sepolia")) return "s";
-                        return network.charAt(0).toLowerCase();
-                      };
+                    {balances.map(
+                      (balance: {
+                        symbol: string;
+                        chainId: number;
+                        network: string;
+                        walletBalance: string;
+                        depositedBalance: string;
+                        lockedBalance: string;
+                      }) => {
+                        // Get chain prefix for display
+                        const getChainPrefix = (network: string): string => {
+                          if (network.includes("flare")) return "f";
+                          if (network.includes("base")) return "b";
+                          if (network.includes("mainnet")) return "m";
+                          if (network.includes("goerli")) return "g";
+                          if (network.includes("sepolia")) return "s";
+                          return network.charAt(0).toLowerCase();
+                        };
 
-                      const prefix = getChainPrefix(balance.network);
-                      const prefixedSymbol = `${prefix}${balance.symbol}`;
+                        const prefix = getChainPrefix(balance.network);
+                        const prefixedSymbol = `${prefix}${balance.symbol}`;
 
-                      return (
-                        <article
-                          key={`${balance.chainId}-${balance.symbol}`}
-                          className="border rounded-lg p-3"
-                        >
-                          <header className="flex items-center justify-between mb-3">
-                            <span className="flex items-center space-x-3">
-                              <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-blue-600 text-xs font-bold">
-                                  {balance.symbol.charAt(0)}
+                        return (
+                          <article
+                            key={`${balance.chainId}-${balance.symbol}`}
+                            className="border rounded-lg p-3"
+                          >
+                            <header className="flex items-center justify-between mb-3">
+                              <span className="flex items-center space-x-3">
+                                <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <span className="text-blue-600 text-xs font-bold">
+                                    {balance.symbol.charAt(0)}
+                                  </span>
+                                </span>
+                                <span>
+                                  <span className="font-medium text-gray-900">
+                                    {prefixedSymbol}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {balance.network}
+                                  </span>
                                 </span>
                               </span>
-                              <span>
-                                <span className="font-medium text-gray-900">
-                                  {prefixedSymbol}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {balance.network}
-                                </span>
+                              <span className="text-xs text-gray-500">
+                                Chain ID: {balance.chainId}
                               </span>
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              Chain ID: {balance.chainId}
-                            </span>
-                          </header>
+                            </header>
 
-                          <section className="space-y-2">
-                            {parseFloat(balance.walletBalance) > 0 && (
-                              <span className="flex justify-between py-1">
-                                <span className="text-sm text-gray-600">
-                                  Wallet Balance:
+                            <section className="space-y-2">
+                              {parseFloat(balance.walletBalance) > 0 && (
+                                <span className="flex justify-between py-1">
+                                  <span className="text-sm text-gray-600">
+                                    Wallet Balance:
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {formatDecimalConsistent(
+                                      balance.walletBalance,
+                                    )}{" "}
+                                    {balance.symbol}
+                                  </span>
                                 </span>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {formatDecimalConsistent(balance.walletBalance)} {balance.symbol}
-                                </span>
-                              </span>
-                            )}
+                              )}
 
-                            {parseFloat(balance.depositedBalance) > 0 && (
-                              <span className="flex justify-between py-1">
-                                <span className="text-sm text-gray-600">
-                                  Deposited (Available):
+                              {parseFloat(balance.depositedBalance) > 0 && (
+                                <span className="flex justify-between py-1">
+                                  <span className="text-sm text-gray-600">
+                                    Deposited (Available):
+                                  </span>
+                                  <span className="text-sm font-medium text-green-600">
+                                    {formatDecimalConsistent(
+                                      balance.depositedBalance,
+                                    )}{" "}
+                                    {balance.symbol}
+                                  </span>
                                 </span>
-                                <span className="text-sm font-medium text-green-600">
-                                  {formatDecimalConsistent(balance.depositedBalance)} {balance.symbol}
-                                </span>
-                              </span>
-                            )}
+                              )}
 
-                            {parseFloat(balance.lockedBalance) > 0 && (
-                              <span className="flex justify-between py-1">
-                                <span className="text-sm text-gray-600">
-                                  Locked in Orders:
+                              {parseFloat(balance.lockedBalance) > 0 && (
+                                <span className="flex justify-between py-1">
+                                  <span className="text-sm text-gray-600">
+                                    Locked in Orders:
+                                  </span>
+                                  <span className="text-sm font-medium text-orange-600">
+                                    {formatDecimalConsistent(
+                                      balance.lockedBalance,
+                                    )}{" "}
+                                    {balance.symbol}
+                                  </span>
                                 </span>
-                                <span className="text-sm font-medium text-orange-600">
-                                  {formatDecimalConsistent(balance.lockedBalance)} {balance.symbol}
-                                </span>
-                              </span>
-                            )}
-                          </section>
-                        </article>
-                      );
-                    })}
+                              )}
+                            </section>
+                          </article>
+                        );
+                      },
+                    )}
                   </section>
 
                   {/* Action Buttons */}

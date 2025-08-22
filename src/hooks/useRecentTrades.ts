@@ -18,7 +18,7 @@ export function useRecentTrades(
 } {
   // Get trading pairs to extract token decimals
   const { tradingPairs } = useTradingPairs();
-  
+
   // Get global trades cache
   const globalTradesCache = useGlobalTradesCache();
 
@@ -227,8 +227,14 @@ export function useRecentTrades(
     }
 
     // Check cache first
-    const cachedData = globalTradesCache.getCachedData(marketId, filterByTrader);
-    if (cachedData && !globalTradesCache.isDataStale(marketId, 5 * 60 * 1000, filterByTrader)) {
+    const cachedData = globalTradesCache.getCachedData(
+      marketId,
+      filterByTrader,
+    );
+    if (
+      cachedData &&
+      !globalTradesCache.isDataStale(marketId, 5 * 60 * 1000, filterByTrader)
+    ) {
       console.log("🚀 useRecentTrades: Using cached trades data");
       setTrades(cachedData.trades);
       setInitialLoading(false);
@@ -249,14 +255,18 @@ export function useRecentTrades(
 
         if (tradesData && tradesData.length > 0) {
           setTrades(tradesData);
-          
+
           // Cache the trades data
           const sharedTradesData: SharedTradesData = {
             trades: tradesData,
             lastUpdate: new Date(),
           };
-          globalTradesCache.setCachedData(marketId, sharedTradesData, filterByTrader);
-          
+          globalTradesCache.setCachedData(
+            marketId,
+            sharedTradesData,
+            filterByTrader,
+          );
+
           console.log(
             "✅ Recent trades loaded successfully:",
             tradesData.length,
@@ -265,13 +275,17 @@ export function useRecentTrades(
         } else {
           console.log("📭 No trades found, setting empty state");
           setTrades([]);
-          
+
           // Cache empty state too
           const sharedTradesData: SharedTradesData = {
             trades: [],
             lastUpdate: new Date(),
           };
-          globalTradesCache.setCachedData(marketId, sharedTradesData, filterByTrader);
+          globalTradesCache.setCachedData(
+            marketId,
+            sharedTradesData,
+            filterByTrader,
+          );
         }
 
         setInitialLoading(false);
@@ -323,7 +337,14 @@ export function useRecentTrades(
     };
 
     fetchData();
-  }, [marketId, filterByTrader, fetchTradesData, retryCount, maxRetries, globalTradesCache]);
+  }, [
+    marketId,
+    filterByTrader,
+    fetchTradesData,
+    retryCount,
+    maxRetries,
+    globalTradesCache,
+  ]);
 
   // Manual refresh function
   const refresh = useCallback(async (): Promise<void> => {
@@ -344,14 +365,18 @@ export function useRecentTrades(
 
       if (tradesData && tradesData.length > 0) {
         setTrades(tradesData);
-        
+
         // Cache the refreshed trades data
         const sharedTradesData: SharedTradesData = {
           trades: tradesData,
           lastUpdate: new Date(),
         };
-        globalTradesCache.setCachedData(marketId, sharedTradesData, filterByTrader);
-        
+        globalTradesCache.setCachedData(
+          marketId,
+          sharedTradesData,
+          filterByTrader,
+        );
+
         console.log(
           "✅ Recent trades refreshed successfully:",
           tradesData.length,
@@ -360,13 +385,17 @@ export function useRecentTrades(
       } else {
         console.log("📭 No trades found on refresh, setting empty state");
         setTrades([]);
-        
+
         // Cache empty state too
         const sharedTradesData: SharedTradesData = {
           trades: [],
           lastUpdate: new Date(),
         };
-        globalTradesCache.setCachedData(marketId, sharedTradesData, filterByTrader);
+        globalTradesCache.setCachedData(
+          marketId,
+          sharedTradesData,
+          filterByTrader,
+        );
       }
     } catch (err: unknown) {
       const errorMessage: string =

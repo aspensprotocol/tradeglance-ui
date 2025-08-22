@@ -19,23 +19,31 @@ export const useTabOptimization = <T>({
   const [tabStates, setTabStates] = useState<TabState<T>>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const lastFetchTimeRef = useRef<{ [tabId: string]: number }>({});
-  const dataCacheRef = useRef<{ [tabId: string]: { data: T; timestamp: number } }>({});
+  const dataCacheRef = useRef<{
+    [tabId: string]: { data: T; timestamp: number };
+  }>({});
 
   // Check if data is stale for a tab
-  const isDataStale = useCallback((tabId: string): boolean => {
-    const lastFetch = lastFetchTimeRef.current[tabId];
-    if (!lastFetch) return true;
-    return Date.now() - lastFetch > cacheTimeout;
-  }, [cacheTimeout]);
+  const isDataStale = useCallback(
+    (tabId: string): boolean => {
+      const lastFetch = lastFetchTimeRef.current[tabId];
+      if (!lastFetch) return true;
+      return Date.now() - lastFetch > cacheTimeout;
+    },
+    [cacheTimeout],
+  );
 
   // Get cached data for a tab
-  const getCachedData = useCallback((tabId: string): T | null => {
-    const cached = dataCacheRef.current[tabId];
-    if (cached && !isDataStale(tabId)) {
-      return cached.data;
-    }
-    return null;
-  }, [isDataStale]);
+  const getCachedData = useCallback(
+    (tabId: string): T | null => {
+      const cached = dataCacheRef.current[tabId];
+      if (cached && !isDataStale(tabId)) {
+        return cached.data;
+      }
+      return null;
+    },
+    [isDataStale],
+  );
 
   // Set cached data for a tab
   const setCachedData = useCallback((tabId: string, data: T) => {
@@ -47,41 +55,47 @@ export const useTabOptimization = <T>({
   }, []);
 
   // Switch tabs with optimization
-  const switchTab = useCallback((newTab: string) => {
-    if (newTab === activeTab) return;
+  const switchTab = useCallback(
+    (newTab: string) => {
+      if (newTab === activeTab) return;
 
-    // Check if we have fresh cached data for the new tab
-    const cachedData = getCachedData(newTab);
-    
-    if (cachedData) {
-      // Use cached data immediately
-      setTabStates(prev => ({
-        ...prev,
-        [newTab]: cachedData,
-      }));
-      setActiveTab(newTab);
-      setIsLoading(false);
-    } else {
-      // Set loading state and switch tab
-      setIsLoading(true);
-      setActiveTab(newTab);
-      
-      // If data fetching is disabled, just switch without loading
-      if (!dataFetchingEnabled) {
+      // Check if we have fresh cached data for the new tab
+      const cachedData = getCachedData(newTab);
+
+      if (cachedData) {
+        // Use cached data immediately
+        setTabStates((prev) => ({
+          ...prev,
+          [newTab]: cachedData,
+        }));
+        setActiveTab(newTab);
         setIsLoading(false);
+      } else {
+        // Set loading state and switch tab
+        setIsLoading(true);
+        setActiveTab(newTab);
+
+        // If data fetching is disabled, just switch without loading
+        if (!dataFetchingEnabled) {
+          setIsLoading(false);
+        }
       }
-    }
-  }, [activeTab, getCachedData, dataFetchingEnabled]);
+    },
+    [activeTab, getCachedData, dataFetchingEnabled],
+  );
 
   // Update tab data
-  const updateTabData = useCallback((tabId: string, data: T) => {
-    setTabStates(prev => ({
-      ...prev,
-      [tabId]: data,
-    }));
-    setCachedData(tabId, data);
-    setIsLoading(false);
-  }, [setCachedData]);
+  const updateTabData = useCallback(
+    (tabId: string, data: T) => {
+      setTabStates((prev) => ({
+        ...prev,
+        [tabId]: data,
+      }));
+      setCachedData(tabId, data);
+      setIsLoading(false);
+    },
+    [setCachedData],
+  );
 
   // Force refresh for a specific tab
   const refreshTab = useCallback((tabId: string) => {
@@ -105,7 +119,10 @@ export const useTabOptimization = <T>({
 
   // Check if current tab needs data fetching
   const needsDataFetch = useCallback((): boolean => {
-    return dataFetchingEnabled && (isDataStale(activeTab) || !getCachedData(activeTab));
+    return (
+      dataFetchingEnabled &&
+      (isDataStale(activeTab) || !getCachedData(activeTab))
+    );
   }, [dataFetchingEnabled, activeTab, isDataStale, getCachedData]);
 
   return {

@@ -73,13 +73,13 @@ const VerticalOrderBook = React.memo(
   }: VerticalOrderBookProps): JSX.Element => {
     // Get current user's wallet address for filtering
     const { address } = useAccount();
-    
+
     // State for "Mine" filter toggle
     const [showOnlyMine, setShowOnlyMine] = useState(false);
-    
+
     // Determine the filter to use - if "Mine" is selected and user is connected, filter by their address
     const filterByTrader = showOnlyMine && address ? address : undefined;
-    
+
     // Use market-specific orderbook hook with filtering
     console.log("🔍 VerticalOrderBook: Calling useMarketOrderbook with:", {
       tradingPairId: tradingPair?.id,
@@ -90,10 +90,10 @@ const VerticalOrderBook = React.memo(
       userAddress: address,
       timestamp: new Date().toISOString(),
     });
-    
+
     const { orderbook, initialLoading, error, refresh } = useMarketOrderbook(
       tradingPair?.id || "",
-      filterByTrader
+      filterByTrader,
     );
 
     // Debug logging for trading pair configuration
@@ -213,7 +213,9 @@ const VerticalOrderBook = React.memo(
                       ? "bg-blue-600 text-white border-blue-600"
                       : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                   }`}
-                  title={showOnlyMine ? "Show all orders" : "Show only my orders"}
+                  title={
+                    showOnlyMine ? "Show all orders" : "Show only my orders"
+                  }
                 >
                   {showOnlyMine ? "Mine" : "All"}
                 </button>
@@ -241,7 +243,14 @@ const VerticalOrderBook = React.memo(
           </nav>
         </header>
       ),
-      [selectedPair, onPairChange, tradingPairOptions, refresh, address, showOnlyMine],
+      [
+        selectedPair,
+        onPairChange,
+        tradingPairOptions,
+        refresh,
+        address,
+        showOnlyMine,
+      ],
     );
 
     // Memoize the orderbook content to prevent unnecessary re-renders
@@ -283,12 +292,13 @@ const VerticalOrderBook = React.memo(
             <article className="text-center">
               <span className="text-gray-500">
                 <span className="text-lg mb-2">📊</span>
-                {showOnlyMine ? "No orders found for your wallet" : "No orderbook data available"}
+                {showOnlyMine
+                  ? "No orders found for your wallet"
+                  : "No orderbook data available"}
                 <span className="text-sm mt-1">
-                  {showOnlyMine 
+                  {showOnlyMine
                     ? "You may not have any active orders in this market"
-                    : "This market may not have active orders yet"
-                  }
+                    : "This market may not have active orders yet"}
                 </span>
               </span>
             </article>

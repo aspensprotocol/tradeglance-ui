@@ -183,14 +183,14 @@ export const useAllBalances = (): {
       address,
       hasConfig: !!config,
       configChains: config?.chains?.length || 0,
-      configMarkets: config?.markets?.length || 0
+      configMarkets: config?.markets?.length || 0,
     });
-    
+
     if (!isConnected || !address || !config) {
       console.log("❌ useAllBalances: Missing required data:", {
         isConnected,
         hasAddress: !!address,
-        hasConfig: !!config
+        hasConfig: !!config,
       });
       setBalances([]);
       return;
@@ -203,16 +203,19 @@ export const useAllBalances = (): {
       const allBalances: TokenBalance[] = [];
 
       // Check balances for all tokens across all chains
-      console.log("🔍 useAllBalances: Processing chains:", config.chains.length);
-      
+      console.log(
+        "🔍 useAllBalances: Processing chains:",
+        config.chains.length,
+      );
+
       for (const chain of config.chains) {
         console.log("🔍 useAllBalances: Processing chain:", {
           chainId: chain.chainId,
           network: chain.network,
           tokensCount: Object.keys(chain.tokens).length,
-          hasTradeContract: !!chain.tradeContract
+          hasTradeContract: !!chain.tradeContract,
         });
-        
+
         const chainTokens = Object.keys(chain.tokens);
 
         for (const tokenSymbol of chainTokens) {
@@ -221,7 +224,7 @@ export const useAllBalances = (): {
             console.log("⚠️ useAllBalances: Skipping token/chain:", {
               tokenSymbol,
               hasToken: !!token,
-              hasTradeContract: !!chain.tradeContract
+              hasTradeContract: !!chain.tradeContract,
             });
             continue;
           }
@@ -232,9 +235,9 @@ export const useAllBalances = (): {
             tokenAddress: token.address,
             decimals: token.decimals,
             rpcUrl: chain.rpcUrl,
-            tradeContractAddress: chain.tradeContract.address
+            tradeContractAddress: chain.tradeContract.address,
           });
-          
+
           const balance = await checkTokenBalances(
             tokenSymbol,
             chain.chainId,

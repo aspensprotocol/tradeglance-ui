@@ -128,7 +128,10 @@ export const useFormLogic = ({
   const {
     availableBalance: unifiedAvailableBalance,
     balanceLoading: unifiedBalanceLoading,
-  } = useUnifiedBalance(tradingPair, currentChainId ? getCorrectSideForChain(currentChainId) : undefined);
+  } = useUnifiedBalance(
+    tradingPair,
+    currentChainId ? getCorrectSideForChain(currentChainId) : undefined,
+  );
 
   const {
     networkState,

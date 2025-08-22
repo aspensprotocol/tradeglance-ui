@@ -28,36 +28,36 @@ const Home = (): JSX.Element => {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Hide Pro button on mobile, show on tablet and desktop */}
-              <Button 
-                className="w-full hidden sm:block" 
+              <Button
+                className="w-full hidden sm:block"
                 variant="outline"
                 onClick={handleProClick}
               >
                 Pro
               </Button>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
                 onClick={handleSimpleClick}
               >
                 Simple
               </Button>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
                 onClick={() => navigate("/docs")}
               >
                 Docs
               </Button>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
                 onClick={() => navigate("/mint")}
               >
                 Mint Test Tokens
               </Button>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
                 onClick={() => navigate("/config")}
               >

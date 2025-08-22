@@ -14,16 +14,17 @@ interface IndexProps {
   pairsLoading: boolean;
 }
 
-const Index = ({ 
-  selectedPair, 
-  setSelectedPair, 
-  currentTradingPair, 
-  tradingPairs, 
-  pairsLoading 
+const Index = ({
+  selectedPair,
+  setSelectedPair,
+  currentTradingPair,
+  tradingPairs,
+  pairsLoading,
 }: IndexProps): JSX.Element => {
-
   // Manage trading side state at the Index level to share between TradeForm and ActivityPanel
-  const [currentTradingSide, setCurrentTradingSide] = useState<BaseOrQuote.BASE | BaseOrQuote.QUOTE>(BaseOrQuote.BASE);
+  const [currentTradingSide, setCurrentTradingSide] = useState<
+    BaseOrQuote.BASE | BaseOrQuote.QUOTE
+  >(BaseOrQuote.BASE);
 
   // Debug logging
   console.log("Index page render:", {

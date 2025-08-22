@@ -231,7 +231,7 @@ const DepositWithdrawModal = ({
     depositedBalance,
     tokenBalance,
     balancesLoading,
-    balanceLoading
+    balanceLoading,
   });
 
   // Check if selected chain is supported

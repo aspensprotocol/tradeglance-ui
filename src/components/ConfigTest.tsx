@@ -10,9 +10,7 @@ export const ConfigTest = (): JSX.Element => {
       <Layout scrollable>
         <article className="text-center py-8">
           <span className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4 block"></span>
-          <h2 className="text-xl font-bold mb-2">
-            Loading Configuration...
-          </h2>
+          <h2 className="text-xl font-bold mb-2">Loading Configuration...</h2>
           <p className="text-gray-600">
             Fetching configuration from backend...
           </p>
@@ -142,7 +140,10 @@ export const ConfigTest = (): JSX.Element => {
           Chains ({config.chains.length})
         </h3>
         {config.chains.map((chain: Chain, index: number) => (
-          <article key={index} className="border p-4 mb-3 rounded bg-white overflow-hidden">
+          <article
+            key={index}
+            className="border p-4 mb-3 rounded bg-white overflow-hidden"
+          >
             <section className="space-y-2">
               <p className="break-words">
                 <strong>Network:</strong> {chain.network}
@@ -151,18 +152,23 @@ export const ConfigTest = (): JSX.Element => {
                 <strong>Chain ID:</strong> {chain.chainId}
               </p>
               <p className="break-all">
-                <strong>RPC URL:</strong> <span className="text-xs sm:text-sm">{chain.rpcUrl}</span>
+                <strong>RPC URL:</strong>{" "}
+                <span className="text-xs sm:text-sm">{chain.rpcUrl}</span>
               </p>
               <p className="break-all">
-                <strong>Service Address:</strong> <span className="text-xs sm:text-sm">{chain.serviceAddress}</span>
+                <strong>Service Address:</strong>{" "}
+                <span className="text-xs sm:text-sm">
+                  {chain.serviceAddress}
+                </span>
               </p>
               <p className="break-all">
                 <strong>Trade Contract:</strong>{" "}
-                <span className="text-xs sm:text-sm">{chain.tradeContract?.address || "Not configured"}</span>
+                <span className="text-xs sm:text-sm">
+                  {chain.tradeContract?.address || "Not configured"}
+                </span>
               </p>
               <p className="break-words">
-                <strong>Base or Quote:</strong>{" "}
-                {chain.baseOrQuote || "Not set"}
+                <strong>Base or Quote:</strong> {chain.baseOrQuote || "Not set"}
               </p>
             </section>
 
@@ -173,7 +179,9 @@ export const ConfigTest = (): JSX.Element => {
               <nav className="ml-4 mt-2 space-y-1">
                 {Object.entries(chain.tokens).map(([symbol, token]) => (
                   <p key={symbol} className="text-sm break-all">
-                    <strong>{symbol}:</strong> <span className="text-xs">{token.address}</span> (Decimals: {token.decimals})
+                    <strong>{symbol}:</strong>{" "}
+                    <span className="text-xs">{token.address}</span> (Decimals:{" "}
+                    {token.decimals})
                   </p>
                 ))}
               </nav>
@@ -187,7 +195,10 @@ export const ConfigTest = (): JSX.Element => {
           Markets ({config.markets.length})
         </h3>
         {config.markets.map((market: Market, index: number) => (
-          <article key={index} className="border p-4 mb-3 rounded bg-white overflow-hidden">
+          <article
+            key={index}
+            className="border p-4 mb-3 rounded bg-white overflow-hidden"
+          >
             <section className="space-y-2">
               <p className="break-words">
                 <strong>Name:</strong> {market.name}
@@ -209,7 +220,9 @@ export const ConfigTest = (): JSX.Element => {
               </p>
               <p className="break-all">
                 <strong>Market ID:</strong>{" "}
-                <span className="text-xs sm:text-sm">{market.marketId || "Not assigned"}</span>
+                <span className="text-xs sm:text-sm">
+                  {market.marketId || "Not assigned"}
+                </span>
               </p>
             </section>
           </article>

@@ -66,8 +66,8 @@ export const Navigation = ({
         <Link
           to="/trading?view=pro"
           className={`text-lg font-medium transition-colors ${
-            isOnTradingPage && viewMode === "pro" 
-              ? "text-blue-600" 
+            isOnTradingPage && viewMode === "pro"
+              ? "text-blue-600"
               : "text-gray-900 hover:text-blue-600"
           }`}
         >
@@ -76,8 +76,8 @@ export const Navigation = ({
         <Link
           to="/trading?view=simple"
           className={`text-lg font-medium transition-colors ${
-            isOnTradingPage && viewMode === "simple" 
-              ? "text-blue-600" 
+            isOnTradingPage && viewMode === "simple"
+              ? "text-blue-600"
               : "text-gray-900 hover:text-blue-600"
           }`}
         >
@@ -86,9 +86,7 @@ export const Navigation = ({
         <Link
           to="/docs"
           className={`text-lg font-medium transition-colors ${
-            isOnDocsPage 
-              ? "text-blue-600" 
-              : "text-gray-900 hover:text-blue-600"
+            isOnDocsPage ? "text-blue-600" : "text-gray-900 hover:text-blue-600"
           }`}
         >
           Docs

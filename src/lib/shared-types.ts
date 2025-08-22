@@ -3,14 +3,14 @@
  * This file consolidates all types to avoid duplication and ensure consistency
  */
 
-import type { 
-  OrderbookEntry, 
-  Trade, 
-  Order, 
-  Side, 
+import type {
+  OrderbookEntry,
+  Trade,
+  Order,
+  Side,
   OrderStatus,
   ExecutionType,
-  TradeRole
+  TradeRole,
 } from "../protos/gen/arborter_pb";
 
 import type {
@@ -18,7 +18,7 @@ import type {
   Market,
   Token,
   Configuration,
-  BaseOrQuote
+  BaseOrQuote,
 } from "../protos/gen/arborter_config_pb";
 
 // Re-export proto types for convenience
@@ -34,7 +34,7 @@ export type {
   Market,
   Token,
   Configuration,
-  BaseOrQuote
+  BaseOrQuote,
 };
 
 // Consolidated orderbook data interface using proto types
@@ -132,10 +132,21 @@ export interface SharedTradesData {
 
 // Global orderbook cache context type
 export interface GlobalOrderbookCacheContextType {
-  getCachedData: (marketId: string, filterByTrader?: string) => CachedOrderbookData | null;
-  setCachedData: (marketId: string, data: SharedOrderbookData, filterByTrader?: string) => void;
+  getCachedData: (
+    marketId: string,
+    filterByTrader?: string,
+  ) => CachedOrderbookData | null;
+  setCachedData: (
+    marketId: string,
+    data: SharedOrderbookData,
+    filterByTrader?: string,
+  ) => void;
   clearCache: (marketId?: string, filterByTrader?: string) => void;
-  isDataStale: (marketId: string, maxAgeMs?: number, filterByTrader?: string) => boolean;
+  isDataStale: (
+    marketId: string,
+    maxAgeMs?: number,
+    filterByTrader?: string,
+  ) => boolean;
   getCacheStats: () => {
     totalEntries: number;
     keys: string[];
@@ -157,10 +168,21 @@ export interface GlobalOrderbookCacheContextType {
 
 // Global trades cache context type
 export interface GlobalTradesCacheContextType {
-  getCachedData: (marketId: string, filterByTrader?: string) => CachedTradesData | null;
-  setCachedData: (marketId: string, data: SharedTradesData, filterByTrader?: string) => void;
+  getCachedData: (
+    marketId: string,
+    filterByTrader?: string,
+  ) => CachedTradesData | null;
+  setCachedData: (
+    marketId: string,
+    data: SharedTradesData,
+    filterByTrader?: string,
+  ) => void;
   clearCache: (marketId?: string, filterByTrader?: string) => void;
-  isDataStale: (marketId: string, maxAgeMs?: number, filterByTrader?: string) => boolean;
+  isDataStale: (
+    marketId: string,
+    maxAgeMs?: number,
+    filterByTrader?: string,
+  ) => boolean;
   getCacheStats: () => {
     totalEntries: number;
     keys: string[];
@@ -216,8 +238,8 @@ export interface TradeFormProps {
 
 // View context types
 export interface ViewContextType {
-  viewMode: 'simple' | 'pro';
-  setViewMode: (mode: 'simple' | 'pro') => void;
+  viewMode: "simple" | "pro";
+  setViewMode: (mode: "simple" | "pro") => void;
 }
 
 export interface ViewProviderProps {

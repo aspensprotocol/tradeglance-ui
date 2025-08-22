@@ -9,10 +9,10 @@ import Simple from "./Simple";
 const Trading = (): JSX.Element => {
   const { viewMode, setViewMode } = useViewContext();
   const [searchParams] = useSearchParams();
-  
+
   // Get trading pairs at the Trading component level to persist across view switches
   const { tradingPairs, loading: pairsLoading } = useTradingPairs();
-  
+
   // Set default selected pair to first available pair, or empty string if none available
   const [selectedPair, setSelectedPair] = useState<string>("");
 
@@ -32,7 +32,9 @@ const Trading = (): JSX.Element => {
   }, [tradingPairs, selectedPair]);
 
   // Get the current trading pair object
-  const currentTradingPair = tradingPairs.find(pair => pair.id === selectedPair);
+  const currentTradingPair = tradingPairs.find(
+    (pair) => pair.id === selectedPair,
+  );
 
   // Debug logging to track view switches and state persistence
   console.log("🔍 Trading component render:", {
@@ -49,8 +51,10 @@ const Trading = (): JSX.Element => {
       {/* Keep both components mounted to preserve orderbook cache */}
       <main className="h-full">
         {/* Pro view - show/hide instead of mount/unmount */}
-        <section className={`h-full ${viewMode === "pro" ? "block" : "hidden"}`}>
-          <Index 
+        <section
+          className={`h-full ${viewMode === "pro" ? "block" : "hidden"}`}
+        >
+          <Index
             selectedPair={selectedPair}
             setSelectedPair={setSelectedPair}
             currentTradingPair={currentTradingPair}
@@ -58,10 +62,12 @@ const Trading = (): JSX.Element => {
             pairsLoading={pairsLoading}
           />
         </section>
-        
+
         {/* Simple view - show/hide instead of mount/unmount */}
-        <section className={`h-full ${viewMode === "simple" ? "block" : "hidden"}`}>
-          <Simple 
+        <section
+          className={`h-full ${viewMode === "simple" ? "block" : "hidden"}`}
+        >
+          <Simple
             selectedPair={selectedPair}
             setSelectedPair={setSelectedPair}
             currentTradingPair={currentTradingPair}

@@ -230,4 +230,20 @@
     font-weight: 600;
     color: #6b7280;
   }
+
+  /* Toast text selection and wrapping */
+  [data-radix-toast-viewport] * {
+    user-select: text;
+  }
+
+  [data-radix-toast-viewport] button {
+    user-select: none;
+  }
+
+  [data-radix-toast-viewport] .toast-description,
+  [data-radix-toast-viewport] .toast-title {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
 }

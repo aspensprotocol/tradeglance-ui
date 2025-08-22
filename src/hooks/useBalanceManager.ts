@@ -79,9 +79,9 @@ export const useBalanceManager = (
       tradingPairId: tradingPair?.id,
       currentSide,
       hasConfig: !!config,
-      configChains: config?.chains?.length || 0
+      configChains: config?.chains?.length || 0,
     });
-    
+
     if (
       !isConnected ||
       !address ||
@@ -94,7 +94,7 @@ export const useBalanceManager = (
         hasAddress: !!address,
         hasTradingPair: !!tradingPair,
         hasConfig: !!config,
-        currentSide
+        currentSide,
       });
       setAvailableBalance("0");
       setLockedBalance("0");
@@ -125,16 +125,21 @@ export const useBalanceManager = (
       const currentChain = configUtils.getChainByChainId(chainId);
       console.log("🔍 useBalanceManager: Chain config:", {
         chainId,
-        currentChain: currentChain ? {
-          network: currentChain.network,
-          hasTradeContract: !!currentChain.tradeContract,
-          tradeContractAddress: currentChain.tradeContract?.address,
-          rpcUrl: currentChain.rpcUrl
-        } : null
+        currentChain: currentChain
+          ? {
+              network: currentChain.network,
+              hasTradeContract: !!currentChain.tradeContract,
+              tradeContractAddress: currentChain.tradeContract?.address,
+              rpcUrl: currentChain.rpcUrl,
+            }
+          : null,
       });
-      
+
       if (!currentChain || !currentChain.tradeContract) {
-        console.warn("❌ useBalanceManager: No trade contract found for chain:", chainId);
+        console.warn(
+          "❌ useBalanceManager: No trade contract found for chain:",
+          chainId,
+        );
         setAvailableBalance("0");
         setLockedBalance("0");
         return;

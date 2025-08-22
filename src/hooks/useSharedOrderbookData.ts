@@ -80,11 +80,14 @@ export function useSharedOrderbookData(
 
   // Check if we have cached data first
   const cachedData = globalCache.getCachedData(marketId, filterByTrader);
-  const hasCachedData = cachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
+  const hasCachedData =
+    cachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
 
   // Check if this is a real market change or just a re-render
-  const isRealMarketChange = lastMarketIdRef.current !== marketId || lastFilterRef.current !== filterByTrader;
-  
+  const isRealMarketChange =
+    lastMarketIdRef.current !== marketId ||
+    lastFilterRef.current !== filterByTrader;
+
   // Update refs
   useEffect(() => {
     lastMarketIdRef.current = marketId;
@@ -101,7 +104,7 @@ export function useSharedOrderbookData(
         cachedDataAsks: cachedData.orderbook.asks.length,
         timestamp: new Date().toISOString(),
       });
-      
+
       setData({
         orderbook: cachedData.orderbook,
         openOrders: cachedData.openOrders,
@@ -422,7 +425,7 @@ export function useSharedOrderbookData(
             orderbook: processedOrderbook,
             lastUpdate: new Date(),
           };
-          
+
           console.log("💾 useSharedOrderbookData: SAVING ORDERBOOK TO CACHE:", {
             marketId,
             filterByTrader,
@@ -430,12 +433,16 @@ export function useSharedOrderbookData(
             orderbookAsks: processedOrderbook.asks.length,
             timestamp: new Date().toISOString(),
           });
-          
-          globalCache.setCachedData(marketId, {
-            orderbook: processedOrderbook,
-            openOrders: prevData.openOrders,
-            lastUpdate: new Date(),
-          }, filterByTrader);
+
+          globalCache.setCachedData(
+            marketId,
+            {
+              orderbook: processedOrderbook,
+              openOrders: prevData.openOrders,
+              lastUpdate: new Date(),
+            },
+            filterByTrader,
+          );
 
           return newData;
         });
@@ -504,19 +511,26 @@ export function useSharedOrderbookData(
             openOrders: processedOpenOrders,
             lastUpdate: new Date(),
           };
-          
-          console.log("💾 useSharedOrderbookData: SAVING OPEN ORDERS TO CACHE:", {
+
+          console.log(
+            "💾 useSharedOrderbookData: SAVING OPEN ORDERS TO CACHE:",
+            {
+              marketId,
+              filterByTrader,
+              openOrdersCount: processedOpenOrders.length,
+              timestamp: new Date().toISOString(),
+            },
+          );
+
+          globalCache.setCachedData(
             marketId,
+            {
+              orderbook: prevData.orderbook,
+              openOrders: processedOpenOrders,
+              lastUpdate: new Date(),
+            },
             filterByTrader,
-            openOrdersCount: processedOpenOrders.length,
-            timestamp: new Date().toISOString(),
-          });
-          
-          globalCache.setCachedData(marketId, {
-            orderbook: prevData.orderbook,
-            openOrders: processedOpenOrders,
-            lastUpdate: new Date(),
-          }, filterByTrader);
+          );
 
           return newData;
         });
@@ -586,11 +600,18 @@ export function useSharedOrderbookData(
     // Only process if this is a real market change, not just a re-render
     if (marketId && marketId.trim() !== "" && isRealMarketChange) {
       // Check if we have cached data for this market
-      const marketCachedData = globalCache.getCachedData(marketId, filterByTrader);
-      const hasMarketCachedData = marketCachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
-      
+      const marketCachedData = globalCache.getCachedData(
+        marketId,
+        filterByTrader,
+      );
+      const hasMarketCachedData =
+        marketCachedData &&
+        !globalCache.isDataStale(marketId, undefined, filterByTrader);
+
       if (hasMarketCachedData) {
-        console.log("🔍 useSharedOrderbookData: Using cached data for market, skipping reset");
+        console.log(
+          "🔍 useSharedOrderbookData: Using cached data for market, skipping reset",
+        );
         // If we have cached data, use it instead of resetting
         setData({
           orderbook: marketCachedData.orderbook,
@@ -600,7 +621,9 @@ export function useSharedOrderbookData(
         setInitialLoading(false);
         hasInitializedRef.current = true;
       } else {
-        console.log("🔍 useSharedOrderbookData: No cached data, resetting state for new market");
+        console.log(
+          "🔍 useSharedOrderbookData: No cached data, resetting state for new market",
+        );
         // Reset state when market ID changes and no cached data
         setData({
           orderbook: {
@@ -627,9 +650,17 @@ export function useSharedOrderbookData(
         hasInitializedRef.current = false;
       }
     } else if (marketId && marketId.trim() !== "" && !isRealMarketChange) {
-      console.log("🔍 useSharedOrderbookData: Same market, skipping reset (re-render only)");
+      console.log(
+        "🔍 useSharedOrderbookData: Same market, skipping reset (re-render only)",
+      );
     }
-  }, [marketId, filterByTrader, globalCache, isRealMarketChange, hasCachedData]);
+  }, [
+    marketId,
+    filterByTrader,
+    globalCache,
+    isRealMarketChange,
+    hasCachedData,
+  ]);
 
   // Set up polling
   useEffect(() => {
@@ -647,8 +678,13 @@ export function useSharedOrderbookData(
 
     if (marketId && marketId.trim() !== "" && retryCount < maxRetries) {
       // If we have cached data and it's not stale, don't fetch immediately
-      if (hasCachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader)) {
-        console.log("🔍 useSharedOrderbookData: Using cached data, skipping immediate fetch");
+      if (
+        hasCachedData &&
+        !globalCache.isDataStale(marketId, undefined, filterByTrader)
+      ) {
+        console.log(
+          "🔍 useSharedOrderbookData: Using cached data, skipping immediate fetch",
+        );
         setInitialLoading(false);
         return;
       }
@@ -674,7 +710,9 @@ export function useSharedOrderbookData(
           );
         }
       } else {
-        console.log("🔍 useSharedOrderbookData: Same market with cached data, skipping fetch");
+        console.log(
+          "🔍 useSharedOrderbookData: Same market with cached data, skipping fetch",
+        );
       }
     } else {
       console.log("❌ useSharedOrderbookData: Skipping polling setup:", {
@@ -691,7 +729,15 @@ export function useSharedOrderbookData(
         pollingInterval.current = null;
       }
     };
-  }, [marketId, retryCount, maxRetries, hasCachedData, globalCache, filterByTrader, isRealMarketChange]);
+  }, [
+    marketId,
+    retryCount,
+    maxRetries,
+    hasCachedData,
+    globalCache,
+    filterByTrader,
+    isRealMarketChange,
+  ]);
 
   // Listen for orderbook refresh events
   useEffect(() => {
@@ -730,7 +776,7 @@ export function useSharedOrderbookData(
               parseFloat(quantity) > 1000000000000000000)
           );
         };
-        
+
         const needsConversion = currentEntries.some(checkNeedsConversion);
 
         if (needsConversion) {
@@ -752,25 +798,32 @@ export function useSharedOrderbookData(
               openOrders: processedOpenOrders,
               lastUpdate: new Date(),
             };
-            
-            console.log("💾 useSharedOrderbookData: SAVING STREAMING UPDATE TO CACHE:", {
+
+            console.log(
+              "💾 useSharedOrderbookData: SAVING STREAMING UPDATE TO CACHE:",
+              {
+                marketId,
+                filterByTrader,
+                orderbookBids: processedOrderbook.bids.length,
+                orderbookAsks: processedOrderbook.asks.length,
+                openOrdersCount: processedOpenOrders.length,
+                timestamp: new Date().toISOString(),
+              },
+            );
+
+            globalCache.setCachedData(
               marketId,
+              {
+                orderbook: processedOrderbook,
+                openOrders: processedOpenOrders,
+                lastUpdate: new Date(),
+              },
               filterByTrader,
-              orderbookBids: processedOrderbook.bids.length,
-              orderbookAsks: processedOrderbook.asks.length,
-              openOrdersCount: processedOpenOrders.length,
-              timestamp: new Date().toISOString(),
-            });
-            
-            globalCache.setCachedData(marketId, {
-              orderbook: processedOrderbook,
-              openOrders: processedOpenOrders,
-              lastUpdate: new Date(),
-            }, filterByTrader);
+            );
 
             return newData;
           };
-          
+
           setData(updateDataWithCache);
         }
       }
@@ -810,25 +863,32 @@ export function useSharedOrderbookData(
             openOrders: processedOpenOrders,
             lastUpdate: new Date(),
           };
-          
-          console.log("💾 useSharedOrderbookData: SAVING TRADING PAIR UPDATE TO CACHE:", {
+
+          console.log(
+            "💾 useSharedOrderbookData: SAVING TRADING PAIR UPDATE TO CACHE:",
+            {
+              marketId,
+              filterByTrader,
+              orderbookBids: processedOrderbook.bids.length,
+              orderbookAsks: processedOrderbook.asks.length,
+              openOrdersCount: processedOpenOrders.length,
+              timestamp: new Date().toISOString(),
+            },
+          );
+
+          globalCache.setCachedData(
             marketId,
+            {
+              orderbook: processedOrderbook,
+              openOrders: processedOpenOrders,
+              lastUpdate: new Date(),
+            },
             filterByTrader,
-            orderbookBids: processedOrderbook.bids.length,
-            orderbookAsks: processedOrderbook.asks.length,
-            openOrdersCount: processedOpenOrders.length,
-            timestamp: new Date().toISOString(),
-          });
-          
-          globalCache.setCachedData(marketId, {
-            orderbook: processedOrderbook,
-            openOrders: processedOpenOrders,
-            lastUpdate: new Date(),
-          }, filterByTrader);
+          );
 
           return newData;
         };
-        
+
         setData(updateDataWithCache);
       }
     }

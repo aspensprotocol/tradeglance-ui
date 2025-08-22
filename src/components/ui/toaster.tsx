@@ -7,6 +7,7 @@ import {
   ToastTitle,
   ToastViewport,
   ErrorToast,
+  CopyButton,
 } from "@/components/ui/toast";
 
 export function Toaster(): JSX.Element {
@@ -17,7 +18,8 @@ export function Toaster(): JSX.Element {
       {toasts.map(({ id, title, description, action, variant, ...props }) => {
         // Use ErrorToast for destructive toasts with copy functionality
         if (variant === "destructive" && description) {
-          const errorMessage = typeof description === "string" ? description : "An error occurred";
+          const errorMessage =
+            typeof description === "string" ? description : "An error occurred";
           return (
             <ErrorToast
               key={id}
@@ -28,16 +30,24 @@ export function Toaster(): JSX.Element {
           );
         }
 
-        // Regular toast for non-destructive messages
+        // Regular toast for non-destructive messages with copy functionality
+        const messageText = typeof description === "string" ? description : "";
         return (
           <Toast key={id} {...props}>
-            <section className="grid gap-1">
+            <section className="grid gap-1 flex-1 min-w-0">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
-                <ToastDescription>{description}</ToastDescription>
+                <ToastDescription className="max-w-full">
+                  <span className="break-words whitespace-pre-wrap select-text cursor-text toast-description">
+                    {description}
+                  </span>
+                </ToastDescription>
               )}
             </section>
             {action}
+            {messageText && (
+              <CopyButton text={messageText} className="ml-2 shrink-0" />
+            )}
             <ToastClose />
           </Toast>
         );

@@ -165,14 +165,18 @@ function toast({ ...props }: Toast): {
 }
 
 // Helper function for error toasts
-function errorToast(error: string | Error, title?: string): {
+function errorToast(
+  error: string | Error,
+  title?: string,
+): {
   id: string;
   dismiss: () => void;
   update: (updateProps: ToasterToast) => void;
 } {
   const errorMessage = error instanceof Error ? error.message : error;
-  const errorTitle = title || (error instanceof Error ? error.constructor.name : "Error");
-  
+  const errorTitle =
+    title || (error instanceof Error ? error.constructor.name : "Error");
+
   return toast({
     title: errorTitle,
     description: errorMessage,
@@ -187,7 +191,10 @@ function useToast(): {
     dismiss: () => void;
     update: (props: ToasterToast) => void;
   };
-  errorToast: (error: string | Error, title?: string) => {
+  errorToast: (
+    error: string | Error,
+    title?: string,
+  ) => {
     id: string;
     dismiss: () => void;
     update: (props: ToasterToast) => void;

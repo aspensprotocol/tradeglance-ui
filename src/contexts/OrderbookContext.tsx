@@ -248,11 +248,15 @@ export function OrderbookProvider({
 
       // Save to global cache for persistence across route changes
       if (marketId && parsedOrderbook && parsedOpenOrders) {
-        globalCache.setCachedData(marketId, {
-          orderbook: parsedOrderbook,
-          openOrders: parsedOpenOrders,
-          lastUpdate: new Date(),
-        }, filterByTrader);
+        globalCache.setCachedData(
+          marketId,
+          {
+            orderbook: parsedOrderbook,
+            openOrders: parsedOpenOrders,
+            lastUpdate: new Date(),
+          },
+          filterByTrader,
+        );
       }
 
       setParsedData({
@@ -342,12 +346,18 @@ export function OrderbookProvider({
   }
 
   // Check global cache first for instant data display
-  const cachedData = marketId ? globalCache.getCachedData(marketId, filterByTrader) : null;
-  const hasCachedData = cachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
+  const cachedData = marketId
+    ? globalCache.getCachedData(marketId, filterByTrader)
+    : null;
+  const hasCachedData =
+    cachedData && !globalCache.isDataStale(marketId, undefined, filterByTrader);
 
   // Don't render the context provider until we have valid data
-  if (!rawData.orderbook || !rawData.openOrders || 
-      (rawData.orderbook.bids.length === 0 && rawData.orderbook.asks.length === 0)) {
+  if (
+    !rawData.orderbook ||
+    !rawData.openOrders ||
+    (rawData.orderbook.bids.length === 0 && rawData.orderbook.asks.length === 0)
+  ) {
     console.log("🔍 OrderbookProvider: Waiting for data to load...", {
       hasOrderbook: !!rawData.orderbook,
       hasOpenOrders: !!rawData.openOrders,
@@ -360,7 +370,9 @@ export function OrderbookProvider({
 
     // If we have cached data, use it instead of showing loading
     if (hasCachedData) {
-      console.log("🔍 OrderbookProvider: Using cached data while loading fresh data");
+      console.log(
+        "🔍 OrderbookProvider: Using cached data while loading fresh data",
+      );
       return (
         <OrderbookContext.Provider
           value={{
@@ -407,7 +419,9 @@ export function OrderbookProvider({
   // PRIORITY: If we have cached data and it's more recent than raw data, use cached data
   // This ensures the most up-to-date data is displayed
   if (hasCachedData && cachedData.lastUpdate > rawData.lastUpdate) {
-    console.log("🔍 OrderbookProvider: Using cached data (more recent than raw data)");
+    console.log(
+      "🔍 OrderbookProvider: Using cached data (more recent than raw data)",
+    );
     return (
       <OrderbookContext.Provider
         value={{
@@ -427,14 +441,16 @@ export function OrderbookProvider({
   }
 
   return (
-    <OrderbookContext.Provider value={{
-      ...parsedData,
-      loading: rawData.loading,
-      initialLoading: rawData.initialLoading,
-      error: rawData.error,
-      refresh: rawData.refresh,
-      setFilterByTrader: rawData.setFilterByTrader,
-    }}>
+    <OrderbookContext.Provider
+      value={{
+        ...parsedData,
+        loading: rawData.loading,
+        initialLoading: rawData.initialLoading,
+        error: rawData.error,
+        refresh: rawData.refresh,
+        setFilterByTrader: rawData.setFilterByTrader,
+      }}
+    >
       {children}
     </OrderbookContext.Provider>
   );
