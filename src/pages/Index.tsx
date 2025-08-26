@@ -37,7 +37,7 @@ const Index = ({
       {/* Mobile-first responsive grid layout */}
       <main
         className="
-        grid gap-4 h-full p-4
+        grid gap-4 h-full p-2
         grid-cols-1 
         sm:grid-cols-2 
         lg:grid-cols-4 

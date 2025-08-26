@@ -29,7 +29,7 @@ const Simple = ({
 
   return (
     <>
-      <main className="flex items-center justify-center h-full min-h-0 overflow-hidden p-6 relative">
+      <main className="flex items-center justify-center h-full min-h-0 overflow-hidden p-3 relative">
         {/* Floating decorative elements matching Pro view aesthetic */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
           <section className="floating-blue top-1/4 left-1/4 w-24 h-24 delay-300"></section>

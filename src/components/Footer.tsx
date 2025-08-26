@@ -61,7 +61,7 @@ interface FooterProps {
 export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
   return (
     <footer
-      className={`bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 border-t border-blue-200 py-2 text-xs relative overflow-hidden ${className}`}
+      className={`bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 border-t border-blue-200 py-1 text-xs relative overflow-hidden ${className}`}
     >
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
