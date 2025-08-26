@@ -1,19 +1,54 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  Settings,
+  BookOpen,
+  Coins,
+  BarChart3,
+  Home,
+} from "lucide-react";
 import WalletButton from "./WalletButton";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useChainNetwork } from "@/hooks/useChainNetwork";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useViewContext } from "@/hooks/useViewContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavigationProps {
   className?: string;
+  variant?: "default" | "materialize";
+  materializeColor?:
+    | "blue"
+    | "teal"
+    | "green"
+    | "orange"
+    | "red"
+    | "cyan"
+    | "grey lighten-4"
+    | "grey darken-4";
+  materializeBrand?: string;
+  materializeTransparent?: boolean;
+  materializeExtended?: boolean;
 }
 
 export const Navigation = ({
   className = "",
+  variant = "default",
+  materializeColor = "blue",
+  materializeBrand = "Trade Glance",
+  materializeTransparent = false,
+  materializeExtended = false,
 }: NavigationProps): JSX.Element => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentChainId, isSupported } = useChainMonitor();
@@ -59,38 +94,249 @@ export const Navigation = ({
     closeMobileMenu();
   }, []);
 
+  // Handle Materialize variant
+  if (variant === "materialize") {
+    const navbarClasses = ["navbar-fixed"];
+    if (materializeTransparent) navbarClasses.push("transparent");
+    if (materializeExtended) navbarClasses.push("extended");
+    if (materializeColor) navbarClasses.push(materializeColor);
+
+    return (
+      <>
+        <nav className={navbarClasses.join(" ")}>
+          <section className="nav-wrapper">
+            <header className="container">
+              {/* Brand/Logo */}
+              <a href="#" className="brand-logo">
+                {materializeBrand}
+              </a>
+
+              {/* Desktop Navigation */}
+              <ul className="right hide-on-med-and-down">
+                <li>
+                  <Link
+                    to="/trading?view=pro"
+                    className={
+                      isOnTradingPage && viewMode === "pro" ? "active" : ""
+                    }
+                  >
+                    Pro
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/trading?view=simple"
+                    className={
+                      isOnTradingPage && viewMode === "simple" ? "active" : ""
+                    }
+                  >
+                    Simple
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/docs" className={isOnDocsPage ? "active" : ""}>
+                    Docs
+                  </Link>
+                </li>
+              </ul>
+
+              {/* Mobile Menu Button */}
+              <a
+                href="#"
+                data-target="mobile-nav"
+                className="sidenav-trigger right"
+              >
+                <i className="material-icons">menu</i>
+              </a>
+
+              {/* Right side items */}
+              <section className="right hide-on-med-and-down">
+                {currentChainId && (
+                  <span
+                    className={`chip ${isSupported ? "green" : "red"} white-text`}
+                  >
+                    {isSupported ? "✅" : "❌"}{" "}
+                    {getChainNetwork(currentChainId) || currentChainId}
+                  </span>
+                )}
+                <WalletButton />
+              </section>
+            </header>
+          </section>
+
+          {/* Extended navbar content */}
+          {materializeExtended && (
+            <section className="nav-content">
+              <header className="container">
+                {/* Additional content can go here */}
+              </header>
+            </section>
+          )}
+        </nav>
+
+        {/* Mobile Navigation Sidenav */}
+        <ul className="sidenav" id="mobile-nav">
+          <li>
+            <Link to="/" onClick={closeMobileMenu}>
+              <Button variant="materializeFlat" fullWidth>
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          </li>
+          <li>
+            <Link to="/docs" onClick={closeMobileMenu}>
+              <Button variant="materializeFlat" fullWidth>
+                Docs
+              </Button>
+            </Link>
+          </li>
+          <li>
+            <Link to="/mint" onClick={closeMobileMenu}>
+              <Button variant="materializeFlat" fullWidth>
+                Mint Test Tokens
+              </Button>
+            </Link>
+          </li>
+          <li>
+            <Link to="/config" onClick={closeMobileMenu}>
+              <Button variant="materializeFlat" fullWidth>
+                Config
+              </Button>
+            </Link>
+          </li>
+        </ul>
+      </>
+    );
+  }
+
+  // Default behavior for existing variant
   return (
     <nav className={`flex justify-between items-center ${className}`}>
       {/* Desktop Navigation */}
       <section className="hidden md:flex gap-6">
         <Link
-          to="/trading?view=pro"
-          className={`text-lg font-medium transition-colors ${
-            isOnTradingPage && viewMode === "pro"
-              ? "text-blue-600"
-              : "text-gray-900 hover:text-blue-600"
+          to="/"
+          className={`text-lg font-semibold transition-all duration-300 transform hover:scale-110 flex items-center gap-2 ${
+            location.pathname === "/"
+              ? "tab-active-blue animate-pulse-glow"
+              : "text-gray-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600"
           }`}
         >
-          Pro
+          <Home className="h-5 w-5" />
+          Home
         </Link>
-        <Link
-          to="/trading?view=simple"
-          className={`text-lg font-medium transition-colors ${
-            isOnTradingPage && viewMode === "simple"
-              ? "text-blue-600"
-              : "text-gray-900 hover:text-blue-600"
-          }`}
-        >
-          Simple
-        </Link>
-        <Link
-          to="/docs"
-          className={`text-lg font-medium transition-colors ${
-            isOnDocsPage ? "text-blue-600" : "text-gray-900 hover:text-blue-600"
-          }`}
-        >
-          Docs
-        </Link>
+
+        {/* Enhanced Trading Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="text-lg font-semibold text-gray-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
+            >
+              Trading
+              <ChevronDown className="ml-1 h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-all duration-300 group-data-[state=open]:rotate-180" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="w-56 card-gradient-purple border-2 border-purple-200 shadow-2xl rounded-xl p-2"
+          >
+            <DropdownMenuLabel className="text-purple-800 font-semibold text-center py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
+              🚀 Trading Interfaces
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-gradient-to-r from-purple-200 to-pink-200" />
+            <DropdownMenuItem
+              asChild
+              className="rounded-lg hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 transition-all duration-200 cursor-pointer group"
+            >
+              <Link
+                to="/trading?view=pro"
+                className="flex items-center gap-3 p-2 w-full"
+              >
+                <BarChart3 className="h-5 w-5 text-purple-500 group-hover:text-purple-600 transition-colors duration-200" />
+                <span className="font-medium">Pro Trading</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="rounded-lg hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 transition-all duration-200 cursor-pointer group"
+            >
+              <Link
+                to="/trading?view=simple"
+                className="flex items-center gap-3 p-2 w-full"
+              >
+                <BarChart3 className="h-5 w-5 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
+                <span className="font-medium">Simple Trading</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-gradient-to-r from-purple-200 to-pink-200" />
+            <DropdownMenuItem
+              asChild
+              className="rounded-lg hover:bg-gradient-to-r hover:from-orange-100 hover:to-red-100 transition-all duration-200 cursor-pointer group"
+            >
+              <Link to="/mint" className="flex items-center gap-3 p-2 w-full">
+                <Coins className="h-5 w-5 text-orange-500 group-hover:text-orange-600 transition-colors duration-200" />
+                <span className="font-medium">Mint Test Tokens</span>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Resources Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="text-lg font-semibold text-gray-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:via-blue-600 hover:to-cyan-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
+            >
+              Resources
+              <ChevronDown className="ml-1 h-4 w-4 text-indigo-500 group-hover:text-indigo-600 transition-all duration-300 group-data-[state=open]:rotate-180" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="w-56 card-gradient-blue border-2 border-indigo-200 shadow-2xl rounded-xl p-2"
+          >
+            <DropdownMenuLabel className="text-indigo-800 font-semibold text-center py-2 bg-gradient-to-r from-indigo-100 to-blue-100 rounded-lg">
+              📚 Documentation & Help
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-gradient-to-r from-indigo-200 to-blue-200" />
+            <DropdownMenuItem
+              asChild
+              className="rounded-lg hover:bg-gradient-to-r hover:from-indigo-100 hover:to-blue-100 transition-all duration-200 cursor-pointer group"
+            >
+              <Link to="/docs" className="flex items-center gap-3 p-2 w-full">
+                <BookOpen className="h-5 w-5 text-indigo-500 group-hover:text-indigo-600 transition-colors duration-200" />
+                <span className="font-medium">Documentation</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="rounded-lg hover:bg-gradient-to-r hover:from-blue-100 hover:to-cyan-100 transition-all duration-200 cursor-pointer group"
+            >
+              <Link to="/config" className="flex items-center gap-3 p-2 w-full">
+                <Settings className="h-5 w-5 text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
+                <span className="font-medium">Configuration</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-gradient-to-r from-indigo-200 to-blue-200" />
+            <DropdownMenuItem
+              asChild
+              className="rounded-lg hover:bg-gradient-to-r hover:from-teal-100 hover:to-emerald-100 transition-all duration-200 cursor-pointer group"
+            >
+              <a
+                href="https://t.me/aspens_xyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2 w-full"
+              >
+                <BookOpen className="h-5 w-5 text-teal-500 group-hover:text-teal-600 transition-colors duration-200" />
+                <span className="font-medium">Support</span>
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </section>
 
       {/* Mobile Menu Button */}

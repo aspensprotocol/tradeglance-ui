@@ -7,7 +7,7 @@ import { configUtils } from "@/lib/config-utils";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { Layout } from "@/components/Layout";
-import { getEtherscanLink, shortenTxHash } from "@/lib/utils";
+import { getEtherscanLink } from "@/lib/utils";
 import type { Chain } from "@/protos/gen/arborter_config_pb";
 
 const Mint = (): JSX.Element => {
@@ -175,23 +175,19 @@ const Mint = (): JSX.Element => {
       });
 
       // Show success toast with Etherscan link
-      const etherscanLink = getEtherscanLink(hash, chainId);
-      const shortHash = shortenTxHash(hash);
-
       toast({
         title: "Mint successful",
-        description: (
-          <article>
-            <p>Successfully minted 1000 {tokenSymbol} tokens</p>
-            <a
-              href={etherscanLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline"
-            >
-              View on Explorer: {shortHash}
-            </a>
-          </article>
+        description: `Successfully minted ${mintAmount} ${tokenSymbol} on ${getChainById(chainId).name}!`,
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              window.open(getEtherscanLink(hash, chainId), "_blank")
+            }
+          >
+            View on Etherscan
+          </Button>
         ),
       });
     } catch (err: unknown) {
@@ -240,8 +236,15 @@ const Mint = (): JSX.Element => {
 
   return (
     <Layout scrollable>
-      <main className="max-w-4xl mx-auto">
-        <header className="mb-6 sm:mb-8">
+      <main className="max-w-4xl mx-auto relative">
+        {/* Floating decorative elements matching Pro view aesthetic */}
+        <section className="absolute inset-0 pointer-events-none overflow-hidden">
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg animate-pulse delay-1000"></section>
+        </section>
+
+        <header className="mb-6 sm:mb-8 relative z-10">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Test Token Minting
           </h1>
@@ -268,7 +271,7 @@ const Mint = (): JSX.Element => {
                 return (
                   <Card
                     key={`${chain.chainId}-${tokenSymbol}`}
-                    className="border-2 border-gray-200"
+                    className="border-2 border-gray-200 bg-gradient-to-br from-white via-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
@@ -326,7 +329,7 @@ const Mint = (): JSX.Element => {
                           )
                         }
                         disabled={isMinting}
-                        className="w-full"
+                        className="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                       >
                         {isMinting ? (
                           <span className="flex items-center gap-2">

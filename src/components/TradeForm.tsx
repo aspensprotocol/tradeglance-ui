@@ -33,10 +33,19 @@ const TradeForm = ({
   };
 
   return (
-    <section className="h-full bg-[#1a1c23] rounded-lg shadow-sm border border-gray-700 animate-fade-in overflow-hidden">
-      <main className="p-2 sm:p-3 md:p-4 lg:p-6 h-full flex flex-col">
+    <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-hidden relative">
+      {/* Floating decorative elements */}
+      <section className="absolute inset-0 pointer-events-none overflow-hidden">
+        <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-md animate-pulse delay-700"></section>
+      </section>
+
+      <main className="p-4 sm:p-5 md:p-6 lg:p-6 h-full flex flex-col relative z-10">
         {/* Buy/Sell Tabs - Buy always left, Sell always right */}
-        <fieldset className="flex bg-[#2a2d3a] rounded-lg p-1 mb-2 sm:mb-3 lg:mb-4">
+        <fieldset className="flex bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 rounded-xl p-1.5 mb-4 sm:mb-5 lg:mb-6 shadow-inner relative overflow-hidden">
+          {/* Subtle gradient overlay */}
+          <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/10 to-teal-400/10 pointer-events-none"></section>
+
           {/* Buy button - always left */}
           <button
             onClick={() => {
@@ -44,13 +53,16 @@ const TradeForm = ({
               onTradingSideChange?.(BaseOrQuote.QUOTE);
             }}
             className={cn(
-              "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
+              "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
               tradingState.activeTab === BaseOrQuote.QUOTE
-                ? "bg-green-500 text-white shadow-lg" // Buy (green)
-                : "text-gray-400 hover:text-white",
+                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow" // Buy (green)
+                : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
             )}
           >
-            Buy
+            {tradingState.activeTab === BaseOrQuote.QUOTE && (
+              <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-lg animate-pulse"></section>
+            )}
+            <span className="relative z-10">Buy</span>
           </button>
           {/* Sell button - always right */}
           <button
@@ -59,36 +71,47 @@ const TradeForm = ({
               onTradingSideChange?.(BaseOrQuote.BASE);
             }}
             className={cn(
-              "flex-1 py-1.5 text-xs sm:text-sm font-bold rounded-md transition-colors",
+              "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
               tradingState.activeTab === BaseOrQuote.BASE
-                ? "bg-red-500 text-white shadow-lg" // Sell (red)
-                : "text-gray-400 hover:text-white",
+                ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white shadow-lg animate-pulse-glow" // Sell (red)
+                : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
             )}
           >
-            Sell
+            {tradingState.activeTab === BaseOrQuote.BASE && (
+              <section className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-pink-400/20 rounded-lg animate-pulse"></section>
+            )}
+            <span className="relative z-10">Sell</span>
           </button>
         </fieldset>
 
         {/* Order Type Toggle */}
-        <fieldset className="mb-2 sm:mb-3 lg:mb-4">
-          <legend className="flex justify-between items-center mb-2">
-            <span className="text-xs sm:text-sm font-medium text-gray-300">
+        <fieldset className="mb-4 sm:mb-5 lg:mb-6">
+          <legend className="flex justify-between items-center mb-3">
+            <span className="text-sm sm:text-base font-semibold text-gray-700">
               Order Type
             </span>
           </legend>
-          <section className="flex bg-[#2a2d3a] rounded-lg p-1">
+          <section className="flex bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 rounded-xl p-1.5 shadow-inner relative overflow-hidden">
+            {/* Subtle gradient overlay */}
+            <section className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 pointer-events-none"></section>
+
             {(["limit", "market"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => handleOrderTypeChange(type)}
                 className={cn(
-                  "flex-1 py-1 px-2 text-xs sm:text-sm font-medium rounded-md transition-colors",
+                  "flex-1 py-2.5 px-3 text-sm sm:text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
                   tradingState.activeOrderType === type
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
-                    : "text-gray-400 hover:text-white hover:bg-gray-600",
+                    ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-md animate-pulse-glow"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
                 )}
               >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {tradingState.activeOrderType === type && (
+                  <section className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-lg animate-pulse"></section>
+                )}
+                <span className="relative z-10">
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </span>
               </button>
             ))}
           </section>
@@ -96,23 +119,25 @@ const TradeForm = ({
 
         {/* Trade Form */}
         <section className="flex-1 flex flex-col justify-between">
-          <fieldset className="flex-1 flex flex-col space-y-2 sm:space-y-2 md:space-y-3 lg:space-y-4">
+          <fieldset className="flex-1 flex flex-col space-y-3 sm:space-y-4 md:space-y-4 lg:space-y-5">
             {/* Amount Input */}
             <section>
-              <header className="flex justify-between items-center mb-1">
+              <header className="flex justify-between items-center mb-2">
                 <label
                   htmlFor="amount"
-                  className="text-xs sm:text-sm font-medium text-gray-300"
+                  className="text-sm sm:text-base font-semibold text-gray-700"
                 >
                   Order Amount
                 </label>
               </header>
-              <span className="text-xs text-gray-400">
+              <span className="text-sm text-gray-600">
                 Available:{" "}
                 {balanceLoading ? (
-                  <span className="text-blue-400">Loading...</span>
+                  <span className="text-blue-500 font-medium animate-pulse">
+                    Loading...
+                  </span>
                 ) : (
-                  <span className="text-blue-400">
+                  <span className="text-emerald-600 font-semibold">
                     {formatDecimalConsistent(availableBalance)}{" "}
                     {tradingPair?.baseSymbol || "ATOM"}
                   </span>
@@ -127,7 +152,7 @@ const TradeForm = ({
                 value={formState.amount}
                 onChange={(e) => updateAmount(e.target.value)}
                 className={cn(
-                  "w-full pl-2 pr-16 sm:pr-20 md:pr-24 lg:pr-28 xl:pr-32 py-2.5 rounded-lg bg-[#2a2d3a] border text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm transition-all",
+                  "w-full pl-3 pr-20 sm:pr-24 md:pr-28 lg:pr-32 py-3 rounded-xl bg-white border-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 text-sm transition-all duration-300 shadow-sm hover:shadow-md relative z-10",
                   ((): string => {
                     const quantity: number = parseFloat(
                       formState.amount.replace(",", "."),
@@ -139,9 +164,9 @@ const TradeForm = ({
                       !isNaN(availableBalanceNum) &&
                       quantity > availableBalanceNum
                     ) {
-                      return "border-red-500 focus:border-red-500 focus:ring-red-500";
+                      return "border-red-400 focus:border-red-500 focus:ring-red-500";
                     }
-                    return "border-gray-600 focus:border-blue-500";
+                    return "border-emerald-200 focus:border-emerald-500";
                   })(),
                 )}
                 placeholder="0,0"
@@ -151,12 +176,12 @@ const TradeForm = ({
                 Available balance: {formatDecimalConsistent(availableBalance)}{" "}
                 {tradingPair?.baseSymbol || "ATOM"}
               </span>
-              <section className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 min-w-0">
+              <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
                 <TokenImage
                   symbol={tradingPair?.baseSymbol || "ATOM"}
-                  size="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5"
+                  size="sm"
                 />
-                <span className="text-xs text-gray-400 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3.5rem] lg:max-w-[4.5rem] xl:max-w-[5rem]">
+                <span className="text-sm text-gray-600 truncate max-w-[3rem] sm:max-w-[3.5rem] md:max-w-[4rem] lg:max-w-[4.5rem] xl:max-w-[5rem] font-medium">
                   {tradingPair?.baseSymbol || "ATOM"}
                 </span>
               </section>
@@ -164,16 +189,23 @@ const TradeForm = ({
 
             {/* Percentage Buttons */}
             <section className="-mt-2">
-              <nav className="flex gap-1 sm:gap-1.5 md:gap-2">
+              <nav className="flex gap-2 sm:gap-2.5 md:gap-3">
                 {[25, 50, 75, 100].map((percentage) => (
                   <Button
                     key={percentage}
                     onClick={() => handlePercentageClick(percentage)}
                     variant="ghost"
                     size="sm"
-                    className="flex-1 py-1 text-xs text-gray-400 hover:text-white hover:bg-[#2a2d3a] rounded"
+                    className="flex-1 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-emerald-100 rounded-xl transition-all duration-300 font-medium hover:scale-105 transform bg-gradient-to-r from-slate-50 to-blue-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md animate-pulse-glow relative overflow-hidden group"
                   >
-                    {percentage}%
+                    {/* Floating sparkles */}
+                    <span className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping opacity-60"></span>
+                    <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full animate-ping opacity-60 delay-300"></span>
+
+                    {/* Glowing effect */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
+                    <span className="relative z-10">{percentage}%</span>
                   </Button>
                 ))}
               </nav>
@@ -182,8 +214,8 @@ const TradeForm = ({
             {/* Price Input (for limit orders) or Market Order Info */}
             {tradingState.activeOrderType === "limit" ? (
               <section className="-mt-2">
-                <header className="flex justify-between items-center mb-1">
-                  <span className="text-xs sm:text-sm font-medium text-gray-300">
+                <header className="flex justify-between items-center mb-2">
+                  <span className="text-sm sm:text-base font-semibold text-gray-700">
                     Price
                   </span>
                 </header>
@@ -194,15 +226,15 @@ const TradeForm = ({
                     name="price"
                     value={formState.price || ""}
                     onChange={(e) => updatePrice(e.target.value)}
-                    className="w-full pl-2 pr-12 sm:pr-16 md:pr-20 lg:pr-22 xl:pr-24 py-2.5 rounded-lg bg-[#2a2d3a] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:border-blue-500 text-sm transition-all"
+                    className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
                     placeholder="0,00"
                   />
-                  <section className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 min-w-0">
+                  <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
                     <TokenImage
                       symbol={tradingPair?.quoteSymbol || "TTK"}
-                      size="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5"
+                      size="sm"
                     />
-                    <span className="text-xs text-gray-400 truncate max-w-[1.5rem] sm:max-w-[2rem] md:max-w-[2.5rem] lg:max-w-[3.5rem] xl:max-w-[4rem]">
+                    <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
                       {tradingPair?.quoteSymbol || "TTK"}
                     </span>
                   </section>
@@ -211,13 +243,15 @@ const TradeForm = ({
             ) : (
               /* Market Order Info - maintains consistent height */
               <section className="-mt-2">
-                <header className="flex justify-between items-center mb-1">
-                  <span className="text-xs sm:text-sm font-medium text-gray-300">
+                <header className="flex justify-between items-center mb-2">
+                  <span className="text-sm sm:text-base font-semibold text-gray-700">
                     Market Order
                   </span>
                 </header>
-                <article className="p-2 sm:p-2.5 md:p-3 bg-[#2a2d3a] rounded-lg border border-gray-600">
-                  <p className="text-xs sm:text-sm text-gray-400">
+                <article className="p-3 sm:p-3.5 md:p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200 relative overflow-hidden">
+                  {/* Subtle gradient overlay */}
+                  <section className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 pointer-events-none"></section>
+                  <p className="text-sm sm:text-base text-blue-700 font-medium relative z-10">
                     Market orders execute at the best available price
                   </p>
                 </article>
@@ -227,22 +261,25 @@ const TradeForm = ({
 
           <footer className="-mt-2">
             {/* Order Summary */}
-            <section className="p-2 sm:p-2 md:p-3 bg-[#2a2d3a] rounded-lg">
-              <dl className="space-y-1 text-xs sm:text-sm">
+            <section className="p-3 sm:p-3.5 md:p-4 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+              {/* Subtle gradient overlay */}
+              <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-teal-400/5 pointer-events-none"></section>
+
+              <dl className="space-y-2 text-sm sm:text-base relative z-10">
                 <section className="flex justify-between">
-                  <dt className="text-gray-400">Order Type:</dt>
-                  <dd className="text-white capitalize">
+                  <dt className="text-gray-600 font-medium">Order Type:</dt>
+                  <dd className="text-gray-800 font-semibold capitalize">
                     {tradingState.activeOrderType}
                   </dd>
                 </section>
                 <section className="flex justify-between">
-                  <dt className="text-gray-400">Side:</dt>
+                  <dt className="text-gray-600 font-medium">Side:</dt>
                   <dd
                     className={cn(
-                      "font-medium",
+                      "font-semibold",
                       tradingState.activeTab === BaseOrQuote.BASE
-                        ? "text-red-400" // BASE = Sell (red)
-                        : "text-green-400", // QUOTE = Buy (green)
+                        ? "text-red-500" // BASE = Sell (red)
+                        : "text-emerald-500", // QUOTE = Buy (green)
                     )}
                   >
                     {tradingState.activeTab === BaseOrQuote.BASE
@@ -251,23 +288,23 @@ const TradeForm = ({
                   </dd>
                 </section>
                 <section className="flex justify-between">
-                  <dt className="text-gray-400">Amount:</dt>
-                  <dd className="text-white">
+                  <dt className="text-gray-600 font-medium">Amount:</dt>
+                  <dd className="text-gray-800 font-semibold">
                     {formState.amount || "0"}{" "}
                     {tradingPair?.baseSymbol || "ATOM"}
                   </dd>
                 </section>
                 {tradingState.activeOrderType === "limit" && formState.price ? (
                   <section className="flex justify-between">
-                    <dt className="text-gray-400">Price:</dt>
-                    <dd className="text-white">
+                    <dt className="text-gray-600 font-medium">Price:</dt>
+                    <dd className="text-gray-800 font-semibold">
                       {formState.price} {tradingPair?.quoteSymbol || "TTK"}
                     </dd>
                   </section>
                 ) : tradingState.activeOrderType === "market" ? (
                   <section className="flex justify-between">
-                    <dt className="text-gray-400">Price:</dt>
-                    <dd className="text-gray-500">Market Price</dd>
+                    <dt className="text-gray-600 font-medium">Price:</dt>
+                    <dd className="text-gray-500 font-medium">Market Price</dd>
                   </section>
                 ) : null}
               </dl>
@@ -283,19 +320,29 @@ const TradeForm = ({
                 formState.isSubmitting
               }
               className={cn(
-                "w-full py-2 rounded-lg text-sm font-medium transition-colors mt-4",
+                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-4 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
                 tradingState.activeTab === BaseOrQuote.BASE
-                  ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
-                  : "bg-gradient-to-r from-[#00b8a9] to-[#00a8b9] hover:from-[#00a8b9] hover:to-[#00a8b9] text-white",
+                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 hover:from-red-600 hover:via-pink-600 hover:to-rose-600 text-white"
+                  : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white",
               )}
             >
+              {/* Floating sparkles */}
+              <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+              <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+              <span className="absolute -bottom-1 -left-1 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-75 delay-700"></span>
+
+              {/* Glowing effect */}
+              <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
               {formState.isSubmitting ? (
-                <span className="flex items-center gap-1 sm:gap-2">
-                  <span className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></span>
-                  <span className="text-xs sm:text-sm">Processing...</span>
+                <span className="flex items-center gap-2 sm:gap-3 relative z-10">
+                  <span className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></span>
+                  <span className="text-sm sm:text-base">Processing...</span>
                 </span>
               ) : (
-                `${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${tradingPair?.baseSymbol || "ATOM"}`
+                <span className="relative z-10">
+                  {`${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${tradingPair?.baseSymbol || "ATOM"}`}
+                </span>
               )}
             </Button>
           </footer>

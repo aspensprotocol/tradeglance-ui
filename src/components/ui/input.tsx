@@ -1,19 +1,89 @@
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  variant?: "default" | "materialize";
+  inputSize?: "default" | "sm" | "lg"; // Renamed from 'size'
+  error?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    {
+      className,
+      type,
+      variant = "default",
+      inputSize = "default",
+      error = false,
+      leftIcon,
+      rightIcon,
+      ...props
+    },
+    ref,
+  ) => {
+    // Materialize variant
+    if (variant === "materialize") {
+      return (
+        <section className="relative">
+          {leftIcon && (
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              {leftIcon}
+            </span>
+          )}
+          <input
+            type={type}
+            className={cn(
+              "block w-full rounded-xl border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500",
+              leftIcon && "pl-10",
+              rightIcon && "pr-10",
+              error && "border-red-500 focus:border-red-500 focus:ring-red-500",
+              inputSize === "sm" && "p-2 text-sm",
+              inputSize === "lg" && "p-3 text-base",
+              className,
+            )}
+            ref={ref}
+            {...props}
+          />
+          {rightIcon && (
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              {rightIcon}
+            </span>
+          )}
+        </section>
+      );
+    }
+
+    // Default shadcn variant
     return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className,
+      <section className="relative">
+        {leftIcon && (
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            {leftIcon}
+          </span>
         )}
-        ref={ref}
-        {...props}
-      />
+        <input
+          type={type}
+          className={cn(
+            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            leftIcon && "pl-10",
+            rightIcon && "pr-10",
+            error && "border-destructive focus-visible:ring-destructive",
+            inputSize === "sm" && "h-8 px-2 py-1 text-sm",
+            inputSize === "lg" && "h-12 px-4 py-3 text-base",
+            className,
+          )}
+          ref={ref}
+          {...props}
+        />
+        {rightIcon && (
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            {rightIcon}
+          </span>
+        )}
+      </section>
     );
   },
 );

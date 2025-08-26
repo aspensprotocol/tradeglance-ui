@@ -1,43 +1,53 @@
 import { getTokenImageUrl } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface TokenImageProps {
   symbol: string;
-  size?: string;
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  showFallback?: boolean;
 }
+
+const sizeClasses = {
+  sm: "w-6 h-6",
+  md: "w-8 h-8",
+  lg: "w-12 h-12",
+  xl: "w-16 h-16",
+};
 
 export function TokenImage({
   symbol,
-  size = "w-6 h-6",
+  size = "md",
   className = "",
+  showFallback = true,
 }: TokenImageProps): JSX.Element {
   const imageUrl = getTokenImageUrl(symbol);
+  const sizeClass = sizeClasses[size];
 
   if (imageUrl) {
     return (
-      <img
-        src={imageUrl}
-        alt={`${symbol} token`}
-        className={`${size} rounded-full object-cover ${className}`}
-        onError={(e) => {
-          // Fallback to placeholder if image fails to load
-          const target = e.target as HTMLImageElement;
-          target.style.display = "none";
-          const fallback = target.nextElementSibling as HTMLElement;
-          if (fallback) fallback.style.display = "flex";
-        }}
-      />
+      <Avatar className={cn(sizeClass, className)}>
+        <AvatarImage
+          src={imageUrl}
+          alt={`${symbol} token`}
+          className="object-cover"
+        />
+        {showFallback && (
+          <AvatarFallback className="bg-blue-500 text-white text-xs font-bold">
+            {symbol?.charAt(0)?.toUpperCase() || "?"}
+          </AvatarFallback>
+        )}
+      </Avatar>
     );
   }
 
-  // Fallback placeholder with first letter
+  // Fallback when no image URL is available
   return (
-    <span
-      className={`${size} bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 ${className}`}
-    >
-      <span className="text-white text-xs font-bold">
+    <Avatar className={cn(sizeClass, "bg-blue-500", className)}>
+      <AvatarFallback className="text-white text-xs font-bold">
         {symbol?.charAt(0)?.toUpperCase() || "?"}
-      </span>
-    </span>
+      </AvatarFallback>
+    </Avatar>
   );
 }
