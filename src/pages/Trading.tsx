@@ -1,28 +1,18 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Layout } from "@/components/Layout";
 import { useViewContext } from "@/hooks/useViewContext";
+import { Layout } from "@/components/Layout";
+import Pro from "@/pages/Index";
+import Simple from "@/pages/Simple";
 import { useTradingPairs } from "@/hooks/useTradingPairs";
-import Index from "./Index";
-import Simple from "./Simple";
 
 const Trading = (): JSX.Element => {
-  const { viewMode, setViewMode } = useViewContext();
   const [searchParams] = useSearchParams();
-
-  // Get trading pairs at the Trading component level to persist across view switches
-  const { tradingPairs, loading: pairsLoading } = useTradingPairs();
+  const { viewMode, setViewMode } = useViewContext();
+  const { tradingPairs } = useTradingPairs();
 
   // Set default selected pair to first available pair, or empty string if none available
   const [selectedPair, setSelectedPair] = useState<string>("");
-
-  // Handle URL query parameters for view mode
-  useEffect(() => {
-    const viewParam = searchParams.get("view");
-    if (viewParam === "pro" || viewParam === "simple") {
-      setViewMode(viewParam);
-    }
-  }, [searchParams, setViewMode]);
 
   // Update selected pair when trading pairs load
   useEffect(() => {
@@ -36,35 +26,43 @@ const Trading = (): JSX.Element => {
     (pair) => pair.id === selectedPair,
   );
 
+  // Determine view mode from URL params or context
+  const currentViewMode = searchParams.get("view") || viewMode;
+
+  // Update context if URL param is different
+  useEffect(() => {
+    if (currentViewMode !== viewMode) {
+      setViewMode(currentViewMode as "pro" | "simple");
+    }
+  }, [currentViewMode, viewMode, setViewMode]);
+
   return (
-    <Layout footerPosition="fixed">
-      {/* Keep both components mounted to preserve orderbook cache */}
-      <main className="h-full">
-        {/* Pro view - show/hide instead of mount/unmount */}
-        <section
-          className={`h-full ${viewMode === "pro" ? "block" : "hidden"}`}
-        >
-          <Index
+    <Layout>
+      <main className="flex-1 overflow-hidden relative">
+        {/* Floating decorative elements for extra eye candy */}
+        <section className="absolute inset-0 pointer-events-none overflow-hidden">
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-lg blur-lg animate-pulse delay-1000"></section>
+        </section>
+
+        {currentViewMode === "pro" ? (
+          <Pro
             selectedPair={selectedPair}
             setSelectedPair={setSelectedPair}
             currentTradingPair={currentTradingPair}
             tradingPairs={tradingPairs}
-            pairsLoading={pairsLoading}
+            pairsLoading={false}
           />
-        </section>
-
-        {/* Simple view - show/hide instead of mount/unmount */}
-        <section
-          className={`h-full ${viewMode === "simple" ? "block" : "hidden"}`}
-        >
+        ) : (
           <Simple
             selectedPair={selectedPair}
             setSelectedPair={setSelectedPair}
             currentTradingPair={currentTradingPair}
             tradingPairs={tradingPairs}
-            pairsLoading={pairsLoading}
+            pairsLoading={false}
           />
-        </section>
+        )}
       </main>
     </Layout>
   );

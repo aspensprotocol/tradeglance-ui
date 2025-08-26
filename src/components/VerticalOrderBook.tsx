@@ -5,24 +5,84 @@ import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import type { VerticalOrderBookProps } from "../lib/shared-types";
 import { useAccount } from "wagmi";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChevronDown, TrendingUp, Coins } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(
-  ({ entry, isAsk }: { entry: OrderbookEntry; isAsk: boolean }) => {
+  ({
+    entry,
+    isAsk,
+    cumulativeVolume,
+    maxVolume,
+  }: {
+    entry: OrderbookEntry;
+    isAsk: boolean;
+    cumulativeVolume: number;
+    maxVolume: number;
+  }) => {
+    // Calculate the width percentage for the volume bar
+    const volumePercentage =
+      maxVolume > 0 ? (cumulativeVolume / maxVolume) * 100 : 0;
+
     return (
-      <article className="grid grid-cols-3 text-xs sm:text-sm gap-x-2 sm:gap-x-4 py-1 sm:py-0.5 hover:bg-gray-50 cursor-pointer">
+      <article className="grid grid-cols-3 text-xs sm:text-sm gap-x-2 sm:gap-x-4 py-2 sm:py-1.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-lg px-2 relative group">
+        {/* Volume bar background */}
+        <section
+          className={`absolute inset-0 rounded-lg transition-all duration-300 ${
+            isAsk
+              ? "bg-gradient-to-r from-red-500/20 to-red-400/20 shadow-sm shadow-red-400/20"
+              : "bg-gradient-to-r from-emerald-500/20 to-emerald-400/20 shadow-sm shadow-emerald-400/20"
+          }`}
+          style={{
+            width: `${volumePercentage}%`,
+            right: isAsk ? "auto" : "0",
+            left: isAsk ? "0" : "auto",
+          }}
+        />
+
+        {/* Volume bar border for better definition */}
+        <section
+          className={`absolute inset-0 rounded-lg border-r-2 transition-all duration-300 ${
+            isAsk ? "border-red-400/30" : "border-emerald-400/30"
+          }`}
+          style={{
+            width: `${volumePercentage}%`,
+            right: isAsk ? "auto" : "0",
+            left: isAsk ? "0" : "auto",
+          }}
+        />
+
+        {/* Subtle hover effect overlay */}
+        <section className="absolute inset-0 bg-gradient-to-r from-purple-400/5 to-pink-400/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></section>
+
         <span
-          className={`font-mono text-xs sm:text-sm ${isAsk ? "text-red-500" : "text-green-500"}`}
+          className={`font-mono text-xs sm:text-sm font-semibold relative z-10 ${isAsk ? "text-red-500" : "text-emerald-500"}`}
         >
           {formatDecimalConsistent(entry.price)}
         </span>
-        <span className="text-right text-gray-700 text-xs sm:text-sm">
+        <span className="text-right text-gray-700 text-xs sm:text-sm font-medium relative z-10">
           {formatDecimalConsistent(entry.quantity)}
         </span>
-        <span className="text-right text-gray-700 text-xs sm:text-sm">
+        <span className="text-right text-gray-700 text-xs sm:text-sm font-medium relative z-10">
           {formatDecimalConsistent(
             Number(entry.price) * Number(entry.quantity),
           )}
+          {/* Volume indicator */}
+          <span
+            className={`ml-2 text-xs opacity-60 ${
+              isAsk ? "text-red-500" : "text-emerald-500"
+            }`}
+          >
+            ({formatDecimalConsistent(cumulativeVolume)})
+          </span>
         </span>
       </article>
     );
@@ -60,49 +120,97 @@ const VerticalOrderBook = React.memo(
       spreadPercentage: 0,
     };
 
-    // Create trading pair options
-    const tradingPairOptions = tradingPairs.map((pair: TradingPair) => (
-      <option key={pair.id} value={pair.id}>
-        {pair.displayName}
-      </option>
-    ));
+    // Calculate cumulative volumes for volume bars
+    const calculateCumulativeVolumes = (
+      orders: OrderbookEntry[],
+      isAsk: boolean,
+    ) => {
+      const volumes: number[] = [];
+      let cumulative = 0;
+
+      // For asks, we go from lowest to highest price (ascending)
+      // For bids, we go from highest to lowest price (descending)
+      const sortedOrders = isAsk
+        ? [...orders].sort((a, b) => Number(a.price) - Number(b.price))
+        : [...orders].sort((a, b) => Number(b.price) - Number(a.price));
+
+      sortedOrders.forEach((order) => {
+        const volume = Number(order.price) * Number(order.quantity);
+        cumulative += volume;
+        volumes.push(cumulative);
+      });
+
+      return volumes;
+    };
+
+    const askVolumes = calculateCumulativeVolumes(asks, true);
+    const bidVolumes = calculateCumulativeVolumes(bids, false);
+
+    // Find the maximum volume for scaling
+    const maxVolume = Math.max(
+      ...askVolumes,
+      ...bidVolumes,
+      1, // Prevent division by zero
+    );
 
     // Create header component
     const headerComponent = (
-      <header className="p-4 border-b">
-        <nav className="flex items-center justify-between">
-          <select
-            value={selectedPair}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              onPairChange(e.target.value)
-            }
-            className="px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-neutral text-sm bg-white"
-          >
-            <option value="">Select a trading pair</option>
-            {tradingPairOptions}
-          </select>
-          <nav className="flex items-center gap-2">
+      <header className="p-4 border-b border-purple-200 header-purple relative overflow-hidden">
+        {/* Subtle gradient overlay */}
+        <section className="overlay-purple"></section>
+
+        <nav className="flex items-center justify-between relative z-10">
+          <Select value={selectedPair} onValueChange={onPairChange}>
+            <SelectTrigger className="w-48 px-4 py-3 rounded-xl border-2 border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-gradient-to-r from-white via-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
+                <SelectValue placeholder="Select trading pair" />
+              </div>
+              <ChevronDown className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-transform duration-300 group-data-[state=open]:rotate-180" />
+            </SelectTrigger>
+            <SelectContent className="bg-gradient-to-br from-white via-purple-50 to-pink-50 border-2 border-purple-200 shadow-2xl rounded-xl">
+              {tradingPairs.map((pair: TradingPair) => (
+                <SelectItem
+                  key={pair.id}
+                  value={pair.id}
+                  className="hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 cursor-pointer transition-all duration-200"
+                >
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-purple-500" />
+                    {pair.displayName}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <nav className="flex items-center gap-3">
             {/* Mine filter toggle */}
             {address && (
               <button
                 onClick={() => setShowOnlyMine(!showOnlyMine)}
-                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                className={cn(
+                  "filter-toggle-base",
                   showOnlyMine
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
+                    ? "filter-toggle-active-purple"
+                    : "bg-white text-gray-700 border-purple-200 hover:bg-purple-50 hover:border-purple-300",
+                )}
                 title={showOnlyMine ? "Show all orders" : "Show only my orders"}
               >
-                {showOnlyMine ? "Mine" : "All"}
+                {showOnlyMine && (
+                  <section className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></section>
+                )}
+                <span className="relative z-10">
+                  {showOnlyMine ? "Mine" : "All"}
+                </span>
               </button>
             )}
             <button
               onClick={() => refresh()}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2.5 text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 transform"
               title="Refresh orderbook"
             >
               <svg
-                className="w-4 h-4"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -125,13 +233,13 @@ const VerticalOrderBook = React.memo(
       // Show loading state until we have actual data
       if (initialLoading) {
         return (
-          <section className="p-4 h-full flex items-center justify-center">
+          <section className="p-6 h-full flex items-center justify-center">
             <article className="text-center">
-              <span className="text-gray-500">
-                <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></span>
-                Loading orderbook...
+              <span className="text-gray-600">
+                <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-3"></span>
+                <p className="text-sm font-medium">Loading orderbook...</p>
                 {showOnlyMine && (
-                  <span className="text-sm text-blue-600 mt-1 block">
+                  <span className="text-sm text-purple-600 mt-2 block font-medium">
                     Filtering by your orders
                   </span>
                 )}
@@ -144,8 +252,8 @@ const VerticalOrderBook = React.memo(
       // Show error state
       if (error) {
         return (
-          <section className="p-4 h-full flex items-center justify-center">
-            <span className="text-red-500">
+          <section className="p-6 h-full flex items-center justify-center">
+            <span className="text-red-500 font-medium">
               Error loading orderbook: {error}
             </span>
           </section>
@@ -155,14 +263,16 @@ const VerticalOrderBook = React.memo(
       // Show no data state only when we're not loading and have no data
       if (!orderbook || (asks.length === 0 && bids.length === 0)) {
         return (
-          <section className="p-4 h-full flex items-center justify-center">
+          <section className="p-6 h-full flex items-center justify-center">
             <article className="text-center">
               <span className="text-gray-500">
-                <span className="text-lg mb-2">📊</span>
-                {showOnlyMine
-                  ? "No orders found for your wallet"
-                  : "No orderbook data available"}
-                <span className="text-sm mt-1">
+                <span className="text-2xl mb-3 block">📊</span>
+                <p className="font-medium mb-2">
+                  {showOnlyMine
+                    ? "No orders found for your wallet"
+                    : "No orderbook data available"}
+                </p>
+                <span className="text-sm text-gray-400">
                   {showOnlyMine
                     ? "You may not have any active orders in this market"
                     : "This market may not have active orders yet"}
@@ -176,7 +286,9 @@ const VerticalOrderBook = React.memo(
       // Additional validation to ensure we have proper data
       if (!Array.isArray(asks) || !Array.isArray(bids)) {
         return (
-          <span className="text-red-500">Invalid orderbook data format</span>
+          <span className="text-red-500 font-medium">
+            Invalid orderbook data format
+          </span>
         );
       }
 
@@ -184,34 +296,44 @@ const VerticalOrderBook = React.memo(
       return (
         <>
           {/* Header */}
-          <header className="grid grid-cols-3 text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 gap-x-2 sm:gap-x-4 font-medium">
-            <span className="text-left">Price</span>
-            <span className="text-right">
+          <header className="grid grid-cols-3 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 gap-x-2 sm:gap-x-4 font-semibold px-3 py-2 bg-gradient-to-r from-gray-50 via-purple-50 to-pink-50 rounded-lg relative overflow-hidden">
+            {/* Subtle gradient overlay */}
+            <section className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-pink-400/10 pointer-events-none"></section>
+
+            <span className="text-left relative z-10">Price</span>
+            <span className="text-right relative z-10">
               Amount ({tradingPair?.baseSymbol || "TOKEN"})
             </span>
-            <span className="text-right">
+            <span className="text-right relative z-10">
               Total ({tradingPair?.quoteSymbol || "TOKEN"})
             </span>
           </header>
 
           {/* Asks (Sell orders) - Red */}
-          <section className="space-y-1">
+          <section className="space-y-1 mb-4">
             {asks.map((ask, i: number) => (
               <OrderbookRow
                 key={`ask-${i}-${ask.orderId}`}
                 entry={ask}
                 isAsk={true}
+                cumulativeVolume={askVolumes[i] || 0}
+                maxVolume={maxVolume}
               />
             ))}
           </section>
 
           {/* Spread */}
-          <article className="flex items-center justify-center py-2 sm:py-3 my-2 sm:my-3 bg-gray-50 rounded text-xs sm:text-sm">
-            <span className="text-gray-600 mr-1 sm:mr-2">Spread:</span>
-            <span className="text-gray-700 font-mono text-xs sm:text-sm">
+          <article className="flex items-center justify-center py-3 sm:py-4 my-3 sm:my-4 bg-gradient-to-r from-gray-100 via-purple-100 to-pink-100 rounded-xl text-xs sm:text-sm border border-purple-200 relative overflow-hidden">
+            {/* Subtle gradient overlay */}
+            <section className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-pink-400/10 pointer-events-none"></section>
+
+            <span className="text-gray-600 mr-2 font-medium relative z-10">
+              Spread:
+            </span>
+            <span className="text-gray-800 font-mono text-xs sm:text-sm font-semibold relative z-10">
               {formatDecimalConsistent(spread)}
             </span>
-            <span className="text-gray-600 ml-1 sm:ml-2 text-xs sm:text-sm">
+            <span className="text-gray-600 ml-2 text-xs sm:text-sm font-medium relative z-10">
               ({formatDecimalConsistent(spreadPercentage)}%)
             </span>
           </article>
@@ -223,6 +345,8 @@ const VerticalOrderBook = React.memo(
                 key={`bid-${i}-${bid.orderId}`}
                 entry={bid}
                 isAsk={false}
+                cumulativeVolume={bidVolumes[i] || 0}
+                maxVolume={maxVolume}
               />
             ))}
           </section>
@@ -232,9 +356,15 @@ const VerticalOrderBook = React.memo(
 
     // Always return the component - no early returns to violate Rules of Hooks
     return (
-      <main className="h-full bg-white rounded-lg shadow-sm border overflow-hidden flex flex-col">
+      <main className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 overflow-hidden flex flex-col relative">
+        {/* Floating decorative elements */}
+        <section className="absolute inset-0 pointer-events-none overflow-hidden">
+          <section className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-md animate-pulse delay-500"></section>
+          <section className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-indigo-300/20 to-purple-300/20 rounded-full blur-md animate-pulse delay-1000"></section>
+        </section>
+
         {headerComponent}
-        <section className="p-2 sm:p-3 lg:p-4 flex-1 overflow-auto">
+        <section className="p-3 sm:p-4 lg:p-5 flex-1 overflow-auto relative z-10">
           {orderbookContent}
         </section>
       </main>

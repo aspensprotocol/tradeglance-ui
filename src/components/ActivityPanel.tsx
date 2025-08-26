@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useRecentTrades } from "@/hooks/useRecentTrades";
 import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
@@ -13,6 +13,7 @@ import DepositWithdrawModal from "./DepositWithdrawModal";
 import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
 import { Side } from "@/protos/gen/arborter_pb";
 import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface ActivityPanelProps {
   tradingPair?: TradingPair;
@@ -26,6 +27,12 @@ const ActivityPanel = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
   const [showMineOnly, setShowMineOnly] = useState(false);
+
+  // Sorting state
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null,
+  );
 
   // Use tab optimization to prevent unnecessary reloads
   const { activeTab, switchTab } = useTabOptimization<
@@ -70,6 +77,67 @@ const ActivityPanel = ({
   // No need for client-side filtering since we're using API-level filtering
   const orders = openOrders;
 
+  // Sort data based on current sort state
+  const sortedTrades = useMemo(() => {
+    if (!sortField || !sortDirection) return trades;
+
+    return [...trades].sort((a, b) => {
+      let aValue: number, bValue: number;
+
+      switch (sortField) {
+        case "price":
+          aValue = a.price || 0;
+          bValue = b.price || 0;
+          break;
+        case "quantity":
+          aValue = a.quantity || 0;
+          bValue = b.quantity || 0;
+          break;
+        case "time":
+          aValue = a.timestamp.getTime();
+          bValue = b.timestamp.getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortDirection === "asc") {
+        return aValue - bValue;
+      }
+      return bValue - aValue;
+    });
+  }, [trades, sortField, sortDirection]);
+
+  const sortedOrders = useMemo(() => {
+    if (!sortField || !sortDirection) return orders;
+
+    return [...orders].sort((a, b) => {
+      let aValue: number, bValue: number;
+
+      switch (sortField) {
+        case "price":
+          aValue = parseFloat(a.price || "0");
+          bValue = parseFloat(b.price || "0");
+          break;
+        case "quantity":
+          aValue = parseFloat(a.quantity || "0");
+          bValue = parseFloat(b.quantity || "0");
+          break;
+        case "time":
+          aValue = Number(a.timestamp);
+          bValue = Number(b.timestamp);
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortDirection === "asc") {
+        return aValue - bValue;
+      }
+      return bValue - aValue;
+    });
+  }, [orders, sortField, sortDirection]);
+
   // Get trading balances for the current trading pair (using useUnifiedBalance instead)
 
   // Get wallet token balance (balanceOf)
@@ -89,6 +157,28 @@ const ActivityPanel = ({
   };
 
   // Remove unused handleTabChange function since we're using switchTab directly
+
+  // Sorting helper functions
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) return null;
+    if (sortDirection === "asc") return <ChevronUp className="h-3 w-3" />;
+    if (sortDirection === "desc") return <ChevronDown className="h-3 w-3" />;
+    return null;
+  };
 
   const formatTime = (timestamp: Date) => {
     // Force CET timezone for display
@@ -110,49 +200,76 @@ const ActivityPanel = ({
   };
 
   return (
-    <main className="h-full bg-white rounded-lg shadow-sm border animate-fade-in overflow-hidden">
-      <section className="p-2 sm:p-3 lg:p-4 h-full flex flex-col min-w-0">
-        <nav className="flex border-b mb-3 sm:mb-4 overflow-x-auto">
+    <main className="h-full bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 rounded-2xl shadow-xl border-2 border-blue-200/50 animate-fade-in overflow-hidden relative">
+      {/* Floating decorative elements */}
+      <section className="absolute inset-0 pointer-events-none overflow-hidden">
+        <section className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-4 right-4 w-6 h-6 bg-gradient-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-md animate-pulse delay-700"></section>
+      </section>
+
+      <section className="p-3 sm:p-4 lg:p-5 h-full flex flex-col min-w-0 relative z-10">
+        <nav className="flex bg-gradient-to-r from-slate-100/50 to-blue-100/50 rounded-xl p-1 mb-4 overflow-x-auto border border-blue-200/30 shadow-lg">
           <button
             onClick={() => switchTab("trades")}
             className={cn(
-              "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
+              "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
               activeTab === "trades"
-                ? "text-neutral-dark"
-                : "text-neutral hover:text-neutral-dark",
+                ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
+                : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 hover:shadow-md transform hover:scale-105",
             )}
           >
+            {/* Floating sparkles for active tab */}
+            {activeTab === "trades" && (
+              <>
+                <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+              </>
+            )}
             <span className="hidden sm:inline">Recent </span>Trades
             {activeTab === "trades" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
+              <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl blur-sm"></span>
             )}
           </button>
           <button
             onClick={() => switchTab("orders")}
             className={cn(
-              "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
+              "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
               activeTab === "orders"
-                ? "text-neutral-dark"
-                : "text-neutral hover:text-neutral-dark",
+                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
+                : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-emerald-100 hover:via-teal-100 hover:to-cyan-100 hover:shadow-md transform hover:scale-105",
             )}
           >
+            {/* Floating sparkles for active tab */}
+            {activeTab === "orders" && (
+              <>
+                <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+              </>
+            )}
             <span className="hidden sm:inline">Open </span>Orders
             {activeTab === "orders" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
+              <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-xl blur-sm"></span>
             )}
           </button>
           <button
             onClick={() => switchTab("balances")}
             className={cn(
-              "flex-1 pb-2 sm:pb-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap min-w-0 px-1 sm:px-2",
+              "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
               activeTab === "balances"
-                ? "text-neutral-dark"
-                : "text-neutral hover:text-neutral-dark",
+                ? "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
+                : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-purple-100 hover:via-pink-100 hover:to-rose-100 hover:shadow-md transform hover:scale-105",
             )}
           >
+            {/* Floating sparkles for active tab */}
+            {activeTab === "balances" && (
+              <>
+                <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+              </>
+            )}
             Balances
             {activeTab === "balances" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-neutral-dark" />
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-rose-400/20 rounded-xl blur-sm"></span>
             )}
           </button>
         </nav>
@@ -164,42 +281,82 @@ const ActivityPanel = ({
               className="space-y-2 min-w-0"
             >
               {/* Filter toggle */}
-              <header className="flex justify-end mb-2">
-                <nav className="flex bg-gray-100 rounded-lg p-1">
+              <header className="flex justify-end mb-3">
+                <nav className="flex bg-gradient-to-r from-slate-100/50 to-blue-100/50 rounded-xl p-1 border border-blue-200/30 shadow-lg">
                   <button
                     onClick={() => setShowMineOnly(false)}
                     className={cn(
-                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      "px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
                       !showMineOnly
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900",
+                        ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl animate-pulse-glow"
+                        : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 hover:shadow-md",
                     )}
                   >
-                    All
+                    {/* Floating sparkles for active state */}
+                    {!showMineOnly && (
+                      <>
+                        <span className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                        <span className="absolute -top-1 -right-1 w-1 h-1 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+                      </>
+                    )}
+
+                    {/* Glowing effect */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
+                    <span className="relative z-10">All</span>
                   </button>
                   <button
                     onClick={() => setShowMineOnly(true)}
                     className={cn(
-                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      "px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
                       showMineOnly
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900",
+                        ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl animate-pulse-glow"
+                        : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-emerald-100 hover:via-teal-100 hover:to-cyan-100 hover:shadow-md",
                     )}
                   >
-                    Mine
+                    {/* Floating sparkles for active state */}
+                    {showMineOnly && (
+                      <>
+                        <span className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                        <span className="absolute -top-1 -right-1 w-1 h-1 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+                      </>
+                    )}
+
+                    {/* Glowing effect */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
+                    <span className="relative z-10">Mine</span>
                   </button>
                 </nav>
               </header>
 
               {/* Header row */}
               <header className="grid grid-cols-4 sm:grid-cols-5 text-xs text-gray-500 py-2 border-b gap-1 sm:gap-2">
-                <span className="text-right truncate">Price</span>
-                <span className="text-right truncate">Amount</span>
+                <button
+                  onClick={() => handleSort("price")}
+                  className="text-right truncate hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
+                >
+                  💰 Price
+                  {getSortIcon("price")}
+                </button>
+                <button
+                  onClick={() => handleSort("quantity")}
+                  className="text-right truncate hover:text-emerald-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
+                >
+                  📊 Amount
+                  {getSortIcon("quantity")}
+                </button>
                 <span className="text-right truncate hidden sm:block">
-                  Maker
+                  👤 Maker
                 </span>
-                <span className="text-right truncate">Taker</span>
-                <span className="text-right truncate">Time</span>
+                <span className="text-right truncate">👤 Taker</span>
+                <button
+                  onClick={() => handleSort("time")}
+                  className="text-right truncate hover:text-purple-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
+                >
+                  ⏰ Time
+                  {getSortIcon("time")}
+                </button>
               </header>
 
               {tradesLoading && trades.length === 0 ? (
@@ -238,22 +395,29 @@ const ActivityPanel = ({
                   </p>
                 </article>
               ) : (
-                <section className="space-y-1">
-                  {trades.map((trade, index) => (
+                <section className="space-y-2">
+                  {sortedTrades.map((trade, index) => (
                     <article
                       key={`${trade.timestamp}-${index}`}
-                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-2 border-b border-gray-100 gap-1 sm:gap-2 hover:bg-gray-50"
+                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/30 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
                     >
-                      <span className="text-right truncate font-medium">
+                      {/* Enhanced hover effect overlay */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
+
+                      {/* Floating sparkles on hover */}
+                      <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
+                      <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
+
+                      <span className="text-right truncate font-semibold text-gray-800 relative z-10">
                         {formatDecimalConsistent(trade.price)}{" "}
                         {tradingPair?.quoteSymbol || "TTK"}
                       </span>
-                      <span className="text-right truncate">
+                      <span className="text-right truncate font-semibold text-gray-800 relative z-10">
                         {formatDecimalConsistent(trade.quantity)}{" "}
                         {tradingPair?.baseSymbol || "ATOM"}
                       </span>
                       <span
-                        className="text-right truncate text-gray-500 hidden sm:block"
+                        className="text-right truncate text-gray-600 hidden sm:block relative z-10"
                         title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}
                       >
                         M:{" "}
@@ -262,14 +426,14 @@ const ActivityPanel = ({
                           : "Unknown"}
                       </span>
                       <span
-                        className="text-right truncate text-gray-500"
+                        className="text-right truncate text-gray-600 relative z-10"
                         title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}
                       >
                         {trade.makerAddress || trade.trader
                           ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
                           : "Unknown"}
                       </span>
-                      <span className="text-right truncate text-gray-500">
+                      <span className="text-right truncate text-gray-600 font-medium relative z-10">
                         {formatTradeTime(trade.timestamp)}
                       </span>
                     </article>
@@ -312,10 +476,28 @@ const ActivityPanel = ({
 
               {/* Header row */}
               <header className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b gap-2">
-                <span className="truncate">Type</span>
-                <span className="text-right truncate">Price</span>
-                <span className="text-right truncate">Amount</span>
-                <span className="text-right truncate">Time</span>
+                <span className="truncate">🎯 Type</span>
+                <button
+                  onClick={() => handleSort("price")}
+                  className="text-right truncate hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
+                >
+                  💰 Price
+                  {getSortIcon("price")}
+                </button>
+                <button
+                  onClick={() => handleSort("quantity")}
+                  className="text-right truncate hover:text-emerald-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
+                >
+                  📊 Amount
+                  {getSortIcon("quantity")}
+                </button>
+                <button
+                  onClick={() => handleSort("time")}
+                  className="text-right truncate hover:text-purple-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
+                >
+                  ⏰ Time
+                  {getSortIcon("time")}
+                </button>
               </header>
 
               {ordersLoading && orders.length === 0 ? (
@@ -355,31 +537,37 @@ const ActivityPanel = ({
                 </article>
               ) : (
                 <section className="space-y-1">
-                  {orders.map((order: OrderbookEntry) => (
+                  {sortedOrders.map((order: OrderbookEntry) => (
                     <article
                       key={
                         order.orderId?.toString() || `order-${Math.random()}`
                       }
-                      className="grid grid-cols-4 text-sm py-2 border-b last:border-0 gap-2 min-w-0"
+                      className="grid grid-cols-4 text-sm py-3 px-3 border-b last:border-0 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/30 to-teal-50/30 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
                       style={{ minHeight: "2.5rem" }} // Prevent height changes during updates
                     >
+                      {/* Enhanced hover effect overlay */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/10 to-teal-400/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
+
+                      {/* Floating sparkles on hover */}
+                      <span className="absolute -top-1 -left-1 w-1 h-1 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
+                      <span className="absolute -top-1 -right-1 w-1 h-1 bg-teal-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
                       <span
                         className={cn(
                           order.side === Side.BID
                             ? "text-bid-dark"
                             : "text-ask-dark",
-                          "truncate font-medium",
+                          "truncate font-medium relative z-10",
                         )}
                       >
-                        {order.side === Side.BID ? "BID" : "ASK"}
+                        {order.side === Side.BID ? "🟢 BID" : "🔴 ASK"}
                       </span>
-                      <span className="text-right truncate font-mono">
+                      <span className="text-right truncate font-mono relative z-10">
                         {formatDecimalConsistent(order.price)}
                       </span>
-                      <span className="text-right truncate font-mono">
+                      <span className="text-right truncate font-mono relative z-10">
                         {formatDecimalConsistent(order.quantity)}
                       </span>
-                      <span className="text-right text-neutral truncate text-xs">
+                      <span className="text-right text-neutral truncate text-xs relative z-10">
                         {formatTime(new Date(Number(order.timestamp)))}
                       </span>
                     </article>
@@ -423,24 +611,36 @@ const ActivityPanel = ({
                   </p>
                   <button
                     onClick={handleDepositClick}
-                    className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                   >
-                    Make your first deposit
+                    {/* Floating sparkles */}
+                    <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                    <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+
+                    {/* Glowing effect */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
+                    <span className="relative z-10">
+                      💎 Make your first deposit
+                    </span>
                   </button>
                 </article>
               ) : (
                 <>
                   {/* Summary */}
-                  <article className="bg-gray-50 rounded-lg p-3">
-                    <header className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Summary
+                  <article className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-indigo-50/30 rounded-xl p-4 border border-blue-200/50 shadow-lg">
+                    <header className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-gray-800">
+                        📊 Summary
                       </span>
                       <button
                         onClick={refreshBalances}
-                        className="text-xs text-blue-600 hover:text-blue-800"
+                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                       >
-                        Refresh
+                        {/* Floating sparkle */}
+                        <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+
+                        <span className="relative z-10">🔄 Refresh</span>
                       </button>
                     </header>
                     <section className="grid grid-cols-2 gap-4 text-xs">
@@ -488,17 +688,23 @@ const ActivityPanel = ({
                         return (
                           <article
                             key={`${balance.chainId}-${balance.symbol}`}
-                            className="border rounded-lg p-3"
+                            className="bg-gradient-to-r from-white via-blue-50/20 to-indigo-50/20 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
                           >
-                            <header className="flex items-center justify-between mb-3">
+                            {/* Enhanced hover effect overlay */}
+                            <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
+
+                            {/* Floating sparkles on hover */}
+                            <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
+                            <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
+                            <header className="flex items-center justify-between mb-3 relative z-10">
                               <span className="flex items-center space-x-3">
-                                <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="w-8 h-8 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center shadow-md">
                                   <span className="text-blue-600 text-xs font-bold">
                                     {balance.symbol.charAt(0)}
                                   </span>
                                 </span>
                                 <span>
-                                  <span className="font-medium text-gray-900">
+                                  <span className="font-semibold text-gray-900">
                                     {prefixedSymbol}
                                   </span>
                                   <span className="text-xs text-gray-500">
@@ -506,18 +712,18 @@ const ActivityPanel = ({
                                   </span>
                                 </span>
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded-lg">
                                 Chain ID: {balance.chainId}
                               </span>
                             </header>
 
-                            <section className="space-y-2">
+                            <section className="space-y-2 relative z-10">
                               {parseFloat(balance.walletBalance) > 0 && (
-                                <span className="flex justify-between py-1">
-                                  <span className="text-sm text-gray-600">
-                                    Wallet Balance:
+                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-lg border border-blue-100/50">
+                                  <span className="text-sm text-gray-700 font-medium">
+                                    💼 Wallet Balance:
                                   </span>
-                                  <span className="text-sm font-medium text-gray-900">
+                                  <span className="text-sm font-semibold text-gray-900">
                                     {formatDecimalConsistent(
                                       balance.walletBalance,
                                     )}{" "}
@@ -527,11 +733,11 @@ const ActivityPanel = ({
                               )}
 
                               {parseFloat(balance.depositedBalance) > 0 && (
-                                <span className="flex justify-between py-1">
-                                  <span className="text-sm text-gray-600">
-                                    Deposited (Available):
+                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-emerald-50 to-teal-50/30 rounded-lg border border-emerald-100/50">
+                                  <span className="text-sm text-gray-700 font-medium">
+                                    💎 Deposited (Available):
                                   </span>
-                                  <span className="text-sm font-medium text-green-600">
+                                  <span className="text-sm font-semibold text-emerald-600">
                                     {formatDecimalConsistent(
                                       balance.depositedBalance,
                                     )}{" "}
@@ -541,11 +747,11 @@ const ActivityPanel = ({
                               )}
 
                               {parseFloat(balance.lockedBalance) > 0 && (
-                                <span className="flex justify-between py-1">
-                                  <span className="text-sm text-gray-600">
-                                    Locked in Orders:
+                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-orange-50 to-red-50/30 rounded-lg border border-orange-100/50">
+                                  <span className="text-sm text-gray-700 font-medium">
+                                    🔒 Locked in Orders:
                                   </span>
-                                  <span className="text-sm font-medium text-orange-600">
+                                  <span className="text-sm font-semibold text-orange-600">
                                     {formatDecimalConsistent(
                                       balance.lockedBalance,
                                     )}{" "}
@@ -561,18 +767,32 @@ const ActivityPanel = ({
                   </section>
 
                   {/* Action Buttons */}
-                  <nav className="flex space-x-2 pt-2">
+                  <nav className="flex space-x-3 pt-3">
                     <button
                       onClick={handleDepositClick}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                     >
-                      Deposit
+                      {/* Floating sparkles */}
+                      <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                      <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+
+                      {/* Glowing effect */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
+                      <span className="relative z-10">💎 Deposit</span>
                     </button>
                     <button
                       onClick={handleWithdrawClick}
-                      className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                     >
-                      Withdraw
+                      {/* Floating sparkles */}
+                      <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                      <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+
+                      {/* Glowing effect */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
+                      <span className="relative z-10">💸 Withdraw</span>
                     </button>
                   </nav>
                 </>

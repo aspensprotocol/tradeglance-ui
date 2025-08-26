@@ -8,6 +8,20 @@ interface LayoutProps {
   footerPosition?: "fixed" | "absolute";
   viewToggle?: ReactNode;
   scrollable?: boolean;
+  // Materialize navigation props
+  navigationVariant?: "default" | "materialize";
+  materializeNavColor?:
+    | "blue"
+    | "teal"
+    | "green"
+    | "orange"
+    | "red"
+    | "cyan"
+    | "grey lighten-4"
+    | "grey darken-4";
+  materializeNavBrand?: string;
+  materializeNavTransparent?: boolean;
+  materializeNavExtended?: boolean;
 }
 
 export const Layout = ({
@@ -16,16 +30,34 @@ export const Layout = ({
   footerPosition = "fixed",
   viewToggle,
   scrollable = false,
+  navigationVariant = "default",
+  materializeNavColor = "blue",
+  materializeNavBrand = "Trade Glance",
+  materializeNavTransparent = false,
+  materializeNavExtended = false,
 }: LayoutProps): JSX.Element => {
   if (scrollable) {
     // Scrollable layout for pages like docs, mint, config
     return (
       <main
-        className={`bg-neutral-soft/30 min-h-screen flex flex-col ${className}`}
+        className={`bg-neutral-soft/30 min-h-screen flex flex-col relative overflow-hidden ${className}`}
       >
-        <section className="container flex-shrink-0">
+        {/* Floating decorative elements for extra eye candy */}
+        <section className="absolute inset-0 pointer-events-none overflow-hidden">
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-lg blur-lg animate-pulse delay-1000"></section>
+        </section>
+
+        <section className="container flex-shrink-0 relative z-10">
           <header className="p-3 sm:p-4 lg:p-6">
-            <Navigation />
+            <Navigation
+              variant={navigationVariant}
+              materializeColor={materializeNavColor}
+              materializeBrand={materializeNavBrand}
+              materializeTransparent={materializeNavTransparent}
+              materializeExtended={materializeNavExtended}
+            />
             {viewToggle && (
               <section className="mt-3 flex justify-center">
                 {viewToggle}
@@ -33,7 +65,7 @@ export const Layout = ({
             )}
           </header>
         </section>
-        <section className="flex-1 container px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6">
+        <section className="flex-1 container px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 relative z-10">
           {children}
         </section>
         {/* Footer flows naturally with content for scrollable pages - hidden on mobile */}
@@ -45,11 +77,24 @@ export const Layout = ({
   // Fixed layout for trading pages
   return (
     <main
-      className={`bg-neutral-soft/30 relative h-screen flex flex-col ${className}`}
+      className={`bg-neutral-soft/30 relative h-screen flex flex-col overflow-hidden ${className}`}
     >
-      <section className="container flex-1 flex flex-col min-h-0">
+      {/* Floating decorative elements for extra eye candy */}
+      <section className="absolute inset-0 pointer-events-none overflow-hidden">
+        <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
+        <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
+        <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-lg blur-lg animate-pulse delay-1000"></section>
+      </section>
+
+      <section className="container flex-1 flex flex-col min-h-0 relative z-10">
         <header className="p-3 sm:p-4 lg:p-6 flex-shrink-0">
-          <Navigation />
+          <Navigation
+            variant={navigationVariant}
+            materializeColor={materializeNavColor}
+            materializeBrand={materializeNavBrand}
+            materializeTransparent={materializeNavTransparent}
+            materializeExtended={materializeNavExtended}
+          />
           {viewToggle && (
             <section className="mt-3 flex justify-center">{viewToggle}</section>
           )}

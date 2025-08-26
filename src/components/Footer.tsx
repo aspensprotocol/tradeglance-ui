@@ -6,7 +6,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ChevronDown,
+  Info,
+  ExternalLink,
+  MessageCircle,
+  BookOpen,
+  Settings,
+} from "lucide-react";
 import { getShortGitCommitHash } from "@/lib/version";
+import { Link } from "react-router-dom";
 
 const attestationData = {
   tee_tcb_svn: "06010300000000000000000000000000",
@@ -43,46 +60,154 @@ interface FooterProps {
 
 export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
   return (
-    <footer className={`bg-white border-t py-2 text-xs ${className}`}>
-      <section className="container mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 px-2 sm:px-0">
-        <nav className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+    <footer
+      className={`bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 border-t border-blue-200 py-2 text-xs relative overflow-hidden ${className}`}
+    >
+      {/* Floating decorative elements */}
+      <section className="absolute inset-0 pointer-events-none overflow-hidden">
+        <section className="absolute top-2 left-1/4 w-8 h-8 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-2 right-1/4 w-6 h-6 bg-gradient-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-md animate-pulse delay-700"></section>
+        <section className="absolute top-1/2 left-1/3 w-4 h-4 bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-md animate-pulse delay-1000"></section>
+      </section>
+
+      <section className="container mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 px-4 sm:px-0 relative z-10">
+        <nav className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           <Button
             variant="outline"
             size="sm"
-            className="bg-green-500 text-white hover:bg-green-600 border-none text-xs px-3 py-1 h-auto"
+            className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
           >
-            online
+            {/* Floating sparkle */}
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+
+            {/* Glowing effect */}
+            <span className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></span>
+
+            <span className="relative z-10">🟢 online</span>
           </Button>
-          <span className="text-gray-400 text-xs">
-            version {getShortGitCommitHash()}
+          <span className="text-gray-600 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
+            🚀 version {getShortGitCommitHash()}
           </span>
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="text-gray-400 text-xs hover:text-[#1EAEDB]">
-                attestation
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
-              <DialogHeader>
-                <DialogTitle>Attestation Data</DialogTitle>
-              </DialogHeader>
-              <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-auto">
-                <code>{JSON.stringify(attestationData, null, 2)}</code>
-              </pre>
-            </DialogContent>
-          </Dialog>
+
+          {/* Enhanced Info Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+              >
+                <Info className="h-3 w-3 mr-1 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
+                Info
+                <ChevronDown className="ml-1 h-3 w-3 text-blue-500 group-hover:text-blue-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-64 card-gradient-blue border-2 border-blue-200 shadow-2xl rounded-xl p-2"
+            >
+              <DropdownMenuLabel className="text-blue-800 font-semibold text-center py-2 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg">
+                🔍 System Information
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gradient-to-r from-blue-200 to-indigo-200" />
+              <DropdownMenuItem
+                asChild
+                className="rounded-lg hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 cursor-pointer group"
+              >
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="flex items-center gap-2 w-full text-left p-2">
+                      <Info className="h-4 w-4 text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
+                      📊 Attestation Data
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-2xl">
+                    <DialogHeader>
+                      <DialogTitle className="text-blue-800 font-bold">
+                        🔍 Attestation Data
+                      </DialogTitle>
+                    </DialogHeader>
+                    <pre className="bg-white/80 backdrop-blur-sm p-4 rounded-xl text-sm overflow-auto border border-blue-200 shadow-inner">
+                      <code className="text-gray-800">
+                        {JSON.stringify(attestationData, null, 2)}
+                      </code>
+                    </pre>
+                  </DialogContent>
+                </Dialog>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled
+                className="text-xs text-gray-500 rounded-lg bg-gray-100/50"
+              >
+                🚀 Version: {getShortGitCommitHash()}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
+
         <nav className="flex flex-wrap gap-3 sm:gap-6 text-[#8E9196] text-xs">
+          {/* Enhanced Support Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+              >
+                <MessageCircle className="h-3 w-3 mr-1 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-300" />
+                Support
+                <ChevronDown className="ml-1 h-3 w-3 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 card-gradient-emerald border-2 border-emerald-200 shadow-2xl rounded-xl p-2"
+            >
+              <DropdownMenuLabel className="text-emerald-800 font-semibold text-center py-2 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg">
+                🆘 Get Help
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gradient-to-r from-emerald-200 to-teal-200" />
+              <DropdownMenuItem
+                asChild
+                className="rounded-lg hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 transition-all duration-200 cursor-pointer group"
+              >
+                <a
+                  href="https://t.me/aspens_xyz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-2 w-full"
+                >
+                  <MessageCircle className="h-4 w-4 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
+                  💬 Telegram Support
+                  <ExternalLink className="h-3 w-3 ml-auto text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                asChild
+                className="rounded-lg hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 transition-all duration-200 cursor-pointer group"
+              >
+                <Link to="/docs" className="flex items-center gap-2 p-2 w-full">
+                  <BookOpen className="h-4 w-4 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
+                  📚 Documentation
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Quick Links */}
           <a
-            href="https://t.me/aspens_xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[#1EAEDB]"
+            href="/docs"
+            className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
           >
-            Support
+            <BookOpen className="h-3 w-3 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
+            📚 Docs
           </a>
-          <a href="/docs" className="hover:text-[#1EAEDB]">
-            Documentation
+          <a
+            href="/config"
+            className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-600 hover:via-red-600 hover:to-pink-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+          >
+            <Settings className="h-3 w-3 text-orange-500 group-hover:text-orange-600 transition-colors duration-300" />
+            ⚙️ Config
           </a>
         </nav>
       </section>

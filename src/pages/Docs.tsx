@@ -1,89 +1,63 @@
 import { Layout } from "@/components/Layout";
 import { DocumentationViewer } from "@/components/DocumentationViewer";
 import { MarkdownRenderer } from "@/lib/markdown-utils";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import {
+  TypographyH1,
+  TypographyLead,
+  TypographyP,
+} from "@/components/ui/typography";
 
-// Pre-compiled markdown content - this gets bundled during build time
-// No runtime fetching needed, eliminating the 403 error
-// Auto-updated from public/docs/README.md during build
-const markdownContent = `# 📈 Aspens App Example Demo
-
-## ⛓️‍💥 Cross chain + CLOBs + TEEs = 😀
-
-This is a simple cross chain limit order dex built to demonstrate what is possible to build using [Aspens](https://aspens.xyz/), a protocol that aims to **make cross chain chill** 😎. In this example, we're showing a dex that trades across chains, with 2 different modes, i.e. [pro](/pro) or [simple](/simple). For more information of what aspens is, read our [docs](https://docs.aspens.xyz). Here's a video demonstration of how to use the dapp:
-
-![video demo](vids/vid-demo.mp4)
-
-And here is a step by step guide on how to use it:
-
-### 🛬 Landing page:
-
-![landing page](imgs/1.png)
-
-### 💰 Firstly, navigate to the token minting page:
-
-![Navigate](imgs/2.png)
-
-### 💸 Then, mint tokens on the chain that you want:
-
-![Mint](imgs/3.png)
-
-### 💵 In order to deposit funds, press on this button:
-
-![Deposit](imgs/4.png)
-
-### 📝 Choose how much you want to deposit in this prompt:
-
-![Deposit view](imgs/5.png)
-
-### 📈 Then, you are read to trade:
-
-![Navigate to trade](imgs/6.png)
-
-### 🤓 Through either our pro view:
-
-![Pro view](imgs/7.png)
-
-### 😎 Or, our simple view:
-
-![Simple view](imgs/8.png)
-
-## 🌳 Aspens for builders
-
-This is only one example of many that we envision can be built on Aspens. When you build with Aspens, you are in charge. You will have your own **AMS**, Aspens Market Stack, which includes:
-
-1. A TEE, you can choose and customize the provider, that controls and executes orders, trade matching and configuration by you.
-2. Deployed smart contracts on the chains you want to support.
-
-Since Aspens order book logic is hosted within a TEE, we can support any chain, EVM or non-EVM. You choose the chains you want to support, and the token pairs you want, and Aspens will seamlessly have your market created for you. You have full customization and can create markets for **token A on chain A -> token A on chain B**, **token A on chain A -> token B on chain B** or **token A on chain A -> token B on chain A**.
-
-Some examples we thought about that can be built on top of Aspens include:
-
-- Bridges
-- Limit order book controlled dexes
-- Portfolio management
-- Memecoin launcher
-- Chain agnostic private transaction protocol
-- Telegram trading bot
-
-We're currently looking for partner projects, so if you're a builder, and this sounds interesting to you, please [reach out to us](https://t.me/aspens_xyz) 🔧`;
+// Import the README content from docs-source
+import readmeContent from "../../docs-source/README.md?raw";
 
 const Docs = (): JSX.Element => {
-  // Fallback content if markdown is empty (shouldn't happen with pre-compiled content)
-  const content =
-    markdownContent.trim() ||
-    `# Documentation Not Available
-
-The documentation content could not be loaded. This might happen if:
-- The build script failed to update the documentation
-- The README.md file is missing or corrupted
-
-Please run \`npm run update-docs\` to manually update the documentation, or check the build process.`;
+  const navigate = useNavigate();
+  const content = readmeContent;
 
   return (
     <Layout scrollable>
-      <main className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8">
+      <main className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 relative">
+        {/* Floating decorative elements matching Pro view aesthetic */}
+        <section className="absolute inset-0 pointer-events-none overflow-hidden">
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg animate-pulse delay-1000"></section>
+        </section>
+
+        <header className="mb-8 relative z-10">
+          <TypographyH1 className="text-center text-gray-800">
+            Aspens Documentation
+          </TypographyH1>
+          <TypographyLead className="text-center mt-4 text-gray-600">
+            Learn how to use the Aspens cross-chain DEX with our comprehensive
+            documentation.
+          </TypographyLead>
+        </header>
+
         <DocumentationViewer>
           <MarkdownRenderer content={content} />
+          <section className="mt-8 space-y-4">
+            <TypographyP>
+              Ready to start trading? Choose your preferred interface below.
+            </TypographyP>
+            <nav className="flex gap-4 justify-center">
+              <Button
+                onClick={() => navigate("/trading")}
+                className="px-8 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                Start Trading
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/mint")}
+                className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                Mint Test Tokens
+              </Button>
+            </nav>
+          </section>
         </DocumentationViewer>
       </main>
     </Layout>
