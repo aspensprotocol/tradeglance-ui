@@ -141,6 +141,7 @@ const Index = ({
                   selectedPair={selectedPair}
                   onPairChange={setSelectedPair}
                   tradingPairs={tradingPairs}
+                  maxOrders={50} // Show top 50 orders by price for better performance
                 />
               </section>
             </aside>

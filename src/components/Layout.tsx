@@ -49,7 +49,7 @@ export const Layout = ({
           <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-lg blur-lg animate-pulse delay-1000"></section>
         </section>
 
-        <section className="container flex-shrink-0 relative z-10">
+        <section className="container flex-shrink-0 relative z-20">
           <header className="p-3 sm:p-4 lg:p-6">
             <Navigation
               variant={navigationVariant}
@@ -65,7 +65,7 @@ export const Layout = ({
             )}
           </header>
         </section>
-        <section className="flex-1 container px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 relative z-10">
+        <section className="flex-1 container px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 relative z-0">
           {children}
         </section>
         {/* Footer flows naturally with content for scrollable pages - hidden on mobile */}
@@ -86,7 +86,7 @@ export const Layout = ({
         <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-lg blur-lg animate-pulse delay-1000"></section>
       </section>
 
-      <section className="container flex-1 flex flex-col min-h-0 relative z-10">
+      <section className="container flex-1 flex flex-col min-h-0 relative z-20">
         <header className="p-3 sm:p-4 lg:p-6 flex-shrink-0">
           <Navigation
             variant={navigationVariant}

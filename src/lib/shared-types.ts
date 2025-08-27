@@ -228,6 +228,7 @@ export interface VerticalOrderBookProps {
   selectedPair: string;
   onPairChange: (pair: string) => void;
   tradingPairs: TradingPair[];
+  maxOrders?: number; // Optional override for max orders to display
 }
 
 export interface TradeFormProps {
