@@ -33,14 +33,12 @@ export const useHealthCheck = (): HealthCheckResult => {
 
     try {
       // Get the base URL from the current environment
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+      const baseUrl = import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api";
       
       // Only check the gRPC reflection endpoint - this is the real test
       const healthCheckUrls = [
         // Primary gRPC reflection endpoint
         `${baseUrl}/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo`,
-        // Fallback to port 50051 if base URL doesn't include port
-        `${baseUrl.replace(/:\d+$/, '')}:50051/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo`
       ];
 
       let success = false;
