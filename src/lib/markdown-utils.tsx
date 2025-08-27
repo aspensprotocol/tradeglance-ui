@@ -173,8 +173,8 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
 
         // Collect all consecutive numbered list items
         while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-          const content = lines[i].replace(/^\d+\.\s*/, '');
-          listItems.push(content);
+          const listItemContent = lines[i].replace(/^\d+\.\s*/, '');
+          listItems.push(listItemContent);
           i++;
         }
 
@@ -186,12 +186,12 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
               key={index}
               className="ml-8 mb-4 space-y-2 list-decimal"
             >
-              {listItems.map((content, itemIndex) => (
+              {listItems.map((listItemContent, itemIndex) => (
                 <li
                   key={itemIndex}
                   className="text-gray-600 leading-relaxed mb-2"
                 >
-                  {content}
+                  {listItemContent}
                 </li>
               ))}
             </ol>
@@ -200,7 +200,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           continue;
         } else {
           // Single item
-          const content = line.replace(/^\d+\.\s*/, '');
+          const singleItemContent = line.replace(/^\d+\.\s*/, '');
           const result = (
             <ol
               key={index}
@@ -209,7 +209,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
               <li
                 className="text-gray-600 leading-relaxed mb-2"
               >
-                {content}
+                {singleItemContent}
                 </li>
             </ol>
           );

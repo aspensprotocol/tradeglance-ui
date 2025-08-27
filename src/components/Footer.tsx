@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { getShortGitCommitHash } from "@/lib/version";
 import { Link } from "react-router-dom";
+import { useHealthCheck } from "@/hooks/useHealthCheck";
+import { useState } from "react";
 
 const attestationData = {
   tee_tcb_svn: "06010300000000000000000000000000",
@@ -59,6 +61,45 @@ interface FooterProps {
 }
 
 export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
+  const { isOnline, isLoading, lastCheck, error, performHealthCheck } = useHealthCheck();
+  const [isManualRefreshing, setIsManualRefreshing] = useState<boolean>(false);
+
+  // Determine button styling based on health status
+  const getStatusButtonClasses = (): string => {
+    if (isLoading || isManualRefreshing) {
+      return "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white hover:from-yellow-600 hover:via-orange-600 hover:to-red-600";
+    }
+    if (isOnline) {
+      return "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600";
+    }
+    return "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white hover:from-red-600 hover:via-pink-600 hover:to-rose-600";
+  };
+
+  const getStatusText = (): string => {
+    if (isManualRefreshing) return "🔄 refreshing...";
+    if (isLoading) return "🟡 checking...";
+    if (isOnline) return "🟢 online";
+    return "🔴 offline";
+  };
+
+  const getStatusTooltip = (): string => {
+    if (isManualRefreshing) return "Manually refreshing connection status...";
+    if (isLoading) return "Checking connection status...";
+    if (isOnline) return `Connected to gRPC server (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to refresh`;
+    return `Connection failed: ${error || "Unknown error"} (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to retry`;
+  };
+
+  const handleStatusClick = async (): Promise<void> => {
+    if (!isLoading && !isManualRefreshing) {
+      setIsManualRefreshing(true);
+      try {
+        await performHealthCheck();
+      } finally {
+        setIsManualRefreshing(false);
+      }
+    }
+  };
+
   return (
     <footer
       className={`bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 border-t border-blue-200 py-1 text-xs relative overflow-hidden ${className}`}
@@ -75,7 +116,10 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           <Button
             variant="outline"
             size="sm"
-            className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+            className={`${getStatusButtonClasses()} border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group cursor-pointer`}
+            onClick={handleStatusClick}
+            title={getStatusTooltip()}
+            disabled={isLoading || isManualRefreshing}
           >
             {/* Floating sparkle */}
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -83,8 +127,13 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
             {/* Glowing effect */}
             <span className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></span>
 
-            <span className="relative z-10">🟢 online</span>
+            <span className="relative z-10">{getStatusText()}</span>
           </Button>
+          {lastCheck && (
+            <span className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200">
+              Last: {lastCheck.toLocaleTimeString()}
+            </span>
+          )}
           <span className="text-neutral-800 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
             🚀 version {getShortGitCommitHash()}
           </span>
