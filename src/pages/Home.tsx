@@ -23,16 +23,16 @@ const Home = (): JSX.Element => {
       <main className="flex items-center justify-center h-full relative">
         {/* Floating decorative elements matching Pro view aesthetic */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
-          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
-          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
-          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg animate-pulse delay-1000"></section>
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-full blur-lg animate-pulse delay-1000"></section>
         </section>
 
         <section className="max-w-md w-full space-y-6 relative z-10">
           <Card className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 border border-blue-100 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-center text-gray-800">
-                Trade Glance
+              <CardTitle className="text-center text-neutral-900 text-lg sm:text-xl">
+                Welcome to Trade Glance
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">

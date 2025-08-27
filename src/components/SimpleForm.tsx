@@ -32,9 +32,6 @@ const SimpleForm = ({
   // Get current user's wallet address for filtering
   const { address } = useAccount();
 
-  // State for "Mine" filter toggle
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
-
   // State for individual token selection in Simple view
   const [selectedBaseToken, setSelectedBaseToken] = useState<string>(
     tradingPair?.baseSymbol || "",
@@ -141,66 +138,63 @@ const SimpleForm = ({
   };
 
   return (
-    <section className="w-full max-w-2xl mx-auto px-2 sm:px-0 h-full">
-      <main className="bg-gray-900 text-white border-gray-700 rounded-lg shadow-lg h-full flex flex-col">
-        <header className="flex flex-row items-center justify-between p-2 pt-3 border-b border-gray-700">
-          <h2 className="text-lg sm:text-xl font-medium text-white">Simple</h2>
-          <nav className="flex gap-2">
-            {/* Mine filter toggle */}
-            {address && (
-              <button
-                onClick={() => setShowOnlyMine(!showOnlyMine)}
-                className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
-                  showOnlyMine
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700"
-                }`}
-                title={showOnlyMine ? "Show all orders" : "Show only my orders"}
-              >
-                {showOnlyMine ? "Mine" : "All"}
-              </button>
-            )}
+    <section className="h-full animate-fade-in overflow-hidden relative">
+      {/* Floating decorative elements */}
+      <section className="absolute inset-0 pointer-events-none overflow-hidden">
+        <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-700"></section>
+      </section>
+
+      <main className="p-2 sm:p-3 h-full flex flex-col relative z-10">
+        {/* Header */}
+        <header className="flex flex-row items-center justify-between mb-2 pb-2 border-b border-emerald-200">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            Simple Swap
+          </h2>
+          <nav className="flex gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 h-8 w-8 text-blue-400 hover:bg-gray-800"
+              className="p-1.5 h-7 w-7 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 h-8 w-8 text-blue-400 hover:bg-gray-800"
+              className="p-1.5 h-7 w-7 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
             >
-              <History className="h-4 w-4" />
+              <History className="h-3.5 w-3.5" />
             </Button>
           </nav>
         </header>
 
-        <main className="p-2 pt-5 pb-3 space-y-2 flex-1 overflow-auto">
+        <main className="space-y-2 flex-1 overflow-auto">
           {/* Sender Section */}
-          <fieldset className="space-y-1 bg-gray-800 rounded-lg p-2">
-            <section className="flex flex-col sm:flex-row gap-1">
-              <section className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-xs text-gray-400">Token</span>
-                <span className="flex items-center gap-1">
-                  <TokenImage
-                    symbol={selectedBaseToken || "?"}
-                    size="w-6 h-6"
-                  />
+          <fieldset className="space-y-2 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-xl p-3 border-2 border-emerald-200 shadow-lg relative overflow-hidden">
+            {/* Subtle gradient overlay */}
+            <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/2 to-teal-400/2 pointer-events-none"></section>
+
+            <section className="flex flex-col sm:flex-row gap-2 relative z-10">
+              <section className="flex flex-col gap-1 min-w-0">
+                <span className="text-xs font-semibold text-gray-700">
+                  Token
+                </span>
+                <span className="flex items-center gap-2">
+                  <TokenImage symbol={selectedBaseToken || "?"} size="sm" />
                   <Select
                     value={selectedBaseToken}
                     onValueChange={handleBaseTokenChange}
                   >
-                    <SelectTrigger className="w-16 bg-transparent border-none text-white p-0 h-auto">
+                    <SelectTrigger className="w-16 bg-white border-2 border-emerald-200 text-gray-800 p-1.5 rounded-lg hover:border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-gradient-to-br from-white via-emerald-50 to-teal-50 border-2 border-emerald-200 shadow-2xl rounded-xl">
                       {uniqueTokens.baseTokens.map((token) => (
                         <SelectItem
                           key={token}
                           value={token}
-                          className="text-white hover:bg-gray-600"
+                          className="hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 cursor-pointer transition-all duration-200 text-gray-800"
                         >
                           {token}
                         </SelectItem>
@@ -210,29 +204,33 @@ const SimpleForm = ({
                 </span>
               </section>
 
-              <span className="hidden sm:block w-px bg-gray-700 mx-0.5"></span>
+              <span className="hidden sm:block w-px bg-emerald-200 mx-2"></span>
 
-              <section className="flex flex-col gap-0.5 flex-1">
-                <span className="text-xs text-gray-400">Network</span>
-                <span className="flex items-center gap-1">
+              <section className="flex flex-col gap-1 flex-1">
+                <span className="text-xs font-semibold text-gray-700">
+                  Network
+                </span>
+                <span className="flex items-center gap-2">
                   <Select
                     value={networkState.senderNetwork}
                     onValueChange={handleSenderNetworkChange}
                   >
-                    <SelectTrigger className="bg-transparent border-none text-white flex-1">
+                    <SelectTrigger className="bg-white border-2 border-emerald-200 text-gray-800 flex-1 p-1.5 rounded-lg hover:border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-gradient-to-br from-white via-emerald-50 to-teal-50 border-2 border-emerald-200 shadow-2xl rounded-xl">
                       {chains.map((chain) => (
                         <SelectItem
                           key={chain.chainId}
                           value={chain.network}
-                          className="text-white hover:bg-gray-600"
+                          className="hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 cursor-pointer transition-all duration-200"
                         >
                           <section className="flex items-center gap-1">
-                            <span>{chain.network}</span>
+                            <span className="text-gray-800">
+                              {chain.network}
+                            </span>
                             {chain.chainId === currentChainId && (
-                              <span className="text-xs text-green-400">
+                              <span className="text-xs text-emerald-600 font-medium">
                                 (Current)
                               </span>
                             )}
@@ -243,45 +241,52 @@ const SimpleForm = ({
                   </Select>
                   {networkState.senderNetwork &&
                     getCurrentChainConfig()?.chainId === currentChainId && (
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      <span className="w-2 h-2 bg-emerald-400/30 rounded-full animate-pulse"></span>
                     )}
                 </span>
               </section>
             </section>
 
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 relative z-10">
               <Input
                 type="number"
                 value={formState.amount}
                 onChange={(e) => updateAmount(e.target.value)}
                 placeholder="0"
-                className="bg-transparent border-none text-xl font-medium text-white p-0 h-6 focus:ring-0 focus-visible:ring-0"
+                className="bg-white border-2 border-emerald-200 text-xl font-bold text-gray-800 p-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md"
               />
             </span>
 
-            <section className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 text-sm">
-              <span className="text-gray-500">$0.00</span>
+            <section className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs relative z-10">
+              <span className="text-gray-600 font-medium">$0.00</span>
               <span className="flex items-center gap-1">
-                <span className="text-gray-400">
+                <span className="text-xs text-gray-600">
                   Balance:{" "}
-                  {balanceLoading
-                    ? "Loading..."
-                    : `${formatDecimalConsistent(availableBalance)} ${currentTradingPair?.baseSymbol || "ATOM"}`}
+                  {balanceLoading ? (
+                    <span className="text-emerald-500 font-medium animate-pulse">
+                      Loading...
+                    </span>
+                  ) : (
+                    <span className="text-emerald-600 font-semibold">
+                      {formatDecimalConsistent(availableBalance)}{" "}
+                      {currentTradingPair?.baseSymbol || "ATOM"}
+                    </span>
+                  )}
                 </span>
               </span>
             </section>
 
             {/* Percentage Buttons */}
-            <nav className="flex gap-1">
+            <nav className="flex gap-1 relative z-10">
               {[25, 50, 75, 100].map((percentage) => (
                 <button
                   key={percentage}
                   onClick={() => handlePercentageClick(percentage)}
                   className={cn(
-                    "flex-1 py-1.5 text-xs rounded transition-colors",
+                    "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 transform hover:scale-105",
                     formState.percentageValue === percentage
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600",
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg"
+                      : "bg-gradient-to-r from-slate-50 to-emerald-50 text-gray-600 hover:text-gray-800 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow-md",
                   )}
                 >
                   {percentage}%
@@ -291,40 +296,42 @@ const SimpleForm = ({
           </fieldset>
 
           {/* Swap Button */}
-          <section className="flex justify-center py-2">
+          <section className="flex justify-center py-1">
             <Button
               onClick={handleSwapTokens}
               variant="ghost"
               size="sm"
-              className="rounded-lg border border-blue-500 bg-blue-500/20 hover:bg-blue-500/30 p-3"
+              className="rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
             >
-              <ArrowDownUp className="h-7 w-7 sm:h-4 sm:w-4 text-blue-400" />
+              <ArrowDownUp className="h-5 w-5 text-emerald-600" />
             </Button>
           </section>
 
           {/* Receiver Section */}
-          <fieldset className="space-y-1 bg-gray-800 rounded-lg p-2">
-            <section className="flex flex-col sm:flex-row gap-1">
-              <section className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-xs text-gray-400">Token</span>
-                <span className="flex items-center gap-1">
-                  <TokenImage
-                    symbol={selectedQuoteToken || "?"}
-                    size="w-6 h-6"
-                  />
+          <fieldset className="space-y-2 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 rounded-xl p-3 border-2 border-blue-200 shadow-lg relative overflow-hidden">
+            {/* Subtle gradient overlay */}
+            <section className="absolute inset-0 bg-gradient-to-r from-blue-400/2 to-indigo-400/2 pointer-events-none"></section>
+
+            <section className="flex flex-col sm:flex-row gap-2 relative z-10">
+              <section className="flex flex-col gap-1 min-w-0">
+                <span className="text-xs font-semibold text-gray-700">
+                  Token
+                </span>
+                <span className="flex items-center gap-2">
+                  <TokenImage symbol={selectedQuoteToken || "?"} size="sm" />
                   <Select
                     value={selectedQuoteToken}
                     onValueChange={handleQuoteTokenChange}
                   >
-                    <SelectTrigger className="w-16 bg-transparent border-none text-white p-0 h-auto">
+                    <SelectTrigger className="w-16 bg-white border-2 border-blue-200 text-gray-800 p-1.5 rounded-lg hover:border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-xl">
                       {uniqueTokens.quoteTokens.map((token) => (
                         <SelectItem
                           key={token}
                           value={token}
-                          className="text-white hover:bg-gray-600"
+                          className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 text-gray-800"
                         >
                           {token}
                         </SelectItem>
@@ -334,29 +341,33 @@ const SimpleForm = ({
                 </span>
               </section>
 
-              <span className="hidden sm:block w-px bg-gray-700 mx-0.5"></span>
+              <span className="hidden sm:block w-px bg-blue-200 mx-2"></span>
 
-              <section className="flex flex-col gap-0.5 flex-1">
-                <span className="text-xs text-gray-400">Network</span>
-                <span className="flex items-center gap-1">
+              <section className="flex flex-col gap-1 flex-1">
+                <span className="text-xs font-semibold text-gray-700">
+                  Network
+                </span>
+                <span className="flex items-center gap-2">
                   <Select
                     value={networkState.receiverNetwork}
                     onValueChange={handleReceiverNetworkChange}
                   >
-                    <SelectTrigger className="bg-transparent border-none text-white flex-1">
+                    <SelectTrigger className="bg-white border-2 border-blue-200 text-gray-800 flex-1 p-1.5 rounded-lg hover:border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-xl">
                       {chains.map((chain) => (
                         <SelectItem
                           key={chain.chainId}
                           value={chain.network}
-                          className="text-white hover:bg-gray-600"
+                          className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200"
                         >
                           <section className="flex items-center gap-1">
-                            <span>{chain.network}</span>
+                            <span className="text-gray-800">
+                              {chain.network}
+                            </span>
                             {chain.chainId === currentChainId && (
-                              <span className="text-xs text-green-400">
+                              <span className="text-xs text-blue-600 font-medium">
                                 (Current)
                               </span>
                             )}
@@ -367,32 +378,34 @@ const SimpleForm = ({
                   </Select>
                   {networkState.receiverNetwork &&
                     getCurrentChainConfig()?.chainId === currentChainId && (
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      <span className="w-2 h-2 bg-blue-400/30 rounded-full animate-pulse"></span>
                     )}
                 </span>
               </section>
             </section>
 
             {/* Address inside the field */}
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-600 relative z-10">
               To:{" "}
               {address
                 ? `${address.slice(0, 6)}...${address.slice(-4)}`
                 : "Not connected"}
             </span>
 
-            <span className="flex items-center gap-2">
-              <span className="text-2xl sm:text-2xl font-medium text-blue-400">
+            <span className="flex items-center gap-2 relative z-10">
+              <span className="text-2xl font-bold text-blue-600">
                 {formState.amount || "0"}
               </span>
             </span>
 
-            <span className="text-sm text-gray-500">$0.00</span>
+            <span className="text-xs text-gray-600 font-medium relative z-10">
+              $0.00
+            </span>
           </fieldset>
 
           {/* Fee Section */}
-          <section className="text-center bg-gray-800 rounded-lg py-1">
-            <span className="text-xs text-gray-400">
+          <section className="text-center bg-gradient-to-r from-slate-50 to-gray-100 rounded-xl py-2 border border-gray-200 shadow-sm">
+            <span className="text-xs text-gray-600 font-medium">
               Fee:{" "}
               {(() => {
                 const amountValue = parseFloat(
@@ -416,33 +429,44 @@ const SimpleForm = ({
               !formState.amount
             }
             className={cn(
-              "w-full text-white font-medium py-8 text-lg",
+              "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
               (() => {
-                if (!currentChainId) return "bg-blue-600 hover:bg-blue-700";
+                if (!currentChainId)
+                  return "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 text-white";
                 const currentChain = getCurrentChainConfig();
                 const isBaseChain =
                   currentChain?.baseOrQuote === BaseOrQuote.BASE;
                 return isBaseChain
-                  ? "bg-red-600 hover:bg-red-700" // Sell (red)
-                  : "bg-green-600 hover:bg-green-700"; // Buy (green)
+                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 hover:from-red-600 hover:via-pink-600 hover:to-rose-600 text-white" // Sell (red)
+                  : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white"; // Buy (green)
               })(),
             )}
           >
+            {/* Floating sparkles */}
+            <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+            <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+            <span className="absolute -bottom-1 -left-1 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-75 delay-700"></span>
+
+            {/* Glowing effect */}
+            <span className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+
             {formState.isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-spin rounded-full h-5 w-5 sm:h-4 sm:w-4 border-b-2 border-white"></span>
+              <span className="flex items-center gap-2 relative z-10">
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                 Processing Simple...
               </span>
             ) : !isConnected ? (
-              "Connect Wallet"
+              <span className="relative z-10">Connect Wallet</span>
             ) : (
-              (() => {
-                if (!currentChainId) return "Simple Tokens";
-                const currentChain = getCurrentChainConfig();
-                const isBaseChain =
-                  currentChain?.baseOrQuote === BaseOrQuote.BASE;
-                return isBaseChain ? "Sell" : "Buy";
-              })()
+              <span className="relative z-10">
+                {(() => {
+                  if (!currentChainId) return "Simple Tokens";
+                  const currentChain = getCurrentChainConfig();
+                  const isBaseChain =
+                    currentChain?.baseOrQuote === BaseOrQuote.BASE;
+                  return isBaseChain ? "Sell" : "Buy";
+                })()}
+              </span>
             )}
           </Button>
         </main>

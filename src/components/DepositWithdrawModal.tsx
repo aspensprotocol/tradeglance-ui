@@ -69,10 +69,10 @@ const NetworkSwitcher = ({
   return (
     <section className="space-y-4">
       <header className="text-center">
-        <p className="text-red-600 mb-2">
+        <p className="text-red-600 mb-2 text-sm">
           Current network is not supported for deposits/withdrawals
         </p>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-xs text-neutral-700 mb-4">
           Please switch to one of the supported networks:
         </p>
       </header>
@@ -124,12 +124,12 @@ const NetworkSwitcher = ({
       </nav>
 
       {supportedChains.length === 0 && (
-        <p className="text-center text-gray-500">
+        <p className="text-center text-neutral-600 text-xs">
           No supported networks found. Please check your configuration.
         </p>
       )}
 
-      <footer className="text-center text-xs text-gray-500">
+      <footer className="text-center text-xs text-neutral-600">
         <p>
           If you don't see your network listed, please check your wallet
           settings or contact support.
@@ -474,13 +474,13 @@ const DepositWithdrawModal = ({
       <DialogContent className="w-[95vw] max-w-lg bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-2xl overflow-hidden relative !fixed !left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%]">
         {/* Floating decorative elements */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
-          <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-lg animate-pulse delay-300"></section>
-          <section className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-indigo-300/20 to-purple-300/20 rounded-full blur-lg animate-pulse delay-700"></section>
+          <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-lg animate-pulse delay-300"></section>
+          <section className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-indigo-300/5 to-purple-300/5 rounded-full blur-lg animate-pulse delay-700"></section>
         </section>
 
         <DialogHeader className="relative z-10">
           <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-            <span className="text-lg sm:text-xl text-gray-800 font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="text-base sm:text-lg text-neutral-900 font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {activeType === "deposit" ? "💰 Deposit" : "💸 Withdraw"} Tokens
             </span>
             <nav className="flex space-x-2 w-full sm:w-auto">
@@ -488,10 +488,10 @@ const DepositWithdrawModal = ({
                 variant={activeType === "deposit" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveType("deposit")}
-                className={`flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
+                className={`flex-1 sm:flex-none text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
                   activeType === "deposit"
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl animate-pulse-glow"
-                    : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
+                    : "bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
                 }`}
               >
                 💰 Deposit
@@ -500,10 +500,10 @@ const DepositWithdrawModal = ({
                 variant={activeType === "withdraw" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveType("withdraw")}
-                className={`flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
+                className={`flex-1 sm:flex-none text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
                   activeType === "withdraw"
                     ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white border-0 shadow-lg hover:shadow-xl animate-pulse-glow"
-                    : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
+                    : "bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
                 }`}
               >
                 💸 Withdraw
@@ -514,13 +514,13 @@ const DepositWithdrawModal = ({
 
         {!isConnected ? (
           <section className="text-center py-4">
-            <p className="text-gray-600 mb-4">
+            <p className="text-neutral-700 mb-4 text-sm">
               Please connect your wallet to continue
             </p>
           </section>
         ) : !currentChainId ? (
           <section className="text-center py-4">
-            <p className="text-gray-600 mb-4">
+            <p className="text-neutral-700 mb-4 text-sm">
               Please connect to a supported network
             </p>
           </section>
@@ -532,15 +532,15 @@ const DepositWithdrawModal = ({
               <fieldset className="space-y-3">
                 <Label
                   htmlFor="token"
-                  className="text-gray-700 font-semibold text-sm"
+                  className="text-neutral-800 font-semibold text-xs"
                 >
                   🎯 Select Token
                 </Label>
                 <Select value={selectedToken} onValueChange={setSelectedToken}>
-                  <SelectTrigger className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-base font-semibold text-gray-800">
+                  <SelectTrigger className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm font-semibold text-neutral-900">
                     <SelectValue
                       placeholder="Choose a token"
-                      className="text-base font-semibold text-gray-800"
+                      className="text-sm font-semibold text-neutral-900"
                     />
                   </SelectTrigger>
                   <SelectContent className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-xl">
@@ -548,7 +548,7 @@ const DepositWithdrawModal = ({
                       <SelectItem
                         key={token.value}
                         value={token.value}
-                        className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 rounded-lg text-base font-medium text-gray-800 hover:text-gray-900"
+                        className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 rounded-lg text-sm font-medium text-neutral-900 hover:text-neutral-900"
                       >
                         {token.label}
                       </SelectItem>
@@ -556,7 +556,7 @@ const DepositWithdrawModal = ({
                   </SelectContent>
                 </Select>
                 {currentChain && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-neutral-600">
                     Selected network: {currentChain.network}
                     {selectedChainId !== currentChainId && (
                       <span className="text-blue-500 ml-1">
@@ -572,12 +572,12 @@ const DepositWithdrawModal = ({
               <header className="flex items-center justify-between">
                 <Label
                   htmlFor="amount"
-                  className="text-gray-700 font-semibold text-sm"
+                  className="text-neutral-800 font-semibold text-xs"
                 >
                   💎 Amount
                 </Label>
                 {selectedToken && (
-                  <span className="text-xs text-gray-600 bg-gradient-to-r from-blue-100 to-indigo-100 px-2 py-1 rounded-lg border border-blue-200">
+                  <span className="text-xs text-neutral-700 bg-gradient-to-r from-blue-100 to-indigo-100 px-2 py-1 rounded-lg border border-blue-200">
                     {activeType === "deposit" ? (
                       // For deposits, show wallet balance
                       balanceLoading ? (
@@ -611,7 +611,7 @@ const DepositWithdrawModal = ({
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.0"
                   required
-                  className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-lg font-semibold"
+                  className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-base font-semibold"
                 />
                 {activeType === "withdraw" &&
                   depositedBalance &&
@@ -643,7 +643,7 @@ const DepositWithdrawModal = ({
             </fieldset>
 
             {error && (
-              <aside className="text-red-600 text-sm bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-3 py-2 shadow-md animate-pulse">
+              <aside className="text-red-600 text-xs bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-3 py-2 shadow-md animate-pulse">
                 ⚠️ {error}
               </aside>
             )}
@@ -653,14 +653,14 @@ const DepositWithdrawModal = ({
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1 py-3 sm:py-3.5 text-sm sm:text-base font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 rounded-xl"
+                className="flex-1 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 rounded-xl"
               >
                 ❌ Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading || !amount || !selectedToken}
-                className={`flex-1 py-3 sm:py-3.5 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl ${
+                className={`flex-1 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl ${
                   activeType === "deposit"
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600"
                     : "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white border-0 hover:from-red-600 hover:via-pink-600 hover:to-rose-600"

@@ -37,14 +37,14 @@ const Index = ({
       {/* Mobile-first responsive grid layout */}
       <main
         className="
-        grid gap-4 h-full p-2
+        grid gap-4 h-full p-2 pb-6
         grid-cols-1 
         sm:grid-cols-2 
         lg:grid-cols-4 
         lg:gap-6
         xl:gap-8
         min-h-0
-        overflow-hidden
+        overflow-visible
         relative
       "
       >
@@ -80,10 +80,11 @@ const Index = ({
               lg:order-1
               h-full
               min-h-0
+              mb-2
               transform transition-all duration-300 hover:scale-[1.02] relative z-10
             "
             >
-              <section className="h-full card-gradient-blue card-hover relative overflow-hidden">
+              <section className="h-full card-gradient-blue card-hover relative overflow-visible">
                 {/* Subtle gradient overlay */}
                 <section className="overlay-blue"></section>
                 <ActivityPanel
@@ -103,12 +104,13 @@ const Index = ({
               order-2 sm:order-1 lg:order-3
               h-full
               min-h-0
+              mb-2
               transform transition-all duration-300 hover:scale-[1.02] relative z-10
             "
             >
-              <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+              <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 relative overflow-visible">
                 {/* Subtle gradient overlay */}
-                <section className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 pointer-events-none"></section>
+                <section className="absolute inset-0 bg-gradient-to-br from-emerald-400/2 to-teal-400/2 pointer-events-none"></section>
                 <TradeForm
                   key={`tradeform-${currentTradingPair?.id || "no-market"}`}
                   tradingPair={currentTradingPair || undefined}
@@ -126,12 +128,13 @@ const Index = ({
               order-3 sm:order-2 lg:order-2
               h-full
               min-h-0
+              mb-2
               transform transition-all duration-300 hover:scale-[1.02] relative z-10
             "
             >
-              <section className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+              <section className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300 relative overflow-visible">
                 {/* Subtle gradient overlay */}
-                <section className="absolute inset-0 bg-gradient-to-br from-purple-400/5 to-pink-400/5 pointer-events-none"></section>
+                <section className="absolute inset-0 bg-gradient-to-br from-purple-400/2 to-pink-400/2 pointer-events-none"></section>
                 <VerticalOrderBook
                   key={`orderbook-${currentTradingPair?.id || "no-market"}`}
                   tradingPair={currentTradingPair || undefined}

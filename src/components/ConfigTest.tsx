@@ -34,9 +34,9 @@ export const ConfigTest = (): JSX.Element => {
         <main className="relative">
           {/* Floating decorative elements matching Pro view aesthetic */}
           <section className="absolute inset-0 pointer-events-none overflow-hidden">
-            <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
-            <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
-            <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg animate-pulse delay-1000"></section>
+            <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl animate-pulse delay-300"></section>
+            <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 rounded-full blur-xl animate-pulse delay-700"></section>
+            <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-full blur-lg animate-pulse delay-1000"></section>
           </section>
 
           <article className="bg-gradient-to-br from-red-50 via-white to-red-100 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto mt-8 relative z-10 shadow-lg">
@@ -170,7 +170,7 @@ export const ConfigTest = (): JSX.Element => {
           {config.chains.map((chain: Chain, index: number) => (
             <article
               key={index}
-              className="bg-gradient-to-r from-white via-blue-50/20 to-indigo-50/20 border-2 border-blue-200/50 p-4 mb-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
+              className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 p-4 mb-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
             >
               {/* Enhanced hover effect overlay */}
               <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -232,7 +232,7 @@ export const ConfigTest = (): JSX.Element => {
           {config.markets.map((market: Market, index: number) => (
             <article
               key={index}
-              className="bg-gradient-to-r from-white via-emerald-50/20 to-teal-50/20 border-2 border-emerald-200/50 p-4 mb-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
+              className="bg-gradient-to-r from-white via-emerald-50/10 to-teal-50/10 border-2 border-emerald-200/50 p-4 mb-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
             >
               {/* Enhanced hover effect overlay */}
               <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-teal-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>

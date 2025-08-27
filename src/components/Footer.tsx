@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { getShortGitCommitHash } from "@/lib/version";
 import { Link } from "react-router-dom";
+import { useHealthCheck } from "@/hooks/useHealthCheck";
+import { useState } from "react";
 
 const attestationData = {
   tee_tcb_svn: "06010300000000000000000000000000",
@@ -59,15 +61,54 @@ interface FooterProps {
 }
 
 export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
+  const { isOnline, isLoading, lastCheck, error, performHealthCheck } = useHealthCheck();
+  const [isManualRefreshing, setIsManualRefreshing] = useState<boolean>(false);
+
+  // Determine button styling based on health status
+  const getStatusButtonClasses = (): string => {
+    if (isLoading || isManualRefreshing) {
+      return "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white hover:from-yellow-600 hover:via-orange-600 hover:to-red-600";
+    }
+    if (isOnline) {
+      return "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600";
+    }
+    return "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white hover:from-red-600 hover:via-pink-600 hover:to-rose-600";
+  };
+
+  const getStatusText = (): string => {
+    if (isManualRefreshing) return "🔄 refreshing...";
+    if (isLoading) return "🟡 checking...";
+    if (isOnline) return "🟢 online";
+    return "🔴 offline";
+  };
+
+  const getStatusTooltip = (): string => {
+    if (isManualRefreshing) return "Manually refreshing connection status...";
+    if (isLoading) return "Checking connection status...";
+    if (isOnline) return `Connected to gRPC server (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to refresh`;
+    return `Connection failed: ${error || "Unknown error"} (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to retry`;
+  };
+
+  const handleStatusClick = async (): Promise<void> => {
+    if (!isLoading && !isManualRefreshing) {
+      setIsManualRefreshing(true);
+      try {
+        await performHealthCheck();
+      } finally {
+        setIsManualRefreshing(false);
+      }
+    }
+  };
+
   return (
     <footer
       className={`bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 border-t border-blue-200 py-1 text-xs relative overflow-hidden ${className}`}
     >
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
-        <section className="absolute top-2 left-1/4 w-8 h-8 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-md animate-pulse delay-300"></section>
-        <section className="absolute bottom-2 right-1/4 w-6 h-6 bg-gradient-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-md animate-pulse delay-700"></section>
-        <section className="absolute top-1/2 left-1/3 w-4 h-4 bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-md animate-pulse delay-1000"></section>
+        <section className="absolute top-2 left-1/4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-2 right-1/4 w-6 h-6 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-700"></section>
+        <section className="absolute top-1/2 left-1/3 w-4 h-4 bg-gradient-to-br from-purple-300/5 to-pink-300/5 rounded-full blur-md animate-pulse delay-1000"></section>
       </section>
 
       <section className="container mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 px-4 sm:px-0 relative z-10">
@@ -75,7 +116,10 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           <Button
             variant="outline"
             size="sm"
-            className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+            className={`${getStatusButtonClasses()} border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group cursor-pointer`}
+            onClick={handleStatusClick}
+            title={getStatusTooltip()}
+            disabled={isLoading || isManualRefreshing}
           >
             {/* Floating sparkle */}
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -83,9 +127,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
             {/* Glowing effect */}
             <span className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></span>
 
-            <span className="relative z-10">🟢 online</span>
+            <span className="relative z-10">{getStatusText()}</span>
           </Button>
-          <span className="text-gray-600 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
+          {lastCheck && (
+            <span className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200">
+              Last: {lastCheck.toLocaleTimeString()}
+            </span>
+          )}
+          <span className="text-neutral-800 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
             🚀 version {getShortGitCommitHash()}
           </span>
 
@@ -95,7 +144,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
               >
                 <Info className="h-3 w-3 mr-1 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
                 Info
@@ -128,7 +177,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
                       </DialogTitle>
                     </DialogHeader>
                     <pre className="bg-white/80 backdrop-blur-sm p-4 rounded-xl text-sm overflow-auto border border-blue-200 shadow-inner">
-                      <code className="text-gray-800">
+                      <code className="text-neutral-900">
                         {JSON.stringify(attestationData, null, 2)}
                       </code>
                     </pre>
@@ -137,7 +186,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled
-                className="text-xs text-gray-500 rounded-lg bg-gray-100/50"
+                className="text-xs text-neutral-600 rounded-lg bg-gray-100/50"
               >
                 🚀 Version: {getShortGitCommitHash()}
               </DropdownMenuItem>
@@ -145,14 +194,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           </DropdownMenu>
         </nav>
 
-        <nav className="flex flex-wrap gap-3 sm:gap-6 text-[#8E9196] text-xs">
+        <nav className="flex flex-wrap gap-3 sm:gap-6 text-neutral-800 text-xs">
           {/* Enhanced Support Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
               >
                 <MessageCircle className="h-3 w-3 mr-1 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-300" />
                 Support
@@ -200,14 +249,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
             className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
           >
             <BookOpen className="h-3 w-3 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
-            📚 Docs
+            Docs
           </a>
           <a
             href="/config"
             className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-600 hover:via-red-600 hover:to-pink-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
           >
             <Settings className="h-3 w-3 text-orange-500 group-hover:text-orange-600 transition-colors duration-300" />
-            ⚙️ Config
+            Config
           </a>
         </nav>
       </section>

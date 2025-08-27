@@ -200,16 +200,16 @@ const ActivityPanel = ({
   };
 
   return (
-    <main className="h-full bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 rounded-2xl shadow-xl border-2 border-blue-200/50 animate-fade-in overflow-hidden relative">
+    <main className="h-full bg-gradient-to-br from-white via-blue-50/10 to-indigo-50/10 rounded-2xl shadow-xl border-2 border-blue-200/50 animate-fade-in overflow-visible relative shadow-visible">
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
-        <section className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-md animate-pulse delay-300"></section>
-        <section className="absolute bottom-4 right-4 w-6 h-6 bg-gradient-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-md animate-pulse delay-700"></section>
+        <section className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-4 right-4 w-6 h-6 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-700"></section>
       </section>
 
       <section className="p-3 sm:p-4 lg:p-5 h-full flex flex-col min-w-0 relative z-10">
         <header className="flex items-center justify-between mb-4">
-          <nav className="flex bg-gradient-to-r from-slate-100/50 to-blue-100/50 rounded-xl p-1 overflow-x-auto border border-blue-200/30 shadow-lg flex-1 max-w-md">
+          <nav className="flex bg-gradient-to-r from-slate-100/10 to-blue-100/10 rounded-xl p-1 overflow-x-auto border border-blue-200/30 shadow-lg flex-1 max-w-md">
             <button
               onClick={() => switchTab("trades")}
               className={cn(
@@ -228,7 +228,7 @@ const ActivityPanel = ({
               )}
               <span className="hidden sm:inline">Recent </span>Trades
               {activeTab === "trades" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl blur-sm"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl blur-sm"></span>
               )}
             </button>
             <button
@@ -249,7 +249,7 @@ const ActivityPanel = ({
               )}
               <span className="hidden sm:inline">Open </span>Orders
               {activeTab === "orders" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-xl blur-sm"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-teal-400/5 to-cyan-400/5 rounded-xl blur-sm"></span>
               )}
             </button>
             <button
@@ -270,18 +270,18 @@ const ActivityPanel = ({
               )}
               Balances
               {activeTab === "balances" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-rose-400/20 rounded-xl blur-sm"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-400/5 via-pink-400/5 to-rose-400/5 rounded-xl blur-sm"></span>
               )}
             </button>
           </nav>
 
           {/* Filter toggle - only show for trades and orders tabs */}
           {(activeTab === "trades" || activeTab === "orders") && (
-            <nav className="flex bg-gradient-to-r from-slate-100/50 to-blue-100/50 rounded-xl p-1 border border-blue-200/30 shadow-lg ml-3">
-                              <button
-                  onClick={() => setShowMineOnly(false)}
-                  className={cn(
-                    "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
+            <nav className="flex bg-gradient-to-r from-slate-100/10 to-blue-100/10 rounded-xl p-1 border border-blue-200/30 shadow-lg ml-3">
+              <button
+                onClick={() => setShowMineOnly(false)}
+                className={cn(
+                  "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
                   !showMineOnly
                     ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg animate-pulse-glow"
                     : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 hover:shadow-md",
@@ -295,15 +295,15 @@ const ActivityPanel = ({
                   </>
                 )}
 
-                                    {/* Glowing effect */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+                {/* Glowing effect */}
+                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
 
                 <span className="relative z-10">All</span>
               </button>
-                              <button
-                  onClick={() => setShowMineOnly(true)}
-                  className={cn(
-                    "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
+              <button
+                onClick={() => setShowMineOnly(true)}
+                className={cn(
+                  "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
                   showMineOnly
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow"
                     : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-emerald-100 hover:via-teal-100 hover:to-cyan-100 hover:shadow-md",
@@ -317,8 +317,8 @@ const ActivityPanel = ({
                   </>
                 )}
 
-                                    {/* Glowing effect */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+                {/* Glowing effect */}
+                <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-teal-400/5 to-cyan-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
 
                 <span className="relative z-10">Mine</span>
               </button>
@@ -326,15 +326,14 @@ const ActivityPanel = ({
           )}
         </header>
 
-        <section className="animate-fade-in flex-1 min-w-0 overflow-auto">
+        <section className="animate-fade-in flex-1 min-w-0 overflow-auto rounded-2xl">
           {activeTab === "trades" ? (
             <section
               key={`trades-tab-${marketId}-${showMineOnly}`}
-              className="space-y-2 min-w-0"
+              className="space-y-2 min-w-0 rounded-2xl"
             >
-
               {/* Header row */}
-              <header className="grid grid-cols-4 sm:grid-cols-5 text-xs text-gray-500 py-2 border-b gap-1 sm:gap-2">
+              <header className="grid grid-cols-4 sm:grid-cols-5 text-xs text-neutral-600 py-2 border-b border-gray-200 gap-1 sm:gap-2 rounded-t-xl">
                 <button
                   onClick={() => handleSort("price")}
                   className="text-right truncate hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold"
@@ -365,7 +364,7 @@ const ActivityPanel = ({
               {tradesLoading && trades.length === 0 ? (
                 <article className="text-center py-4 text-neutral">
                   <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></span>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-600">
                     Fetching trade data...
                   </p>
                 </article>
@@ -390,19 +389,19 @@ const ActivityPanel = ({
                       />
                     </svg>
                   </span>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">
                     No trades yet
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-600">
                     This market hasn't seen any trading activity yet.
                   </p>
                 </article>
               ) : (
-                <section className="space-y-2">
+                <section className="space-y-2 rounded-2xl">
                   {sortedTrades.map((trade, index) => (
                     <article
                       key={`${trade.timestamp}-${index}`}
-                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/30 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
+                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
                     >
                       {/* Enhanced hover effect overlay */}
                       <span className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -447,11 +446,10 @@ const ActivityPanel = ({
           ) : activeTab === "orders" ? (
             <section
               key={`orders-tab-${marketId}-${showMineOnly}`}
-              className="space-y-2 min-w-0"
+              className="space-y-2 min-w-0 rounded-2xl"
             >
-
               {/* Header row */}
-              <header className="grid grid-cols-4 text-xs text-gray-500 py-2 border-b gap-2">
+              <header className="grid grid-cols-4 text-xs text-neutral-600 py-2 border-b border-gray-200 gap-2 rounded-t-xl">
                 <span className="truncate">🎯 Type</span>
                 <button
                   onClick={() => handleSort("price")}
@@ -479,7 +477,7 @@ const ActivityPanel = ({
               {ordersLoading && orders.length === 0 ? (
                 <article className="text-center py-4 text-neutral">
                   <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></span>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-600">
                     Fetching order data...
                   </p>
                 </article>
@@ -504,21 +502,21 @@ const ActivityPanel = ({
                       />
                     </svg>
                   </span>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">
                     No orders yet
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-600">
                     This market doesn't have any open orders yet.
                   </p>
                 </article>
               ) : (
-                <section className="space-y-1">
+                <section className="space-y-1 rounded-2xl">
                   {sortedOrders.map((order: OrderbookEntry) => (
                     <article
                       key={
                         order.orderId?.toString() || `order-${Math.random()}`
                       }
-                      className="grid grid-cols-4 text-sm py-3 px-3 border-b last:border-0 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/30 to-teal-50/30 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
+                      className="grid grid-cols-4 text-sm py-3 px-3 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/10 to-teal-50/10 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
                       style={{ minHeight: "2.5rem" }} // Prevent height changes during updates
                     >
                       {/* Enhanced hover effect overlay */}
@@ -552,7 +550,10 @@ const ActivityPanel = ({
               )}
             </section>
           ) : (
-            <section key={`balances-tab-${marketId}`} className="space-y-4">
+            <section
+              key={`balances-tab-${marketId}`}
+              className="space-y-4 rounded-2xl"
+            >
               {balancesLoading ? (
                 <article className="text-center py-4 text-neutral">
                   <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></span>
@@ -579,10 +580,10 @@ const ActivityPanel = ({
                       />
                     </svg>
                   </span>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">
                     No balances yet
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-neutral-600">
                     You haven't deposited any tokens yet.
                   </p>
                   <button
@@ -594,7 +595,7 @@ const ActivityPanel = ({
                     <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
 
                     {/* Glowing effect */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
 
                     <span className="relative z-10">
                       💎 Make your first deposit
@@ -604,7 +605,7 @@ const ActivityPanel = ({
               ) : (
                 <>
                   {/* Summary */}
-                  <article className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-indigo-50/30 rounded-xl p-4 border border-blue-200/50 shadow-lg">
+                  <article className="bg-gradient-to-r from-slate-50 via-blue-50/10 to-indigo-50/10 rounded-xl p-4 border border-blue-200/50 shadow-lg">
                     <header className="flex items-center justify-between mb-3">
                       <span className="text-sm font-semibold text-gray-800">
                         📊 Summary
@@ -638,7 +639,7 @@ const ActivityPanel = ({
                   </article>
 
                   {/* Token Balances */}
-                  <section className="space-y-4">
+                  <section className="space-y-4 rounded-2xl">
                     {balances.map(
                       (balance: {
                         symbol: string;
@@ -664,7 +665,7 @@ const ActivityPanel = ({
                         return (
                           <article
                             key={`${balance.chainId}-${balance.symbol}`}
-                            className="bg-gradient-to-r from-white via-blue-50/20 to-indigo-50/20 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
+                            className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
                           >
                             {/* Enhanced hover effect overlay */}
                             <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -693,9 +694,9 @@ const ActivityPanel = ({
                               </span>
                             </header>
 
-                            <section className="space-y-2 relative z-10">
+                            <section className="space-y-2 relative z-10 rounded-2xl">
                               {parseFloat(balance.walletBalance) > 0 && (
-                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-lg border border-blue-100/50">
+                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-slate-50 to-blue-50/10 rounded-lg border border-blue-100/50">
                                   <span className="text-sm text-gray-700 font-medium">
                                     💼 Wallet Balance:
                                   </span>
@@ -709,7 +710,7 @@ const ActivityPanel = ({
                               )}
 
                               {parseFloat(balance.depositedBalance) > 0 && (
-                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-emerald-50 to-teal-50/30 rounded-lg border border-emerald-100/50">
+                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-emerald-50 to-teal-50/10 rounded-lg border border-emerald-100/50">
                                   <span className="text-sm text-gray-700 font-medium">
                                     💎 Deposited (Available):
                                   </span>
@@ -723,7 +724,7 @@ const ActivityPanel = ({
                               )}
 
                               {parseFloat(balance.lockedBalance) > 0 && (
-                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-orange-50 to-red-50/30 rounded-lg border border-orange-100/50">
+                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-orange-50 to-red-50/10 rounded-lg border border-orange-100/50">
                                   <span className="text-sm text-gray-700 font-medium">
                                     🔒 Locked in Orders:
                                   </span>
@@ -753,7 +754,7 @@ const ActivityPanel = ({
                       <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
 
                       {/* Glowing effect */}
-                      <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
 
                       <span className="relative z-10">💎 Deposit</span>
                     </button>
@@ -766,7 +767,7 @@ const ActivityPanel = ({
                       <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
 
                       {/* Glowing effect */}
-                      <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-teal-400/5 to-cyan-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
 
                       <span className="relative z-10">💸 Withdraw</span>
                     </button>

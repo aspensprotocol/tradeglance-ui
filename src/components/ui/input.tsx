@@ -60,26 +60,26 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <section className="relative">
         {leftIcon && (
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500">
             {leftIcon}
           </span>
         )}
         <input
           type={type}
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            "block w-full rounded-xl border border-neutral-300 bg-neutral-50 p-2.5 text-sm text-neutral-900 focus:border-blue-500 focus:ring-blue-500",
             leftIcon && "pl-10",
             rightIcon && "pr-10",
             error && "border-destructive focus-visible:ring-destructive",
-            inputSize === "sm" && "h-8 px-2 py-1 text-sm",
-            inputSize === "lg" && "h-12 px-4 py-3 text-base",
+            inputSize === "sm" && "p-2 text-xs",
+            inputSize === "lg" && "p-3 text-sm",
             className,
           )}
           ref={ref}
           {...props}
         />
         {rightIcon && (
-          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-500">
             {rightIcon}
           </span>
         )}

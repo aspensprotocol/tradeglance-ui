@@ -217,10 +217,10 @@ export const Navigation = ({
       <section className="hidden md:flex gap-6">
         <Link
           to="/"
-          className={`text-lg font-semibold transition-all duration-300 transform hover:scale-110 flex items-center gap-2 ${
+          className={`text-base font-semibold transition-all duration-300 transform hover:scale-110 flex items-center gap-2 ${
             location.pathname === "/"
               ? "tab-active-blue animate-pulse-glow"
-              : "text-gray-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600"
+              : "text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600"
           }`}
         >
           <Home className="h-5 w-5" />
@@ -232,10 +232,10 @@ export const Navigation = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="text-lg font-semibold text-gray-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
+              className="text-base font-semibold text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
             >
               Trading
-              <ChevronDown className="ml-1 h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-all duration-300 group-data-[state=open]:rotate-180" />
+              <ChevronDown className="ml-1 h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -288,10 +288,10 @@ export const Navigation = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="text-lg font-semibold text-gray-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:via-blue-600 hover:to-cyan-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
+              className="text-base font-semibold text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:via-blue-600 hover:to-cyan-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
             >
               Resources
-              <ChevronDown className="ml-1 h-4 w-4 text-indigo-500 group-hover:text-indigo-600 transition-all duration-300 group-data-[state=open]:rotate-180" />
+              <ChevronDown className="ml-1 h-4 w-4 text-indigo-500 group-hover:text-indigo-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -343,7 +343,7 @@ export const Navigation = ({
       <section className="md:hidden">
         <button
           onClick={toggleMobileMenu}
-          className="p-3 text-gray-900 hover:text-blue-600 transition-colors"
+          className="p-3 text-neutral-900 hover:text-blue-600 transition-colors"
           aria-label="Toggle mobile menu"
         >
           {isMobileMenuOpen ? (
@@ -363,12 +363,12 @@ export const Navigation = ({
           <section className="absolute top-0 left-0 right-0 bottom-0 bg-white">
             {/* Header with close button */}
             <header className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-200">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+              <h2 className="text-base sm:text-lg font-semibold text-neutral-900">
                 Navigation
               </h2>
               <button
                 onClick={closeMobileMenu}
-                className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                className="p-2 text-neutral-600 hover:text-neutral-800 transition-colors"
                 aria-label="Close navigation"
               >
                 <X className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -379,7 +379,7 @@ export const Navigation = ({
             <main className="p-3 sm:p-4">
               <Card className="border-0 shadow-none">
                 <CardHeader className="pb-2 sm:pb-3">
-                  <CardTitle className="text-center text-xl sm:text-2xl text-gray-900">
+                  <CardTitle className="text-center text-lg sm:text-xl text-neutral-900">
                     Trade Glance
                   </CardTitle>
                 </CardHeader>
@@ -390,7 +390,7 @@ export const Navigation = ({
                     onClick={closeMobileMenu}
                   >
                     <Button
-                      className="w-full py-2.5 sm:py-3 text-sm sm:text-base"
+                      className="w-full py-2.5 sm:py-3 text-xs sm:text-sm"
                       variant="outline"
                     >
                       Simple
@@ -398,7 +398,7 @@ export const Navigation = ({
                   </Link>
                   <Link to="/docs" className="block" onClick={closeMobileMenu}>
                     <Button
-                      className="w-full py-2.5 sm:py-3 text-sm sm:text-base"
+                      className="w-full py-2.5 sm:py-3 text-xs sm:text-sm"
                       variant="outline"
                     >
                       Docs
@@ -406,7 +406,7 @@ export const Navigation = ({
                   </Link>
                   <Link to="/mint" className="block" onClick={closeMobileMenu}>
                     <Button
-                      className="w-full py-2.5 sm:py-3 text-sm sm:text-base"
+                      className="w-full py-2.5 sm:py-3 text-xs sm:text-sm"
                       variant="outline"
                     >
                       Mint Test Tokens
@@ -418,7 +418,7 @@ export const Navigation = ({
                     onClick={closeMobileMenu}
                   >
                     <Button
-                      className="w-full py-2.5 sm:py-3 text-sm sm:text-base"
+                      className="w-full py-2.5 sm:py-3 text-xs sm:text-sm"
                       variant="outline"
                     >
                       Config

@@ -33,8 +33,8 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           const emoji = emojiMatch[1];
           const text = headerText.replace(emoji, "").trim();
           const result = (
-            <h1 key={index} className="text-4xl font-bold text-center mb-8">
-              <span className="text-4xl">{emoji}</span>
+            <h1 key={index} className="text-3xl font-bold text-center mb-8">
+              <span className="text-3xl">{emoji}</span>
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {text}
               </span>
@@ -44,7 +44,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           continue;
         } else {
           const result = (
-            <h1 key={index} className="text-4xl font-bold text-center mb-8">
+            <h1 key={index} className="text-3xl font-bold text-center mb-8">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {headerText}
               </span>
@@ -60,7 +60,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
         const result = (
           <h2
             key={index}
-            className="text-3xl font-bold mt-12 mb-6 text-gray-800 border-b border-gray-200 pb-2"
+            className="text-2xl font-bold mt-8 mb-4 text-neutral-800 border-b border-gray-200 pb-2"
           >
             {headerText}
           </h2>
@@ -74,7 +74,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
         const result = (
           <h3
             key={index}
-            className="text-2xl font-bold mt-8 mb-4 text-gray-700"
+            className="text-xl font-bold mt-6 mb-3 text-neutral-700"
           >
             {headerText}
           </h3>
@@ -94,9 +94,9 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
         const result = (
           <pre
             key={index}
-            className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4"
+            className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto my-4"
           >
-            <code>{codeBlock.join("\n")}</code>
+            <code className="text-xs">{codeBlock.join("\n")}</code>
           </pre>
         );
         processedLines.push(result);
@@ -157,7 +157,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
       // Handle unordered lists
       if (line.startsWith("- ")) {
         const result = (
-          <li key={index} className="text-gray-600 mb-1 list-disc ml-6">
+          <li key={index} className="text-neutral-700 mb-1 list-disc ml-6">
             {line.replace("- ", "")}
           </li>
         );
@@ -168,15 +168,13 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
       // Handle numbered lists (any number, not just starting with 1)
       if (/^\d+\.\s/.test(line)) {
         // Check if this is the start of an ordered list
-        const listItems: { number: string; content: string }[] = [];
+        const listItems: string[] = [];
         let i = index;
 
         // Collect all consecutive numbered list items
         while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-          listItems.push({
-            number: lines[i].match(/^(\d+)\./)?.[1] || "1",
-            content: lines[i].replace(/^\d+\.\s/, ""),
-          });
+          const listItemContent = lines[i].replace(/^\d+\.\s*/, '');
+          listItems.push(listItemContent);
           i++;
         }
 
@@ -186,41 +184,33 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           const result = (
             <ol
               key={index}
-              className="ml-8 mb-4 space-y-2"
-              style={{ listStyleType: "decimal", listStyle: "decimal" }}
+              className="ml-8 mb-4 space-y-2 list-decimal"
             >
-              {listItems.map(
-                (
-                  item: { number: string; content: string },
-                  itemIndex: number,
-                ) => (
-                  <li
-                    key={itemIndex}
-                    className="text-gray-600 leading-relaxed pl-2"
-                    style={{ listStyleType: "decimal", listStyle: "decimal" }}
-                  >
-                    {item.content}
-                  </li>
-                ),
-              )}
+              {listItems.map((listItemContent, itemIndex) => (
+                <li
+                  key={itemIndex}
+                  className="text-gray-600 leading-relaxed mb-2"
+                >
+                  {listItemContent}
+                </li>
+              ))}
             </ol>
           );
           processedLines.push(result);
           continue;
         } else {
           // Single item
+          const singleItemContent = line.replace(/^\d+\.\s*/, '');
           const result = (
             <ol
               key={index}
-              className="ml-8 mb-4"
-              style={{ listStyleType: "decimal", listStyle: "decimal" }}
+              className="ml-8 mb-4 list-decimal"
             >
               <li
-                className="text-gray-600 leading-relaxed pl-2"
-                style={{ listStyleType: "decimal", listStyle: "decimal" }}
+                className="text-gray-600 leading-relaxed mb-2"
               >
-                {listItems[0].content}
-              </li>
+                {singleItemContent}
+                </li>
             </ol>
           );
           processedLines.push(result);
@@ -327,7 +317,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           }
 
           const result = (
-            <p key={index} className="text-gray-600 leading-relaxed mb-4">
+            <p key={index} className="text-neutral-700 leading-relaxed mb-4">
               {parts}
             </p>
           );
@@ -340,12 +330,15 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
       if (line.includes("**")) {
         const parts: string[] = line.split("**");
         const result = (
-          <p key={index} className="text-gray-600 leading-relaxed mb-4">
+          <p key={index} className="text-neutral-700 leading-relaxed mb-4">
             {parts.map((part: string, partIndex: number) =>
               partIndex % 2 === 0 ? (
                 <span key={partIndex}>{part}</span>
               ) : (
-                <strong key={partIndex} className="text-gray-900 font-semibold">
+                <strong
+                  key={partIndex}
+                  className="text-neutral-900 font-semibold"
+                >
                   {part}
                 </strong>
               ),
@@ -360,12 +353,12 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
       if (line.includes("*") && !line.startsWith("*")) {
         const parts: string[] = line.split("*");
         const result = (
-          <p key={index} className="text-gray-600 leading-relaxed mb-4">
+          <p key={index} className="text-neutral-700 leading-relaxed mb-4">
             {parts.map((part: string, partIndex: number) =>
               partIndex % 2 === 0 ? (
                 <span key={partIndex}>{part}</span>
               ) : (
-                <em key={partIndex} className="text-gray-700 italic">
+                <em key={partIndex} className="text-neutral-800 italic">
                   {part}
                 </em>
               ),
@@ -385,7 +378,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
 
       // Regular paragraph
       const result = (
-        <p key={index} className="text-gray-600 leading-relaxed mb-4">
+        <p key={index} className="text-neutral-700 leading-relaxed mb-4">
           {line}
         </p>
       );
