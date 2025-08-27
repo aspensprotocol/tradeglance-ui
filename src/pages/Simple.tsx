@@ -53,8 +53,8 @@ const Simple = ({
             </section>
           </section>
         ) : defaultPair ? (
-          <section className="flex flex-col items-center gap-6 w-full max-w-2xl relative z-10">
-            <section className="w-full card-gradient-emerald p-6 relative overflow-hidden">
+          <section className="flex flex-col items-center gap-3 w-full max-w-2xl relative z-10">
+            <section className="w-full card-gradient-emerald p-3 relative overflow-hidden">
               {/* Subtle gradient overlay matching Pro view */}
               <section className="overlay-emerald"></section>
 

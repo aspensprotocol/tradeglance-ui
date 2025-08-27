@@ -138,46 +138,46 @@ const SimpleForm = ({
   };
 
   return (
-    <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-hidden relative">
+    <section className="h-full animate-fade-in overflow-hidden relative">
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
         <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-300"></section>
         <section className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-700"></section>
       </section>
 
-      <main className="p-4 sm:p-5 md:p-6 lg:p-6 h-full flex flex-col relative z-10">
+      <main className="p-2 sm:p-3 h-full flex flex-col relative z-10">
         {/* Header */}
-        <header className="flex flex-row items-center justify-between mb-6 pb-4 border-b border-emerald-200">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <header className="flex flex-row items-center justify-between mb-2 pb-2 border-b border-emerald-200">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
             Simple Swap
           </h2>
-          <nav className="flex gap-2">
+          <nav className="flex gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 h-8 w-8 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
+              className="p-1.5 h-7 w-7 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 h-8 w-8 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
+              className="p-1.5 h-7 w-7 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
             >
-              <History className="h-4 w-4" />
+              <History className="h-3.5 w-3.5" />
             </Button>
           </nav>
         </header>
 
-        <main className="space-y-4 flex-1 overflow-auto">
+        <main className="space-y-2 flex-1 overflow-auto">
           {/* Sender Section */}
-          <fieldset className="space-y-3 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-xl p-4 border-2 border-emerald-200 shadow-lg relative overflow-hidden">
+          <fieldset className="space-y-2 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-xl p-3 border-2 border-emerald-200 shadow-lg relative overflow-hidden">
             {/* Subtle gradient overlay */}
             <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/2 to-teal-400/2 pointer-events-none"></section>
 
-            <section className="flex flex-col sm:flex-row gap-3 relative z-10">
+            <section className="flex flex-col sm:flex-row gap-2 relative z-10">
               <section className="flex flex-col gap-1 min-w-0">
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs font-semibold text-gray-700">
                   Token
                 </span>
                 <span className="flex items-center gap-2">
@@ -186,7 +186,7 @@ const SimpleForm = ({
                     value={selectedBaseToken}
                     onValueChange={handleBaseTokenChange}
                   >
-                    <SelectTrigger className="w-20 bg-white border-2 border-emerald-200 text-gray-800 p-2 rounded-lg hover:border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200">
+                    <SelectTrigger className="w-16 bg-white border-2 border-emerald-200 text-gray-800 p-1.5 rounded-lg hover:border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-to-br from-white via-emerald-50 to-teal-50 border-2 border-emerald-200 shadow-2xl rounded-xl">
@@ -207,7 +207,7 @@ const SimpleForm = ({
               <span className="hidden sm:block w-px bg-emerald-200 mx-2"></span>
 
               <section className="flex flex-col gap-1 flex-1">
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs font-semibold text-gray-700">
                   Network
                 </span>
                 <span className="flex items-center gap-2">
@@ -215,7 +215,7 @@ const SimpleForm = ({
                     value={networkState.senderNetwork}
                     onValueChange={handleSenderNetworkChange}
                   >
-                    <SelectTrigger className="bg-white border-2 border-emerald-200 text-gray-800 flex-1 p-2 rounded-lg hover:border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200">
+                    <SelectTrigger className="bg-white border-2 border-emerald-200 text-gray-800 flex-1 p-1.5 rounded-lg hover:border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-to-br from-white via-emerald-50 to-teal-50 border-2 border-emerald-200 shadow-2xl rounded-xl">
@@ -253,14 +253,14 @@ const SimpleForm = ({
                 value={formState.amount}
                 onChange={(e) => updateAmount(e.target.value)}
                 placeholder="0"
-                className="bg-white border-2 border-emerald-200 text-2xl font-bold text-gray-800 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="bg-white border-2 border-emerald-200 text-xl font-bold text-gray-800 p-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md"
               />
             </span>
 
-            <section className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-sm relative z-10">
+            <section className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs relative z-10">
               <span className="text-gray-600 font-medium">$0.00</span>
               <span className="flex items-center gap-1">
-                <span className="text-sm text-gray-600">
+                <span className="text-xs text-gray-600">
                   Balance:{" "}
                   {balanceLoading ? (
                     <span className="text-emerald-500 font-medium animate-pulse">
@@ -277,13 +277,13 @@ const SimpleForm = ({
             </section>
 
             {/* Percentage Buttons */}
-            <nav className="flex gap-2 relative z-10">
+            <nav className="flex gap-1 relative z-10">
               {[25, 50, 75, 100].map((percentage) => (
                 <button
                   key={percentage}
                   onClick={() => handlePercentageClick(percentage)}
                   className={cn(
-                    "flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105",
+                    "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 transform hover:scale-105",
                     formState.percentageValue === percentage
                       ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg"
                       : "bg-gradient-to-r from-slate-50 to-emerald-50 text-gray-600 hover:text-gray-800 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow-md",
@@ -296,25 +296,25 @@ const SimpleForm = ({
           </fieldset>
 
           {/* Swap Button */}
-          <section className="flex justify-center py-2">
+          <section className="flex justify-center py-1">
             <Button
               onClick={handleSwapTokens}
               variant="ghost"
               size="sm"
-              className="rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+              className="rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
             >
-              <ArrowDownUp className="h-6 w-6 text-emerald-600" />
+              <ArrowDownUp className="h-5 w-5 text-emerald-600" />
             </Button>
           </section>
 
           {/* Receiver Section */}
-          <fieldset className="space-y-3 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 rounded-xl p-4 border-2 border-blue-200 shadow-lg relative overflow-hidden">
+          <fieldset className="space-y-2 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 rounded-xl p-3 border-2 border-blue-200 shadow-lg relative overflow-hidden">
             {/* Subtle gradient overlay */}
             <section className="absolute inset-0 bg-gradient-to-r from-blue-400/2 to-indigo-400/2 pointer-events-none"></section>
 
-            <section className="flex flex-col sm:flex-row gap-3 relative z-10">
+            <section className="flex flex-col sm:flex-row gap-2 relative z-10">
               <section className="flex flex-col gap-1 min-w-0">
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs font-semibold text-gray-700">
                   Token
                 </span>
                 <span className="flex items-center gap-2">
@@ -323,7 +323,7 @@ const SimpleForm = ({
                     value={selectedQuoteToken}
                     onValueChange={handleQuoteTokenChange}
                   >
-                    <SelectTrigger className="w-20 bg-white border-2 border-blue-200 text-gray-800 p-2 rounded-lg hover:border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    <SelectTrigger className="w-16 bg-white border-2 border-blue-200 text-gray-800 p-1.5 rounded-lg hover:border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-xl">
@@ -344,7 +344,7 @@ const SimpleForm = ({
               <span className="hidden sm:block w-px bg-blue-200 mx-2"></span>
 
               <section className="flex flex-col gap-1 flex-1">
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs font-semibold text-gray-700">
                   Network
                 </span>
                 <span className="flex items-center gap-2">
@@ -352,7 +352,7 @@ const SimpleForm = ({
                     value={networkState.receiverNetwork}
                     onValueChange={handleReceiverNetworkChange}
                   >
-                    <SelectTrigger className="bg-white border-2 border-blue-200 text-gray-800 flex-1 p-2 rounded-lg hover:border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    <SelectTrigger className="bg-white border-2 border-blue-200 text-gray-800 flex-1 p-1.5 rounded-lg hover:border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-xl">
@@ -385,7 +385,7 @@ const SimpleForm = ({
             </section>
 
             {/* Address inside the field */}
-            <span className="text-sm text-gray-600 relative z-10">
+            <span className="text-xs text-gray-600 relative z-10">
               To:{" "}
               {address
                 ? `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -393,19 +393,19 @@ const SimpleForm = ({
             </span>
 
             <span className="flex items-center gap-2 relative z-10">
-              <span className="text-3xl font-bold text-blue-600">
+              <span className="text-2xl font-bold text-blue-600">
                 {formState.amount || "0"}
               </span>
             </span>
 
-            <span className="text-sm text-gray-600 font-medium relative z-10">
+            <span className="text-xs text-gray-600 font-medium relative z-10">
               $0.00
             </span>
           </fieldset>
 
           {/* Fee Section */}
-          <section className="text-center bg-gradient-to-r from-slate-50 to-gray-100 rounded-xl py-3 border border-gray-200 shadow-sm">
-            <span className="text-sm text-gray-600 font-medium">
+          <section className="text-center bg-gradient-to-r from-slate-50 to-gray-100 rounded-xl py-2 border border-gray-200 shadow-sm">
+            <span className="text-xs text-gray-600 font-medium">
               Fee:{" "}
               {(() => {
                 const amountValue = parseFloat(
@@ -429,7 +429,7 @@ const SimpleForm = ({
               !formState.amount
             }
             className={cn(
-              "w-full py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
+              "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
               (() => {
                 if (!currentChainId)
                   return "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 text-white";
@@ -452,7 +452,7 @@ const SimpleForm = ({
 
             {formState.isSubmitting ? (
               <span className="flex items-center gap-2 relative z-10">
-                <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                 Processing Simple...
               </span>
             ) : !isConnected ? (

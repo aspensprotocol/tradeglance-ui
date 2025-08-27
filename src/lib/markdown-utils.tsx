@@ -168,15 +168,13 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
       // Handle numbered lists (any number, not just starting with 1)
       if (/^\d+\.\s/.test(line)) {
         // Check if this is the start of an ordered list
-        const listItems: { number: string; content: string }[] = [];
+        const listItems: string[] = [];
         let i = index;
 
         // Collect all consecutive numbered list items
         while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-          listItems.push({
-            number: lines[i].match(/^(\d+)\./)?.[1] || "1",
-            content: lines[i].replace(/^\d+\.\s/, ""),
-          });
+          const content = lines[i].replace(/^\d+\.\s*/, '');
+          listItems.push(content);
           i++;
         }
 
@@ -186,41 +184,33 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           const result = (
             <ol
               key={index}
-              className="ml-8 mb-4 space-y-2"
-              style={{ listStyleType: "decimal", listStyle: "decimal" }}
+              className="ml-8 mb-4 space-y-2 list-decimal"
             >
-              {listItems.map(
-                (
-                  item: { number: string; content: string },
-                  itemIndex: number,
-                ) => (
-                  <li
-                    key={itemIndex}
-                    className="text-gray-600 leading-relaxed pl-2"
-                    style={{ listStyleType: "decimal", listStyle: "decimal" }}
-                  >
-                    {item.content}
-                  </li>
-                ),
-              )}
+              {listItems.map((content, itemIndex) => (
+                <li
+                  key={itemIndex}
+                  className="text-gray-600 leading-relaxed mb-2"
+                >
+                  {content}
+                </li>
+              ))}
             </ol>
           );
           processedLines.push(result);
           continue;
         } else {
           // Single item
+          const content = line.replace(/^\d+\.\s*/, '');
           const result = (
             <ol
               key={index}
-              className="ml-8 mb-4"
-              style={{ listStyleType: "decimal", listStyle: "decimal" }}
+              className="ml-8 mb-4 list-decimal"
             >
               <li
-                className="text-gray-600 leading-relaxed pl-2"
-                style={{ listStyleType: "decimal", listStyle: "decimal" }}
+                className="text-gray-600 leading-relaxed mb-2"
               >
-                {listItems[0].content}
-              </li>
+                {content}
+                </li>
             </ol>
           );
           processedLines.push(result);

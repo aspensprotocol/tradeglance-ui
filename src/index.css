@@ -561,6 +561,22 @@
   box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
 }
 
+/* Shadow visibility fix for clipped containers */
+.shadow-visible {
+  overflow: visible !important;
+  padding-bottom: 1rem;
+}
+
+.shadow-visible-lg {
+  overflow: visible !important;
+  padding-bottom: 1.5rem;
+}
+
+.shadow-visible-xl {
+  overflow: visible !important;
+  padding-bottom: 2rem;
+}
+
 /* Enhanced Focus States */
 .focus-glow-blue:focus {
   box-shadow:

@@ -200,7 +200,7 @@ const ActivityPanel = ({
   };
 
   return (
-    <main className="h-full bg-gradient-to-br from-white via-blue-50/10 to-indigo-50/10 rounded-2xl shadow-xl border-2 border-blue-200/50 animate-fade-in overflow-hidden relative">
+    <main className="h-full bg-gradient-to-br from-white via-blue-50/10 to-indigo-50/10 rounded-2xl shadow-xl border-2 border-blue-200/50 animate-fade-in overflow-visible relative shadow-visible">
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
         <section className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-300"></section>

@@ -33,7 +33,7 @@ const TradeForm = ({
   };
 
   return (
-    <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-hidden relative">
+    <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-visible relative shadow-visible">
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
         <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-300"></section>
@@ -219,7 +219,7 @@ const TradeForm = ({
           <fieldset className="flex-1 flex flex-col space-y-3 sm:space-y-4 md:space-y-4 lg:space-y-5">
             {/* Group 3: Price and input field */}
             {tradingState.activeOrderType === "limit" ? (
-              <section className="space-y-1 mb-4">
+              <section className="space-y-1 mb-2">
                 <header className="flex justify-between items-center mb-1">
                   <span className="text-sm sm:text-base font-semibold text-gray-700">
                     Price
@@ -248,7 +248,7 @@ const TradeForm = ({
               </section>
             ) : (
               /* Market Order Info - maintains consistent height */
-              <section className="space-y-1 mb-4">
+              <section className="space-y-1 mb-2">
                 <header className="flex justify-between items-center mb-1">
                   <span className="text-sm sm:text-base font-semibold text-gray-700">
                     Market Order
@@ -265,7 +265,7 @@ const TradeForm = ({
             )}
           </fieldset>
 
-          <footer className="mt-4">
+          <footer className="mt-2">
             {/* Order Summary */}
             <section className="p-3 sm:p-3.5 md:p-4 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
               {/* Subtle gradient overlay */}
