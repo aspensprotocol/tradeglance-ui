@@ -16,7 +16,7 @@ export const PERFORMANCE_CONFIG = {
     maxRetries: 3,
     requestTimeout: 10000, // 10 seconds
     minFetchInterval: 1000, // 1 second
-    maxEntriesToRender: 100, // Limit rendered entries for performance
+    maxEntriesToRender: 100, // Default limit for rendered orderbook entries
     virtualScrollThreshold: 50, // Enable virtualization after this many items
   },
 

@@ -216,7 +216,7 @@ const ActivityPanel = ({
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "trades"
                   ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 hover:shadow-md transform hover:scale-105",
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform hover:scale-[1.02]",
               )}
             >
               {/* Floating sparkles for active tab */}
@@ -237,7 +237,7 @@ const ActivityPanel = ({
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "orders"
                   ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-emerald-100 hover:via-teal-100 hover:to-cyan-100 hover:shadow-md transform hover:scale-105",
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform hover:scale-[1.02]",
               )}
             >
               {/* Floating sparkles for active tab */}
@@ -258,7 +258,7 @@ const ActivityPanel = ({
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "balances"
                   ? "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-purple-100 hover:via-pink-100 hover:to-rose-100 hover:shadow-md transform hover:scale-105",
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform hover:scale-[1.02]",
               )}
             >
               {/* Floating sparkles for active tab */}
@@ -281,10 +281,10 @@ const ActivityPanel = ({
               <button
                 onClick={() => setShowMineOnly(false)}
                 className={cn(
-                  "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
+                  "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] group overflow-hidden relative",
                   !showMineOnly
                     ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg animate-pulse-glow"
-                    : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 hover:shadow-md",
+                    : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
                 )}
               >
                 {/* Floating sparkles for active state */}
@@ -303,10 +303,10 @@ const ActivityPanel = ({
               <button
                 onClick={() => setShowMineOnly(true)}
                 className={cn(
-                  "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 group overflow-hidden relative",
+                  "px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] group overflow-hidden relative",
                   showMineOnly
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow"
-                    : "text-slate-600 hover:text-slate-800 hover:bg-gradient-to-r hover:from-emerald-100 hover:via-teal-100 hover:to-cyan-100 hover:shadow-md",
+                    : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
                 )}
               >
                 {/* Floating sparkles for active state */}
@@ -588,7 +588,7 @@ const ActivityPanel = ({
                   </p>
                   <button
                     onClick={handleDepositClick}
-                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                   >
                     {/* Floating sparkles */}
                     <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -612,7 +612,7 @@ const ActivityPanel = ({
                       </span>
                       <button
                         onClick={refreshBalances}
-                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                       >
                         {/* Floating sparkle */}
                         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -626,7 +626,12 @@ const ActivityPanel = ({
                           Tokens with Balances:
                         </span>
                         <span className="ml-2 font-medium">
-                          {balances.length}
+                          {balances.filter((balance) => {
+                            const walletBalance = parseFloat(balance.walletBalance);
+                            const depositedBalance = parseFloat(balance.depositedBalance);
+                            const lockedBalance = parseFloat(balance.lockedBalance);
+                            return walletBalance > 0 || depositedBalance > 0 || lockedBalance > 0;
+                          }).length}
                         </span>
                       </span>
                       <span>
@@ -640,15 +645,23 @@ const ActivityPanel = ({
 
                   {/* Token Balances */}
                   <section className="space-y-4 rounded-2xl">
-                    {balances.map(
-                      (balance: {
-                        symbol: string;
-                        chainId: number;
-                        network: string;
-                        walletBalance: string;
-                        depositedBalance: string;
-                        lockedBalance: string;
-                      }) => {
+                    {balances
+                      .filter((balance) => {
+                        // Only show tokens that have at least one non-zero balance
+                        const walletBalance = parseFloat(balance.walletBalance);
+                        const depositedBalance = parseFloat(balance.depositedBalance);
+                        const lockedBalance = parseFloat(balance.lockedBalance);
+                        return walletBalance > 0 || depositedBalance > 0 || lockedBalance > 0;
+                      })
+                      .map(
+                        (balance: {
+                          symbol: string;
+                          chainId: number;
+                          network: string;
+                          walletBalance: string;
+                          depositedBalance: string;
+                          lockedBalance: string;
+                        }) => {
                         // Get chain prefix for display
                         const getChainPrefix = (network: string): string => {
                           if (network.includes("flare")) return "f";
@@ -665,7 +678,7 @@ const ActivityPanel = ({
                         return (
                           <article
                             key={`${balance.chainId}-${balance.symbol}`}
-                            className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow"
+                            className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow h-48 flex flex-col"
                           >
                             {/* Enhanced hover effect overlay */}
                             <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -673,7 +686,9 @@ const ActivityPanel = ({
                             {/* Floating sparkles on hover */}
                             <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
                             <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
-                            <header className="flex items-center justify-between mb-3 relative z-10">
+                            
+                            {/* Fixed height header */}
+                            <header className="flex items-center justify-between mb-3 relative z-10 flex-shrink-0">
                               <span className="flex items-center space-x-3">
                                 <span className="w-8 h-8 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center shadow-md">
                                   <span className="text-blue-600 text-xs font-bold">
@@ -694,7 +709,8 @@ const ActivityPanel = ({
                               </span>
                             </header>
 
-                            <section className="space-y-2 relative z-10 rounded-2xl">
+                            {/* Scrollable content section with fixed height */}
+                            <section className="space-y-2 relative z-10 rounded-2xl flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
                               {parseFloat(balance.walletBalance) > 0 && (
                                 <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-slate-50 to-blue-50/10 rounded-lg border border-blue-100/50">
                                   <span className="text-sm text-gray-700 font-medium">
@@ -747,7 +763,7 @@ const ActivityPanel = ({
                   <nav className="flex space-x-3 pt-3">
                     <button
                       onClick={handleDepositClick}
-                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                     >
                       {/* Floating sparkles */}
                       <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -760,7 +776,7 @@ const ActivityPanel = ({
                     </button>
                     <button
                       onClick={handleWithdrawClick}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                     >
                       {/* Floating sparkles */}
                       <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>

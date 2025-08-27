@@ -4,6 +4,7 @@ import { formatDecimalConsistent } from "../lib/number-utils";
 import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import type { VerticalOrderBookProps } from "../lib/shared-types";
+import { PERFORMANCE_CONFIG } from "../lib/optimization-config";
 
 import {
   Select,
@@ -97,6 +98,7 @@ const VerticalOrderBook = React.memo(
     selectedPair,
     onPairChange,
     tradingPairs,
+    maxOrders,
   }: VerticalOrderBookProps): JSX.Element => {
     // No filtering - show all orders
     const filterByTrader = undefined;
@@ -113,6 +115,33 @@ const VerticalOrderBook = React.memo(
       spread: 0,
       spreadPercentage: 0,
     };
+
+    // Function to limit orders based on price priority
+    const limitOrdersByPrice = (
+      orders: OrderbookEntry[],
+      isAsk: boolean,
+      maxEntries: number = maxOrders || PERFORMANCE_CONFIG.orderbook.maxEntriesToRender,
+    ): OrderbookEntry[] => {
+      if (!orders || orders.length === 0) return [];
+
+      // Sort orders by price
+      // For asks: lowest price first (best ask) - we want to show the cheapest sell orders
+      // For bids: highest price first (best bid) - we want to show the most expensive buy orders
+      const sortedOrders = [...orders].sort((a, b) => {
+        const priceA = parseFloat(a.price || "0");
+        const priceB = parseFloat(b.price || "0");
+        return isAsk ? priceA - priceB : priceB - priceA;
+      });
+
+      // Take only the top N orders (best prices)
+      // This ensures we only show the most competitive orders and prevents
+      // the orderbook from becoming cluttered with orders that are unlikely to execute
+      return sortedOrders.slice(0, maxEntries);
+    };
+
+    // Limit orders to configured maximum
+    const limitedAsks = limitOrdersByPrice(asks, true);
+    const limitedBids = limitOrdersByPrice(bids, false);
 
     // Calculate cumulative volumes for volume bars
     const calculateCumulativeVolumes = (
@@ -137,8 +166,8 @@ const VerticalOrderBook = React.memo(
       return volumes;
     };
 
-    const askVolumes = calculateCumulativeVolumes(asks, true);
-    const bidVolumes = calculateCumulativeVolumes(bids, false);
+    const askVolumes = calculateCumulativeVolumes(limitedAsks, true);
+    const bidVolumes = calculateCumulativeVolumes(limitedBids, false);
 
     // Find the maximum volume for scaling
     const maxVolume = Math.max(
@@ -230,7 +259,7 @@ const VerticalOrderBook = React.memo(
       }
 
       // Show no data state only when we're not loading and have no data
-      if (!orderbook || (asks.length === 0 && bids.length === 0)) {
+      if (!orderbook || (limitedAsks.length === 0 && limitedBids.length === 0)) {
         return (
           <section className="p-6 h-full flex items-center justify-center">
             <article className="text-center">
@@ -272,9 +301,26 @@ const VerticalOrderBook = React.memo(
             </span>
           </header>
 
+          {/* Order count indicator */}
+          {(asks.length > limitedAsks.length || bids.length > limitedBids.length) && (
+            <article className="text-center py-2 mb-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-lg border border-blue-200 text-xs text-blue-700">
+              <span className="font-medium">
+                Showing top {maxOrders || PERFORMANCE_CONFIG.orderbook.maxEntriesToRender} orders by price
+              </span>
+              <span className="text-blue-600">
+                ({limitedAsks.length + limitedBids.length} of {asks.length + bids.length} total)
+              </span>
+              {limitedAsks.length > 0 && limitedBids.length > 0 && (
+                <div className="mt-1 text-blue-600 text-xs">
+                  Price range: {formatDecimalConsistent(limitedAsks[0]?.price || 0)} - {formatDecimalConsistent(limitedBids[0]?.price || 0)}
+                </div>
+              )}
+            </article>
+          )}
+
           {/* Asks (Sell orders) - Red */}
           <section className="space-y-1 mb-4">
-            {asks.map((ask, i: number) => (
+            {limitedAsks.map((ask, i: number) => (
               <OrderbookRow
                 key={`ask-${i}-${ask.orderId}`}
                 entry={ask}
@@ -303,7 +349,7 @@ const VerticalOrderBook = React.memo(
 
           {/* Bids (Buy orders) - Green */}
           <section className="space-y-1">
-            {bids.map((bid, i: number) => (
+            {limitedBids.map((bid, i: number) => (
               <OrderbookRow
                 key={`bid-${i}-${bid.orderId}`}
                 entry={bid}
