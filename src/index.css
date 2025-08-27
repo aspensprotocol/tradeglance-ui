@@ -87,23 +87,23 @@
   }
 
   .card-gradient-blue {
-    @apply bg-gradient-to-br from-white via-blue-50 to-indigo-50 border border-blue-200 shadow-md;
+    @apply bg-gradient-to-br from-white via-blue-50 to-indigo-50 border border-blue-200 shadow-md rounded-xl;
   }
 
   .card-gradient-purple {
-    @apply bg-gradient-to-br from-white via-purple-50 to-pink-50 border border-purple-200 shadow-md;
+    @apply bg-gradient-to-br from-white via-purple-50 to-pink-50 border border-purple-200 shadow-md rounded-xl;
   }
 
   .card-gradient-emerald {
-    @apply bg-gradient-to-br from-white via-emerald-50 to-teal-50 border border-emerald-200 shadow-md;
+    @apply bg-gradient-to-br from-white via-emerald-50 to-teal-50 border border-emerald-200 shadow-md rounded-xl;
   }
 
   .card-gradient-orange {
-    @apply bg-gradient-to-br from-white via-orange-50 to-red-50 border border-orange-200 shadow-md;
+    @apply bg-gradient-to-br from-white via-orange-50 to-red-50 border border-orange-200 shadow-md rounded-xl;
   }
 
   .card-hover {
-    @apply hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02];
+    @apply hover:shadow-lg transition-all duration-300;
   }
 
   /* Button System */
@@ -402,10 +402,10 @@
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.1);
   }
   50% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
   }
 }
 

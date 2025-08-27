@@ -239,25 +239,25 @@ const Mint = (): JSX.Element => {
       <main className="max-w-4xl mx-auto relative">
         {/* Floating decorative elements matching Pro view aesthetic */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
-          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
-          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
-          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg animate-pulse delay-1000"></section>
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-full blur-lg animate-pulse delay-1000"></section>
         </section>
 
         <header className="mb-6 sm:mb-8 relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Test Token Minting
+          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 mb-2">
+            Mint Test Tokens
           </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            Mint test tokens for both chains to test the trading functionality.
+          <p className="text-neutral-700 text-xs sm:text-sm">
+            Get test tokens to try out the trading interface
           </p>
         </header>
 
         {!isConnected ? (
           <Card>
             <CardContent className="p-6">
-              <p className="text-center text-gray-600">
-                Please connect your wallet to mint test tokens.
+              <p className="text-center text-neutral-700 text-xs">
+                Select a token and network to mint test tokens
               </p>
             </CardContent>
           </Card>
@@ -286,23 +286,23 @@ const Mint = (): JSX.Element => {
                           {chain.network}
                         </span>
                       </CardTitle>
-                      <small className="text-xs text-gray-400">
-                        Chain ID: {chain.chainId}
+                      <small className="text-xs text-neutral-500">
+                        (estimated)
                       </small>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <dl className="space-y-3">
                         <header className="flex justify-between">
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-neutral-600">
                             Address:
                           </span>
-                          <span className="text-xs font-mono text-gray-500">
+                          <span className="text-xs font-mono text-neutral-600">
                             {tokenConfig.address.slice(0, 8)}...
                             {tokenConfig.address.slice(-6)}
                           </span>
                         </header>
                         <section className="flex justify-between">
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-neutral-600">
                             Decimals:
                           </span>
                           <span className="font-medium">
@@ -310,7 +310,7 @@ const Mint = (): JSX.Element => {
                           </span>
                         </section>
                         <section className="flex justify-between">
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-neutral-600">
                             Network:
                           </span>
                           <span className="font-medium">{chain.network}</span>
@@ -346,7 +346,8 @@ const Mint = (): JSX.Element => {
                           ? parseInt(chain.chainId, 10)
                           : chain.chainId) && (
                         <aside className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                          ✓ Currently on this network
+                          ✅ Successfully minted 1000 {tokenSymbol} on{" "}
+                          {chain.network}
                         </aside>
                       )}
                     </CardContent>
@@ -359,7 +360,7 @@ const Mint = (): JSX.Element => {
 
         <aside className="mt-8 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">Instructions:</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-xs text-blue-800 space-y-1">
             <li>• Connect your wallet to mint test tokens</li>
             <li>• Click "Mint" on each chain to get 1000 test tokens</li>
             <li>• The app will automatically switch networks if needed</li>

@@ -31,7 +31,7 @@ export const LoadingSpinner = ({
             sizeClasses[size],
           )}
         ></span>
-        <p className="text-gray-600 text-sm sm:text-base">{message}</p>
+        <p className="text-neutral-800 text-xs sm:text-sm">{message}</p>
       </article>
     </section>
   );

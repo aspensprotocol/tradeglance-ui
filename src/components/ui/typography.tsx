@@ -8,7 +8,7 @@ const TypographyH1 = React.forwardRef<
   <h1
     ref={ref}
     className={cn(
-      "scroll-m-20 text-4xl font-extrabold tracking-tight text-balance",
+      "scroll-m-20 text-3xl font-extrabold tracking-tight text-balance",
       className,
     )}
     {...props}
@@ -23,7 +23,7 @@ const TypographyH2 = React.forwardRef<
   <h2
     ref={ref}
     className={cn(
-      "scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0",
+      "scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-tight first:mt-0",
       className,
     )}
     {...props}
@@ -38,7 +38,7 @@ const TypographyH3 = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "scroll-m-20 text-2xl font-semibold tracking-tight",
+      "scroll-m-20 text-xl font-semibold tracking-tight",
       className,
     )}
     {...props}
@@ -53,7 +53,7 @@ const TypographyH4 = React.forwardRef<
   <h4
     ref={ref}
     className={cn(
-      "scroll-m-20 text-xl font-semibold tracking-tight",
+      "scroll-m-20 text-lg font-semibold tracking-tight",
       className,
     )}
     {...props}
@@ -114,7 +114,7 @@ const TypographyInlineCode = React.forwardRef<
   <code
     ref={ref}
     className={cn(
-      "bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
+      "bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold",
       className,
     )}
     {...props}
@@ -128,7 +128,7 @@ const TypographyLead = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-muted-foreground text-xl", className)}
+    className={cn("text-muted-foreground text-lg", className)}
     {...props}
   />
 ));
@@ -140,7 +140,7 @@ const TypographyLarge = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <section
     ref={ref}
-    className={cn("text-lg font-semibold", className)}
+    className={cn("text-base font-semibold", className)}
     {...props}
   />
 ));
@@ -152,7 +152,7 @@ const TypographySmall = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <small
     ref={ref}
-    className={cn("text-sm leading-none font-medium", className)}
+    className={cn("text-xs leading-none font-medium", className)}
     {...props}
   />
 ));
@@ -164,7 +164,7 @@ const TypographyMuted = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-muted-foreground text-sm", className)}
+    className={cn("text-muted-foreground text-xs", className)}
     {...props}
   />
 ));

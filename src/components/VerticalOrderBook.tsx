@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import type { TradingPair } from "@/lib/shared-types";
 import { formatDecimalConsistent } from "../lib/number-utils";
 import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import type { VerticalOrderBookProps } from "../lib/shared-types";
-import { useAccount } from "wagmi";
+
 import {
   Select,
   SelectContent,
@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronDown, TrendingUp, Coins } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(
@@ -33,13 +32,13 @@ const OrderbookRow = React.memo(
       maxVolume > 0 ? (cumulativeVolume / maxVolume) * 100 : 0;
 
     return (
-      <article className="grid grid-cols-3 text-xs sm:text-sm gap-x-2 sm:gap-x-4 py-2 sm:py-1.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-lg px-2 relative group">
+      <article className="grid grid-cols-3 text-xs gap-x-2 sm:gap-x-4 py-2 sm:py-1.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-lg px-2 relative group">
         {/* Volume bar background */}
         <section
           className={`absolute inset-0 rounded-lg transition-all duration-300 ${
             isAsk
-              ? "bg-gradient-to-r from-red-500/20 to-red-400/20 shadow-sm shadow-red-400/20"
-              : "bg-gradient-to-r from-emerald-500/20 to-emerald-400/20 shadow-sm shadow-emerald-400/20"
+              ? "bg-gradient-to-r from-red-500/5 to-red-400/5 shadow-sm shadow-red-400/5"
+              : "bg-gradient-to-r from-emerald-500/5 to-emerald-400/5 shadow-sm shadow-emerald-400/5"
           }`}
           style={{
             width: `${volumePercentage}%`,
@@ -61,28 +60,29 @@ const OrderbookRow = React.memo(
         />
 
         {/* Subtle hover effect overlay */}
-        <section className="absolute inset-0 bg-gradient-to-r from-purple-400/5 to-pink-400/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></section>
+        <section className="absolute inset-0 bg-gradient-to-r from-purple-400/2 to-pink-400/2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></section>
 
         <span
-          className={`font-mono text-xs sm:text-sm font-semibold relative z-10 ${isAsk ? "text-red-500" : "text-emerald-500"}`}
+          className={`font-mono text-xs font-semibold relative z-10 ${isAsk ? "text-red-500" : "text-emerald-500"}`}
         >
           {formatDecimalConsistent(entry.price)}
         </span>
-        <span className="text-right text-gray-700 text-xs sm:text-sm font-medium relative z-10">
+        <span className="text-right text-neutral-800 text-xs font-medium relative z-10">
           {formatDecimalConsistent(entry.quantity)}
         </span>
-        <span className="text-right text-gray-700 text-xs sm:text-sm font-medium relative z-10">
+        <span className="text-right text-neutral-800 text-xs font-medium relative z-10">
           {formatDecimalConsistent(
             Number(entry.price) * Number(entry.quantity),
           )}
-          {/* Volume indicator */}
-          <span
-            className={`ml-2 text-xs opacity-60 ${
-              isAsk ? "text-red-500" : "text-emerald-500"
-            }`}
-          >
-            ({formatDecimalConsistent(cumulativeVolume)})
-          </span>
+        </span>
+
+        {/* Volume percentage indicator */}
+        <span
+          className={`ml-2 text-xs opacity-60 ${
+            isAsk ? "text-red-400" : "text-emerald-400"
+          }`}
+        >
+          {volumePercentage.toFixed(1)}%
         </span>
       </article>
     );
@@ -98,14 +98,8 @@ const VerticalOrderBook = React.memo(
     onPairChange,
     tradingPairs,
   }: VerticalOrderBookProps): JSX.Element => {
-    // Get current user's wallet address for filtering
-    const { address } = useAccount();
-
-    // State for "Mine" filter toggle
-    const [showOnlyMine, setShowOnlyMine] = useState(false);
-
-    // Determine the filter to use - if "Mine" is selected and user is connected, filter by their address
-    const filterByTrader = showOnlyMine && address ? address : undefined;
+    // No filtering - show all orders
+    const filterByTrader = undefined;
 
     const { orderbook, initialLoading, error, refresh } = useMarketOrderbook(
       tradingPair?.id || "",
@@ -184,26 +178,6 @@ const VerticalOrderBook = React.memo(
             </SelectContent>
           </Select>
           <nav className="flex items-center gap-3">
-            {/* Mine filter toggle */}
-            {address && (
-              <button
-                onClick={() => setShowOnlyMine(!showOnlyMine)}
-                className={cn(
-                  "filter-toggle-base",
-                  showOnlyMine
-                    ? "filter-toggle-active-purple"
-                    : "bg-white text-gray-700 border-purple-200 hover:bg-purple-50 hover:border-purple-300",
-                )}
-                title={showOnlyMine ? "Show all orders" : "Show only my orders"}
-              >
-                {showOnlyMine && (
-                  <section className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></section>
-                )}
-                <span className="relative z-10">
-                  {showOnlyMine ? "Mine" : "All"}
-                </span>
-              </button>
-            )}
             <button
               onClick={() => refresh()}
               className="p-2.5 text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 transform"
@@ -238,11 +212,6 @@ const VerticalOrderBook = React.memo(
               <span className="text-gray-600">
                 <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-3"></span>
                 <p className="text-sm font-medium">Loading orderbook...</p>
-                {showOnlyMine && (
-                  <span className="text-sm text-purple-600 mt-2 block font-medium">
-                    Filtering by your orders
-                  </span>
-                )}
               </span>
             </article>
           </section>
@@ -267,15 +236,9 @@ const VerticalOrderBook = React.memo(
             <article className="text-center">
               <span className="text-gray-500">
                 <span className="text-2xl mb-3 block">📊</span>
-                <p className="font-medium mb-2">
-                  {showOnlyMine
-                    ? "No orders found for your wallet"
-                    : "No orderbook data available"}
-                </p>
+                <p className="font-medium mb-2">No orderbook data available</p>
                 <span className="text-sm text-gray-400">
-                  {showOnlyMine
-                    ? "You may not have any active orders in this market"
-                    : "This market may not have active orders yet"}
+                  This market may not have active orders yet
                 </span>
               </span>
             </article>
@@ -296,9 +259,9 @@ const VerticalOrderBook = React.memo(
       return (
         <>
           {/* Header */}
-          <header className="grid grid-cols-3 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 gap-x-2 sm:gap-x-4 font-semibold px-3 py-2 bg-gradient-to-r from-gray-50 via-purple-50 to-pink-50 rounded-lg relative overflow-hidden">
+          <header className="grid grid-cols-3 text-xs text-neutral-700 mb-3 sm:mb-4 gap-x-2 sm:gap-x-4 font-semibold px-3 py-2 bg-gradient-to-r from-gray-50 via-purple-50 to-pink-50 rounded-lg relative overflow-hidden">
             {/* Subtle gradient overlay */}
-            <section className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-pink-400/10 pointer-events-none"></section>
+            <section className="absolute inset-0 bg-gradient-to-r from-purple-400/2 to-pink-400/2 pointer-events-none"></section>
 
             <span className="text-left relative z-10">Price</span>
             <span className="text-right relative z-10">
@@ -325,15 +288,15 @@ const VerticalOrderBook = React.memo(
           {/* Spread */}
           <article className="flex items-center justify-center py-3 sm:py-4 my-3 sm:my-4 bg-gradient-to-r from-gray-100 via-purple-100 to-pink-100 rounded-xl text-xs sm:text-sm border border-purple-200 relative overflow-hidden">
             {/* Subtle gradient overlay */}
-            <section className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-pink-400/10 pointer-events-none"></section>
+            <section className="absolute inset-0 bg-gradient-to-r from-purple-400/2 to-pink-400/2 pointer-events-none"></section>
 
-            <span className="text-gray-600 mr-2 font-medium relative z-10">
+            <span className="text-neutral-700 mr-2 font-medium relative z-10">
               Spread:
             </span>
-            <span className="text-gray-800 font-mono text-xs sm:text-sm font-semibold relative z-10">
+            <span className="text-neutral-900 font-mono text-xs font-semibold relative z-10">
               {formatDecimalConsistent(spread)}
             </span>
-            <span className="text-gray-600 ml-2 text-xs sm:text-sm font-medium relative z-10">
+            <span className="text-neutral-700 ml-2 text-xs font-medium relative z-10">
               ({formatDecimalConsistent(spreadPercentage)}%)
             </span>
           </article>
@@ -359,8 +322,8 @@ const VerticalOrderBook = React.memo(
       <main className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 overflow-hidden flex flex-col relative">
         {/* Floating decorative elements */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
-          <section className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-md animate-pulse delay-500"></section>
-          <section className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-indigo-300/20 to-purple-300/20 rounded-full blur-md animate-pulse delay-1000"></section>
+          <section className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-br from-purple-300/5 to-pink-300/5 rounded-full blur-md animate-pulse delay-500"></section>
+          <section className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-indigo-300/5 to-purple-300/5 rounded-full blur-md animate-pulse delay-1000"></section>
         </section>
 
         {headerComponent}

@@ -192,7 +192,11 @@ export function DataTable<T extends Record<string, unknown>>({
       {/* Pagination */}
       {pagination && totalPages > 1 && (
         <footer className="flex items-center justify-between">
-          <section className="text-sm text-gray-600">
+          <section className="flex-1 text-xs text-neutral-600">
+            {/* The original code had a table.getFilteredSelectedRowModel().rows.length and table.getFilteredRowModel().rows.length */}
+            {/* This part of the new code is not directly applicable to the original DataTable component */}
+            {/* It seems to be from a different context (e.g., a table library) */}
+            {/* For now, I'll keep the original logic for pagination */}
             Showing {startItem} to {endItem} of {sortedData.length} results
           </section>
 
@@ -207,7 +211,7 @@ export function DataTable<T extends Record<string, unknown>>({
               Previous
             </Button>
 
-            <span className="text-sm">
+            <span className="text-xs">
               Page {currentPage} of {totalPages}
             </span>
 

@@ -65,9 +65,9 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
     >
       {/* Floating decorative elements */}
       <section className="absolute inset-0 pointer-events-none overflow-hidden">
-        <section className="absolute top-2 left-1/4 w-8 h-8 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-md animate-pulse delay-300"></section>
-        <section className="absolute bottom-2 right-1/4 w-6 h-6 bg-gradient-to-br from-emerald-300/20 to-teal-300/20 rounded-full blur-md animate-pulse delay-700"></section>
-        <section className="absolute top-1/2 left-1/3 w-4 h-4 bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-md animate-pulse delay-1000"></section>
+        <section className="absolute top-2 left-1/4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-300"></section>
+        <section className="absolute bottom-2 right-1/4 w-6 h-6 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-700"></section>
+        <section className="absolute top-1/2 left-1/3 w-4 h-4 bg-gradient-to-br from-purple-300/5 to-pink-300/5 rounded-full blur-md animate-pulse delay-1000"></section>
       </section>
 
       <section className="container mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 px-4 sm:px-0 relative z-10">
@@ -85,7 +85,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
 
             <span className="relative z-10">🟢 online</span>
           </Button>
-          <span className="text-gray-600 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
+          <span className="text-neutral-800 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
             🚀 version {getShortGitCommitHash()}
           </span>
 
@@ -95,7 +95,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
               >
                 <Info className="h-3 w-3 mr-1 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
                 Info
@@ -128,7 +128,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
                       </DialogTitle>
                     </DialogHeader>
                     <pre className="bg-white/80 backdrop-blur-sm p-4 rounded-xl text-sm overflow-auto border border-blue-200 shadow-inner">
-                      <code className="text-gray-800">
+                      <code className="text-neutral-900">
                         {JSON.stringify(attestationData, null, 2)}
                       </code>
                     </pre>
@@ -137,7 +137,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled
-                className="text-xs text-gray-500 rounded-lg bg-gray-100/50"
+                className="text-xs text-neutral-600 rounded-lg bg-gray-100/50"
               >
                 🚀 Version: {getShortGitCommitHash()}
               </DropdownMenuItem>
@@ -145,14 +145,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           </DropdownMenu>
         </nav>
 
-        <nav className="flex flex-wrap gap-3 sm:gap-6 text-[#8E9196] text-xs">
+        <nav className="flex flex-wrap gap-3 sm:gap-6 text-neutral-800 text-xs">
           {/* Enhanced Support Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
               >
                 <MessageCircle className="h-3 w-3 mr-1 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-300" />
                 Support
@@ -200,14 +200,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
             className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
           >
             <BookOpen className="h-3 w-3 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
-            📚 Docs
+            Docs
           </a>
           <a
             href="/config"
             className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-600 hover:via-red-600 hover:to-pink-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
           >
             <Settings className="h-3 w-3 text-orange-500 group-hover:text-orange-600 transition-colors duration-300" />
-            ⚙️ Config
+            Config
           </a>
         </nav>
       </section>

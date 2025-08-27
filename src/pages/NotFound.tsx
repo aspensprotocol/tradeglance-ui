@@ -9,14 +9,14 @@ const NotFound = (): JSX.Element => {
       <section className="text-center">
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="text-6xl font-bold text-gray-900 mb-4">
-              404
+            <CardTitle className="text-5xl font-bold text-neutral-900 mb-4">
+              404 - Page Not Found
             </CardTitle>
-            <h1 className="text-2xl font-semibold text-gray-700 mb-2">
-              Page Not Found
+            <h1 className="text-xl font-semibold text-neutral-800 mb-2">
+              Oops! The page you're looking for doesn't exist.
             </h1>
-            <p className="text-gray-500">
-              The page you're looking for doesn't exist or has been moved.
+            <p className="text-neutral-600 text-sm">
+              Please check the URL or navigate back to the homepage.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">

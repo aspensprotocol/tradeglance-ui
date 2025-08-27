@@ -44,10 +44,10 @@ const Simple = ({
               <section className="overlay-blue"></section>
 
               <section className="loading-spinner loading-spinner-blue h-12 w-12 mx-auto mb-4 relative z-10"></section>
-              <p className="text-lg font-semibold text-gray-700 mb-2 relative z-10">
+              <p className="text-base font-semibold text-neutral-800 mb-2 relative z-10">
                 Loading trading pairs...
               </p>
-              <p className="text-sm text-gray-500 relative z-10">
+              <p className="text-xs text-neutral-600 relative z-10">
                 Please wait while we fetch the latest market data
               </p>
             </section>
@@ -87,10 +87,10 @@ const Simple = ({
                   />
                 </svg>
               </section>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2 relative z-10">
+              <p className="text-base font-semibold text-neutral-800 mb-2 relative z-10">
                 No trading pairs available
-              </h3>
-              <p className="text-sm text-gray-600 relative z-10">
+              </p>
+              <p className="text-xs text-neutral-600 relative z-10">
                 Please check back later or contact support
               </p>
             </section>

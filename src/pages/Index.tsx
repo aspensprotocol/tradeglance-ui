@@ -108,7 +108,7 @@ const Index = ({
             >
               <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
                 {/* Subtle gradient overlay */}
-                <section className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 pointer-events-none"></section>
+                <section className="absolute inset-0 bg-gradient-to-br from-emerald-400/2 to-teal-400/2 pointer-events-none"></section>
                 <TradeForm
                   key={`tradeform-${currentTradingPair?.id || "no-market"}`}
                   tradingPair={currentTradingPair || undefined}
@@ -131,7 +131,7 @@ const Index = ({
             >
               <section className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300 relative overflow-hidden">
                 {/* Subtle gradient overlay */}
-                <section className="absolute inset-0 bg-gradient-to-br from-purple-400/5 to-pink-400/5 pointer-events-none"></section>
+                <section className="absolute inset-0 bg-gradient-to-br from-purple-400/2 to-pink-400/2 pointer-events-none"></section>
                 <VerticalOrderBook
                   key={`orderbook-${currentTradingPair?.id || "no-market"}`}
                   tradingPair={currentTradingPair || undefined}

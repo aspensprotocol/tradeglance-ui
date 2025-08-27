@@ -16,8 +16,6 @@ import Docs from "./pages/Docs";
 import Mint from "./pages/Mint";
 import NotFound from "./pages/NotFound";
 import { ConfigTest } from "./components/ConfigTest";
-import MaterializeDemo from "./pages/MaterializeDemo";
-import IntegratedMaterializeDemo from "./pages/IntegratedMaterializeDemo";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({
@@ -45,14 +43,7 @@ const App = (): JSX.Element => (
                   <Route path="/docs" element={<Docs />} />
                   <Route path="/mint" element={<Mint />} />
                   <Route path="/config" element={<ConfigTest />} />
-                  <Route
-                    path="/materialize-demo"
-                    element={<MaterializeDemo />}
-                  />
-                  <Route
-                    path="/integrated-demo"
-                    element={<IntegratedMaterializeDemo />}
-                  />
+
                   {/* Catch-all route for any other paths - this ensures React Router handles all routes */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

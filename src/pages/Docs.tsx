@@ -21,18 +21,17 @@ const Docs = (): JSX.Element => {
       <main className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 relative">
         {/* Floating decorative elements matching Pro view aesthetic */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
-          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-300"></section>
-          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl animate-pulse delay-700"></section>
-          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg animate-pulse delay-1000"></section>
+          <section className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/5 to-indigo-400/5 rounded-full blur-xl animate-pulse delay-300"></section>
+          <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 rounded-full blur-xl animate-pulse delay-700"></section>
+          <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-full blur-lg animate-pulse delay-1000"></section>
         </section>
 
         <header className="mb-8 relative z-10">
-          <TypographyH1 className="text-center text-gray-800">
-            Aspens Documentation
+          <TypographyH1 className="text-center text-neutral-900 text-lg sm:text-xl">
+            Documentation
           </TypographyH1>
-          <TypographyLead className="text-center mt-4 text-gray-600">
-            Learn how to use the Aspens cross-chain DEX with our comprehensive
-            documentation.
+          <TypographyLead className="text-center mt-4 text-neutral-700 text-sm">
+            Learn how to use Trade Glance and explore our features
           </TypographyLead>
         </header>
 
