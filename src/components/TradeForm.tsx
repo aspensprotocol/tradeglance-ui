@@ -151,8 +151,14 @@ const TradeForm = ({
               type="number"
               id="amount"
               name="amount"
+              min="0"
+              step="any"
               value={formState.amount}
-              onChange={(e) => updateAmount(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.startsWith('-')) return; // Prevent negative numbers
+                updateAmount(value);
+              }}
               className={cn(
                 "w-full pl-3 pr-20 sm:pr-24 md:pr-28 lg:pr-32 py-3 rounded-xl bg-white border-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 text-sm transition-all duration-300 shadow-sm hover:shadow-md relative z-10",
                 ((): string => {
@@ -231,8 +237,14 @@ const TradeForm = ({
                       type="number"
                       id="price"
                       name="price"
+                      min="0"
+                      step="any"
                       value={formState.price || ""}
-                      onChange={(e) => updatePrice(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.startsWith('-')) return; // Prevent negative numbers
+                        updatePrice(value);
+                      }}
                       className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
                       placeholder="0,00"
                     />

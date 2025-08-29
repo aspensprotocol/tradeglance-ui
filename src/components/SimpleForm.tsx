@@ -250,8 +250,14 @@ const SimpleForm = ({
             <span className="flex items-center gap-1 relative z-10">
               <Input
                 type="number"
+                min="0"
+                step="any"
                 value={formState.amount}
-                onChange={(e) => updateAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.startsWith('-')) return; // Prevent negative numbers
+                  updateAmount(value);
+                }}
                 placeholder="0"
                 className="bg-white border-2 border-emerald-200 text-xl font-bold text-gray-800 p-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md"
               />
