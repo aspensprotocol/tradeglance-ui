@@ -191,21 +191,21 @@ const TradeForm = ({
 
           {/* Percentage Buttons */}
           <section className="-mt-1">
-            <nav className="flex gap-2 sm:gap-2.5 md:gap-3">
+            <nav className="flex gap-1.5 sm:gap-2">
               {[25, 50, 75, 100].map((percentage) => (
                 <Button
                   key={percentage}
                   onClick={() => handlePercentageClick(percentage)}
                   variant="ghost"
                   size="sm"
-                  className="flex-1 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-emerald-100 rounded-xl transition-all duration-300 font-medium hover:scale-105 transform bg-gradient-to-r from-slate-50 to-blue-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md animate-pulse-glow relative overflow-hidden group"
+                  className="flex-1 py-0.5 px-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-emerald-100 rounded-md transition-all duration-300 font-medium hover:scale-105 transform bg-gradient-to-r from-slate-50 to-blue-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md animate-pulse-glow relative overflow-hidden group h-6"
                 >
                   {/* Floating sparkles */}
-                  <span className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping opacity-60"></span>
-                  <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full animate-ping opacity-60 delay-300"></span>
+                  <span className="absolute -top-0.5 -left-0.5 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-60"></span>
+                  <span className="absolute -top-0.5 -right-0.5 w-0.5 h-0.5 bg-indigo-400 rounded-full animate-ping opacity-60 delay-300"></span>
 
                   {/* Glowing effect */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-lg opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
 
                   <span className="relative z-10">{percentage}%</span>
                 </Button>

@@ -283,9 +283,9 @@ const SimpleForm = ({
                   key={percentage}
                   onClick={() => handlePercentageClick(percentage)}
                   className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 transform hover:scale-105",
+                    "flex-1 py-0.5 px-1.5 text-xs font-medium rounded-md transition-all duration-200 transform hover:scale-105 h-6",
                     formState.percentageValue === percentage
-                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md"
                       : "bg-gradient-to-r from-slate-50 to-emerald-50 text-gray-600 hover:text-gray-800 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow-md",
                   )}
                 >
