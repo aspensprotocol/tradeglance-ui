@@ -611,7 +611,7 @@ const DepositWithdrawModal = ({
                   value={amount}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (value.startsWith('-')) return; // Prevent negative numbers
+                    if (value.startsWith("-")) return; // Prevent negative numbers
                     setAmount(value);
                   }}
                   placeholder="0.0"

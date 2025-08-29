@@ -626,12 +626,24 @@ const ActivityPanel = ({
                           Tokens with Balances:
                         </span>
                         <span className="ml-2 font-medium">
-                          {balances.filter((balance) => {
-                            const walletBalance = parseFloat(balance.walletBalance);
-                            const depositedBalance = parseFloat(balance.depositedBalance);
-                            const lockedBalance = parseFloat(balance.lockedBalance);
-                            return walletBalance > 0 || depositedBalance > 0 || lockedBalance > 0;
-                          }).length}
+                          {
+                            balances.filter((balance) => {
+                              const walletBalance = parseFloat(
+                                balance.walletBalance,
+                              );
+                              const depositedBalance = parseFloat(
+                                balance.depositedBalance,
+                              );
+                              const lockedBalance = parseFloat(
+                                balance.lockedBalance,
+                              );
+                              return (
+                                walletBalance > 0 ||
+                                depositedBalance > 0 ||
+                                lockedBalance > 0
+                              );
+                            }).length
+                          }
                         </span>
                       </span>
                       <span className="truncate">
@@ -649,9 +661,15 @@ const ActivityPanel = ({
                       .filter((balance) => {
                         // Only show tokens that have at least one non-zero balance
                         const walletBalance = parseFloat(balance.walletBalance);
-                        const depositedBalance = parseFloat(balance.depositedBalance);
+                        const depositedBalance = parseFloat(
+                          balance.depositedBalance,
+                        );
                         const lockedBalance = parseFloat(balance.lockedBalance);
-                        return walletBalance > 0 || depositedBalance > 0 || lockedBalance > 0;
+                        return (
+                          walletBalance > 0 ||
+                          depositedBalance > 0 ||
+                          lockedBalance > 0
+                        );
                       })
                       .map(
                         (balance: {
@@ -662,101 +680,101 @@ const ActivityPanel = ({
                           depositedBalance: string;
                           lockedBalance: string;
                         }) => {
-                        // Get chain prefix for display
-                        const getChainPrefix = (network: string): string => {
-                          if (network.includes("flare")) return "f";
-                          if (network.includes("base")) return "b";
-                          if (network.includes("mainnet")) return "m";
-                          if (network.includes("goerli")) return "g";
-                          if (network.includes("sepolia")) return "s";
-                          return network.charAt(0).toLowerCase();
-                        };
+                          // Get chain prefix for display
+                          const getChainPrefix = (network: string): string => {
+                            if (network.includes("flare")) return "f";
+                            if (network.includes("base")) return "b";
+                            if (network.includes("mainnet")) return "m";
+                            if (network.includes("goerli")) return "g";
+                            if (network.includes("sepolia")) return "s";
+                            return network.charAt(0).toLowerCase();
+                          };
 
-                        const prefix = getChainPrefix(balance.network);
-                        const prefixedSymbol = `${prefix}${balance.symbol}`;
+                          const prefix = getChainPrefix(balance.network);
+                          const prefixedSymbol = `${prefix}${balance.symbol}`;
 
-                        return (
-                          <article
-                            key={`${balance.chainId}-${balance.symbol}`}
-                            className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow h-48 flex flex-col min-w-0"
-                          >
-                            {/* Enhanced hover effect overlay */}
-                            <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
+                          return (
+                            <article
+                              key={`${balance.chainId}-${balance.symbol}`}
+                              className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow h-48 flex flex-col min-w-0"
+                            >
+                              {/* Enhanced hover effect overlay */}
+                              <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
 
-                            {/* Floating sparkles on hover */}
-                            <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
-                            <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
-                            
-                            {/* Fixed height header */}
-                            <header className="flex items-center justify-between mb-3 relative z-10 flex-shrink-0 min-w-0">
-                              <span className="flex items-center space-x-3 min-w-0 flex-1">
-                                <span className="w-8 h-8 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
-                                  <span className="text-blue-600 text-xs font-bold">
-                                    {balance.symbol.charAt(0)}
+                              {/* Floating sparkles on hover */}
+                              <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
+                              <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
+
+                              {/* Fixed height header */}
+                              <header className="flex items-center justify-between mb-3 relative z-10 flex-shrink-0 min-w-0">
+                                <span className="flex items-center space-x-3 min-w-0 flex-1">
+                                  <span className="w-8 h-8 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                                    <span className="text-blue-600 text-xs font-bold">
+                                      {balance.symbol.charAt(0)}
+                                    </span>
+                                  </span>
+                                  <span className="min-w-0 flex-1">
+                                    <span className="font-semibold text-gray-900 truncate block">
+                                      {prefixedSymbol}
+                                    </span>
+                                    <span className="text-xs text-gray-500 truncate block">
+                                      {balance.network}
+                                    </span>
                                   </span>
                                 </span>
-                                <span className="min-w-0 flex-1">
-                                  <span className="font-semibold text-gray-900 truncate block">
-                                    {prefixedSymbol}
-                                  </span>
-                                  <span className="text-xs text-gray-500 truncate block">
-                                    {balance.network}
-                                  </span>
+                                <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded-lg flex-shrink-0 ml-2">
+                                  Chain ID: {balance.chainId}
                                 </span>
-                              </span>
-                              <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded-lg flex-shrink-0 ml-2">
-                                Chain ID: {balance.chainId}
-                              </span>
-                            </header>
+                              </header>
 
-                            {/* Scrollable content section with fixed height */}
-                            <section className="space-y-2 relative z-10 rounded-2xl flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
-                              {parseFloat(balance.walletBalance) > 0 && (
-                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-slate-50 to-blue-50/10 rounded-lg border border-blue-100/50">
-                                  <span className="text-sm text-gray-700 font-medium">
-                                    💼 Wallet Balance:
+                              {/* Scrollable content section with fixed height */}
+                              <section className="space-y-2 relative z-10 rounded-2xl flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
+                                {parseFloat(balance.walletBalance) > 0 && (
+                                  <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-slate-50 to-blue-50/10 rounded-lg border border-blue-100/50">
+                                    <span className="text-sm text-gray-700 font-medium">
+                                      💼 Wallet Balance:
+                                    </span>
+                                    <span className="text-sm font-semibold text-gray-900">
+                                      {formatDecimalConsistent(
+                                        balance.walletBalance,
+                                      )}{" "}
+                                      {balance.symbol}
+                                    </span>
                                   </span>
-                                  <span className="text-sm font-semibold text-gray-900">
-                                    {formatDecimalConsistent(
-                                      balance.walletBalance,
-                                    )}{" "}
-                                    {balance.symbol}
-                                  </span>
-                                </span>
-                              )}
+                                )}
 
-                              {parseFloat(balance.depositedBalance) > 0 && (
-                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-emerald-50 to-teal-50/10 rounded-lg border border-emerald-100/50">
-                                  <span className="text-sm text-gray-700 font-medium">
-                                    💎 Deposited (Available):
+                                {parseFloat(balance.depositedBalance) > 0 && (
+                                  <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-emerald-50 to-teal-50/10 rounded-lg border border-emerald-100/50">
+                                    <span className="text-sm text-gray-700 font-medium">
+                                      💎 Deposited (Available):
+                                    </span>
+                                    <span className="text-sm font-semibold text-emerald-600">
+                                      {formatDecimalConsistent(
+                                        balance.depositedBalance,
+                                      )}{" "}
+                                      {balance.symbol}
+                                    </span>
                                   </span>
-                                  <span className="text-sm font-semibold text-emerald-600">
-                                    {formatDecimalConsistent(
-                                      balance.depositedBalance,
-                                    )}{" "}
-                                    {balance.symbol}
-                                  </span>
-                                </span>
-                              )}
+                                )}
 
-                              {parseFloat(balance.lockedBalance) > 0 && (
-                                <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-orange-50 to-red-50/10 rounded-lg border border-orange-100/50">
-                                  <span className="text-sm text-gray-700 font-medium">
-                                    🔒 Locked in Orders:
+                                {parseFloat(balance.lockedBalance) > 0 && (
+                                  <span className="flex justify-between py-2 px-3 bg-gradient-to-r from-orange-50 to-red-50/10 rounded-lg border border-orange-100/50">
+                                    <span className="text-sm text-gray-700 font-medium">
+                                      🔒 Locked in Orders:
+                                    </span>
+                                    <span className="text-sm font-semibold text-orange-600">
+                                      {formatDecimalConsistent(
+                                        balance.lockedBalance,
+                                      )}{" "}
+                                      {balance.symbol}
+                                    </span>
                                   </span>
-                                  <span className="text-sm font-semibold text-orange-600">
-                                    {formatDecimalConsistent(
-                                      balance.lockedBalance,
-                                    )}{" "}
-                                    {balance.symbol}
-                                  </span>
-                                </span>
-                              )}
-                            </section>
-                          </article>
-                        );
-                      },
-                    )}
+                                )}
+                              </section>
+                            </article>
+                          );
+                        },
+                      )}
                   </section>
 
                   {/* Action Buttons */}

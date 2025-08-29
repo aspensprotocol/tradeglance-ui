@@ -213,7 +213,10 @@ export const ConfigTest = (): JSX.Element => {
                 </p>
                 <nav className="ml-4 mt-2 space-y-1">
                   {Object.entries(chain.tokens).map(([symbol, token]) => (
-                    <p key={symbol} className="text-sm break-all text-neutral-900">
+                    <p
+                      key={symbol}
+                      className="text-sm break-all text-neutral-900"
+                    >
                       <strong>{symbol}:</strong>{" "}
                       <span className="text-xs">{token.address}</span>{" "}
                       (Decimals: {token.decimals})

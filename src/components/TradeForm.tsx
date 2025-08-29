@@ -156,7 +156,7 @@ const TradeForm = ({
               value={formState.amount}
               onChange={(e) => {
                 const value = e.target.value;
-                if (value.startsWith('-')) return; // Prevent negative numbers
+                if (value.startsWith("-")) return; // Prevent negative numbers
                 updateAmount(value);
               }}
               className={cn(
@@ -188,6 +188,7 @@ const TradeForm = ({
               <TokenImage
                 symbol={tradingPair?.baseSymbol || "ATOM"}
                 size="sm"
+                chainId={tradingPair?.baseChainId}
               />
               <span className="text-sm text-gray-600 truncate max-w-[3rem] sm:max-w-[3.5rem] md:max-w-[4rem] lg:max-w-[4.5rem] xl:max-w-[5rem] font-medium">
                 {tradingPair?.baseSymbol || "ATOM"}
@@ -242,7 +243,7 @@ const TradeForm = ({
                       value={formState.price || ""}
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value.startsWith('-')) return; // Prevent negative numbers
+                        if (value.startsWith("-")) return; // Prevent negative numbers
                         updatePrice(value);
                       }}
                       className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
@@ -252,6 +253,7 @@ const TradeForm = ({
                       <TokenImage
                         symbol={tradingPair?.quoteSymbol || "TTK"}
                         size="sm"
+                        chainId={tradingPair?.quoteChainId}
                       />
                       <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
                         {tradingPair?.quoteSymbol || "TTK"}
@@ -335,11 +337,15 @@ const TradeForm = ({
                   <dt className="text-neutral-700 font-medium">Fee:</dt>
                   <dd className="text-neutral-600 font-medium">
                     {(() => {
-                      const amount = parseFloat(formState.amount.replace(",", ".")) || 0;
-                      const price = parseFloat((formState.price || "0").replace(",", ".")) || 0;
+                      const amount =
+                        parseFloat(formState.amount.replace(",", ".")) || 0;
+                      const price =
+                        parseFloat(
+                          (formState.price || "0").replace(",", "."),
+                        ) || 0;
                       const feeRate = 0.01; // 1%
                       const feeAmount = amount * price * feeRate;
-                      
+
                       if (feeAmount > 0) {
                         return `${feeAmount.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
                       }
@@ -351,10 +357,14 @@ const TradeForm = ({
                   <dt className="text-neutral-700 font-medium">Total:</dt>
                   <dd className="text-neutral-900 font-semibold">
                     {(() => {
-                      const amount = parseFloat(formState.amount.replace(",", ".")) || 0;
-                      const price = parseFloat((formState.price || "0").replace(",", ".")) || 0;
+                      const amount =
+                        parseFloat(formState.amount.replace(",", ".")) || 0;
+                      const price =
+                        parseFloat(
+                          (formState.price || "0").replace(",", "."),
+                        ) || 0;
                       const feeRate = 0.01; // 1%
-                      
+
                       if (tradingState.activeTab === BaseOrQuote.BASE) {
                         // SELL: User receives quote tokens, pays fee in base tokens
                         const totalReceived = amount * price * (1 - feeRate);

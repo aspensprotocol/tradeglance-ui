@@ -181,7 +181,11 @@ const SimpleForm = ({
                   Token
                 </span>
                 <span className="flex items-center gap-2">
-                  <TokenImage symbol={selectedBaseToken || "?"} size="sm" />
+                  <TokenImage
+                    symbol={selectedBaseToken || "?"}
+                    size="sm"
+                    chainId={tradingPair?.baseChainId}
+                  />
                   <Select
                     value={selectedBaseToken}
                     onValueChange={handleBaseTokenChange}
@@ -255,7 +259,7 @@ const SimpleForm = ({
                 value={formState.amount}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (value.startsWith('-')) return; // Prevent negative numbers
+                  if (value.startsWith("-")) return; // Prevent negative numbers
                   updateAmount(value);
                 }}
                 placeholder="0"
@@ -324,7 +328,11 @@ const SimpleForm = ({
                   Token
                 </span>
                 <span className="flex items-center gap-2">
-                  <TokenImage symbol={selectedQuoteToken || "?"} size="sm" />
+                  <TokenImage
+                    symbol={selectedQuoteToken || "?"}
+                    size="sm"
+                    chainId={tradingPair?.quoteChainId}
+                  />
                   <Select
                     value={selectedQuoteToken}
                     onValueChange={handleQuoteTokenChange}
