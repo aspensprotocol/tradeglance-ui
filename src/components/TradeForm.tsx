@@ -222,9 +222,9 @@ const TradeForm = ({
 
         {/* Trade Form */}
         <section className="flex-1 flex flex-col justify-between">
-          <fieldset className="flex-1 flex flex-col space-y-3 sm:space-y-4 md:space-y-4 lg:space-y-5">
+          <fieldset className="flex-1 flex flex-col space-y-2 sm:space-y-3">
             {/* Group 3: Price and input field - Fixed height container */}
-            <section className="h-[88px] mb-2">
+            <section className="h-[88px] mb-1">
               {tradingState.activeOrderType === "limit" ? (
                 <section className="space-y-1 h-full flex flex-col justify-between">
                   <header className="flex justify-between items-center mb-1">
@@ -279,13 +279,13 @@ const TradeForm = ({
             </section>
           </fieldset>
 
-          <footer className="mt-2">
+          <footer className="mt-1">
             {/* Order Summary */}
-            <section className="p-3 sm:p-3.5 md:p-4 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+            <section className="p-2.5 sm:p-3 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
               {/* Subtle gradient overlay */}
               <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/2 to-teal-400/2 pointer-events-none"></section>
 
-              <dl className="space-y-2 text-xs sm:text-sm relative z-10">
+              <dl className="space-y-1 text-xs sm:text-sm relative z-10">
                 <section className="flex justify-between">
                   <dt className="text-neutral-700 font-medium">Order Type:</dt>
                   <dd className="text-neutral-900 font-semibold capitalize">
@@ -331,6 +331,41 @@ const TradeForm = ({
                     </dd>
                   </section>
                 )}
+                <section className="flex justify-between">
+                  <dt className="text-neutral-700 font-medium">Fee:</dt>
+                  <dd className="text-neutral-600 font-medium">
+                    {(() => {
+                      const amount = parseFloat(formState.amount.replace(",", ".")) || 0;
+                      const price = parseFloat((formState.price || "0").replace(",", ".")) || 0;
+                      const feeRate = 0.01; // 1%
+                      const feeAmount = amount * price * feeRate;
+                      
+                      if (feeAmount > 0) {
+                        return `${feeAmount.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
+                      }
+                      return "0.000";
+                    })()}
+                  </dd>
+                </section>
+                <section className="flex justify-between">
+                  <dt className="text-neutral-700 font-medium">Total:</dt>
+                  <dd className="text-neutral-900 font-semibold">
+                    {(() => {
+                      const amount = parseFloat(formState.amount.replace(",", ".")) || 0;
+                      const price = parseFloat((formState.price || "0").replace(",", ".")) || 0;
+                      const feeRate = 0.01; // 1%
+                      
+                      if (tradingState.activeTab === BaseOrQuote.BASE) {
+                        // SELL: User receives quote tokens, pays fee in base tokens
+                        const totalReceived = amount * price * (1 - feeRate);
+                        return `${totalReceived.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
+                      }
+                      // BUY: User pays quote tokens, receives base tokens minus fee
+                      const totalPaid = amount * price * (1 + feeRate);
+                      return `${totalPaid.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
+                    })()}
+                  </dd>
+                </section>
               </dl>
             </section>
 
@@ -344,9 +379,9 @@ const TradeForm = ({
                 formState.isSubmitting
               }
               className={cn(
-                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-4 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
+                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
                 tradingState.activeTab === BaseOrQuote.BASE
-                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 hover:from-red-600 hover:via-pink-600 hover:to-rose-600 text-white"
+                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-cyan-500 hover:from-red-600 hover:via-pink-600 hover:to-cyan-600 text-white"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white",
               )}
             >
