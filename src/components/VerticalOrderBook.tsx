@@ -120,7 +120,8 @@ const VerticalOrderBook = React.memo(
     const limitOrdersByPrice = (
       orders: OrderbookEntry[],
       isAsk: boolean,
-      maxEntries: number = maxOrders || PERFORMANCE_CONFIG.orderbook.maxEntriesToRender,
+      maxEntries: number = maxOrders ||
+        PERFORMANCE_CONFIG.orderbook.maxEntriesToRender,
     ): OrderbookEntry[] => {
       if (!orders || orders.length === 0) return [];
 
@@ -259,7 +260,10 @@ const VerticalOrderBook = React.memo(
       }
 
       // Show no data state only when we're not loading and have no data
-      if (!orderbook || (limitedAsks.length === 0 && limitedBids.length === 0)) {
+      if (
+        !orderbook ||
+        (limitedAsks.length === 0 && limitedBids.length === 0)
+      ) {
         return (
           <section className="p-6 h-full flex items-center justify-center">
             <article className="text-center">
@@ -302,17 +306,23 @@ const VerticalOrderBook = React.memo(
           </header>
 
           {/* Order count indicator */}
-          {(asks.length > limitedAsks.length || bids.length > limitedBids.length) && (
+          {(asks.length > limitedAsks.length ||
+            bids.length > limitedBids.length) && (
             <article className="text-center py-2 mb-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-lg border border-blue-200 text-xs text-blue-700">
               <span className="font-medium">
-                Showing top {maxOrders || PERFORMANCE_CONFIG.orderbook.maxEntriesToRender} orders by price
+                Showing top{" "}
+                {maxOrders || PERFORMANCE_CONFIG.orderbook.maxEntriesToRender}{" "}
+                orders by price
               </span>
               <span className="text-blue-600">
-                ({limitedAsks.length + limitedBids.length} of {asks.length + bids.length} total)
+                ({limitedAsks.length + limitedBids.length} of{" "}
+                {asks.length + bids.length} total)
               </span>
               {limitedAsks.length > 0 && limitedBids.length > 0 && (
                 <div className="mt-1 text-blue-600 text-xs">
-                  Price range: {formatDecimalConsistent(limitedAsks[0]?.price || 0)} - {formatDecimalConsistent(limitedBids[0]?.price || 0)}
+                  Price range:{" "}
+                  {formatDecimalConsistent(limitedAsks[0]?.price || 0)} -{" "}
+                  {formatDecimalConsistent(limitedBids[0]?.price || 0)}
                 </div>
               )}
             </article>

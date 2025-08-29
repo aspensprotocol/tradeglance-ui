@@ -34,7 +34,7 @@ export const useHealthCheck = (): HealthCheckResult => {
     try {
       // Get the base URL from the current environment
       const baseUrl = import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api";
-      
+
       // Only check the gRPC reflection endpoint - this is the real test
       const healthCheckUrls = [
         // Primary gRPC reflection endpoint
@@ -47,60 +47,69 @@ export const useHealthCheck = (): HealthCheckResult => {
       for (const url of healthCheckUrls) {
         try {
           console.log(`Health check: Testing ${url}`);
-          
+
           // For gRPC reflection endpoint, try a proper reflection request
           const response = await fetch(url, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Accept": "application/json",
+              Accept: "application/json",
               "Grpc-Timeout": "3S", // 3 second timeout
             },
             body: JSON.stringify({
               // Proper gRPC reflection request format
               message_request: {
-                list_services: {}
-              }
+                list_services: {},
+              },
             }),
             // Set a reasonable timeout for health checks
-            signal: AbortSignal.timeout(3000)
+            signal: AbortSignal.timeout(3000),
           });
 
-          console.log(`Health check response: ${response.status} ${response.statusText}`);
+          console.log(
+            `Health check response: ${response.status} ${response.statusText}`,
+          );
 
           if (response.ok) {
             // Try to parse the response to ensure it's actually a gRPC reflection response
             try {
               const responseText = await response.text();
-              console.log(`Health check response body: ${responseText.substring(0, 200)}...`);
-              
+              console.log(
+                `Health check response body: ${responseText.substring(0, 200)}...`,
+              );
+
               // More flexible check - look for various gRPC reflection response patterns
-              const isGrpcReflectionResponse = 
+              const isGrpcReflectionResponse =
                 // Standard gRPC reflection response
-                (responseText.includes('"list_services_response"') && 
-                 (responseText.includes('"services"') || responseText.includes('"service"'))) ||
+                (responseText.includes('"list_services_response"') &&
+                  (responseText.includes('"services"') ||
+                    responseText.includes('"service"'))) ||
                 // Alternative response formats
                 responseText.includes('"grpc.reflection"') ||
                 responseText.includes('"ServerReflection"') ||
                 responseText.includes('"reflection"') ||
                 // Even an error response from gRPC means the server is reachable
-                (responseText.includes('"error"') && (
-                  responseText.includes('"grpc"') || 
-                  responseText.includes('"reflection"') ||
-                  responseText.includes('"ServerReflection"')
-                )) ||
+                (responseText.includes('"error"') &&
+                  (responseText.includes('"grpc"') ||
+                    responseText.includes('"reflection"') ||
+                    responseText.includes('"ServerReflection"'))) ||
                 // Check if it's a valid JSON response (might be a different format)
-                (responseText.trim().startsWith('{') && responseText.trim().endsWith('}'));
-              
+                (responseText.trim().startsWith("{") &&
+                  responseText.trim().endsWith("}"));
+
               if (isGrpcReflectionResponse) {
                 success = true;
-                console.log('Health check: gRPC reflection endpoint responded correctly');
+                console.log(
+                  "Health check: gRPC reflection endpoint responded correctly",
+                );
                 break;
               } else {
-                // Fallback: if we get a 200 response but not gRPC format, 
+                // Fallback: if we get a 200 response but not gRPC format,
                 // the server might be running but with different response format
-                console.log('Health check: Got 200 response but not gRPC format, checking if server is reachable...');
-                
+                console.log(
+                  "Health check: Got 200 response but not gRPC format, checking if server is reachable...",
+                );
+
                 // Try a simple ping test to see if the server is at least responding
                 try {
                   const pingResponse = await fetch(url, {
@@ -109,37 +118,44 @@ export const useHealthCheck = (): HealthCheckResult => {
                       "Content-Type": "application/json",
                     },
                     body: JSON.stringify({}),
-                    signal: AbortSignal.timeout(2000)
+                    signal: AbortSignal.timeout(2000),
                   });
-                  
+
                   if (pingResponse.ok) {
                     success = true;
-                    console.log('Health check: Server is responding (fallback ping test succeeded)');
+                    console.log(
+                      "Health check: Server is responding (fallback ping test succeeded)",
+                    );
                     break;
                   }
                 } catch (pingErr) {
-                  console.log('Health check: Fallback ping test failed:', pingErr);
+                  console.log(
+                    "Health check: Fallback ping test failed:",
+                    pingErr,
+                  );
                 }
-                
+
                 lastError = "Response doesn't look like valid gRPC reflection";
-                console.log('Health check: Response format not recognized as valid gRPC reflection');
-                console.log('Full response for debugging:', responseText);
+                console.log(
+                  "Health check: Response format not recognized as valid gRPC reflection",
+                );
+                console.log("Full response for debugging:", responseText);
               }
             } catch (parseErr) {
               lastError = "Failed to parse response";
-              console.log('Health check: Failed to parse response', parseErr);
+              console.log("Health check: Failed to parse response", parseErr);
             }
           } else {
             lastError = `HTTP ${response.status}: ${response.statusText}`;
             console.log(`Health check: HTTP error ${response.status}`);
           }
         } catch (err) {
-          if (err instanceof Error && err.name === 'AbortError') {
+          if (err instanceof Error && err.name === "AbortError") {
             lastError = "Request timeout";
-            console.log('Health check: Request timeout');
+            console.log("Health check: Request timeout");
           } else {
             lastError = err instanceof Error ? err.message : "Request failed";
-            console.log('Health check: Request failed', err);
+            console.log("Health check: Request failed", err);
           }
         }
       }
@@ -147,19 +163,19 @@ export const useHealthCheck = (): HealthCheckResult => {
       if (success) {
         setIsOnline(true);
         setLastCheck(new Date());
-        console.log('Health check: Service is ONLINE');
+        console.log("Health check: Service is ONLINE");
       } else {
         setIsOnline(false);
         setError(lastError);
         setLastCheck(new Date());
-        console.log('Health check: Service is OFFLINE -', lastError);
+        console.log("Health check: Service is OFFLINE -", lastError);
       }
     } catch (err) {
       setIsOnline(false);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
       setLastCheck(new Date());
-      console.log('Health check: Unexpected error', err);
+      console.log("Health check: Unexpected error", err);
     } finally {
       setIsLoading(false);
     }
@@ -193,9 +209,9 @@ export const useHealthCheck = (): HealthCheckResult => {
       isOnline,
       isLoading,
       lastCheck,
-      error
+      error,
     });
-    
+
     return () => {
       delete window.testHealthCheck;
       delete window.getHealthStatus;

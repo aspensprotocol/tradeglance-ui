@@ -61,7 +61,8 @@ interface FooterProps {
 }
 
 export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
-  const { isOnline, isLoading, lastCheck, error, performHealthCheck } = useHealthCheck();
+  const { isOnline, isLoading, lastCheck, error, performHealthCheck } =
+    useHealthCheck();
   const [isManualRefreshing, setIsManualRefreshing] = useState<boolean>(false);
 
   // Determine button styling based on health status
@@ -85,7 +86,8 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
   const getStatusTooltip = (): string => {
     if (isManualRefreshing) return "Manually refreshing connection status...";
     if (isLoading) return "Checking connection status...";
-    if (isOnline) return `Connected to gRPC server (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to refresh`;
+    if (isOnline)
+      return `Connected to gRPC server (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to refresh`;
     return `Connection failed: ${error || "Unknown error"} (Last check: ${lastCheck?.toLocaleTimeString()}) - Click to retry`;
   };
 
@@ -194,7 +196,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           </DropdownMenu>
         </nav>
 
-        <nav className="flex flex-wrap gap-3 sm:gap-6 text-neutral-800 text-xs">
+        <nav className="flex flex-wrap gap-2 sm:gap-3 text-neutral-800 text-xs">
           {/* Enhanced Support Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

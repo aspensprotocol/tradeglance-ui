@@ -181,7 +181,11 @@ const SimpleForm = ({
                   Token
                 </span>
                 <span className="flex items-center gap-2">
-                  <TokenImage symbol={selectedBaseToken || "?"} size="sm" />
+                  <TokenImage
+                    symbol={selectedBaseToken || "?"}
+                    size="sm"
+                    chainId={tradingPair?.baseChainId}
+                  />
                   <Select
                     value={selectedBaseToken}
                     onValueChange={handleBaseTokenChange}
@@ -250,8 +254,14 @@ const SimpleForm = ({
             <span className="flex items-center gap-1 relative z-10">
               <Input
                 type="number"
+                min="0"
+                step="any"
                 value={formState.amount}
-                onChange={(e) => updateAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.startsWith("-")) return; // Prevent negative numbers
+                  updateAmount(value);
+                }}
                 placeholder="0"
                 className="bg-white border-2 border-emerald-200 text-xl font-bold text-gray-800 p-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 shadow-sm hover:shadow-md"
               />
@@ -283,9 +293,9 @@ const SimpleForm = ({
                   key={percentage}
                   onClick={() => handlePercentageClick(percentage)}
                   className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 transform hover:scale-105",
+                    "flex-1 py-0.5 px-1.5 text-xs font-medium rounded-md transition-all duration-200 transform hover:scale-105 h-6",
                     formState.percentageValue === percentage
-                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md"
                       : "bg-gradient-to-r from-slate-50 to-emerald-50 text-gray-600 hover:text-gray-800 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow-md",
                   )}
                 >
@@ -318,7 +328,11 @@ const SimpleForm = ({
                   Token
                 </span>
                 <span className="flex items-center gap-2">
-                  <TokenImage symbol={selectedQuoteToken || "?"} size="sm" />
+                  <TokenImage
+                    symbol={selectedQuoteToken || "?"}
+                    size="sm"
+                    chainId={tradingPair?.quoteChainId}
+                  />
                   <Select
                     value={selectedQuoteToken}
                     onValueChange={handleQuoteTokenChange}
