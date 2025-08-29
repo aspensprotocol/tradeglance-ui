@@ -584,6 +584,116 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
+/* ===== ROUNDED CORNER FIXES ===== */
+/* Fix conflicting border-radius rules that cause sharp corners */
+
+/* Only override Materialize CSS conflicting rules */
+.btn,
+.btn-flat,
+.btn-large,
+.btn-small,
+.btn-floating,
+.waves-effect,
+.waves-light {
+  border-radius: inherit !important;
+}
+
+/* Ensure floating elements maintain rounded corners */
+.floating-element,
+.floating-blue,
+.floating-purple,
+.floating-emerald,
+.floating-orange {
+  border-radius: inherit !important;
+}
+
+/* Fix for gradient overlays */
+.gradient-overlay,
+.overlay-blue,
+.overlay-purple,
+.overlay-emerald,
+.overlay-orange {
+  border-radius: inherit !important;
+}
+
+/* Additional fixes for specific components */
+/* Only fix components that actually have sharp corner issues */
+
+/* Fix for select components that might inherit sharp corners */
+.SelectTrigger,
+.SelectContent {
+  border-radius: inherit !important;
+}
+
+/* Ensure all card components maintain rounded corners */
+.card-base,
+.card-gradient-blue,
+.card-gradient-purple,
+.card-gradient-emerald,
+.card-gradient-orange {
+  overflow: hidden;
+}
+
+/* Fix for row components */
+.row-base,
+.row-blue,
+.row-purple,
+.row-emerald,
+.row-orange {
+  overflow: hidden;
+}
+
+/* Fix for header components */
+.header-base,
+.header-blue,
+.header-purple,
+.header-emerald,
+.header-orange {
+  overflow: hidden;
+}
+
+/* ===== TARGETED GRADIENT CORNER FIX ===== */
+/* Only fix specific gradient elements that have sharp corner issues */
+
+/* Fix for absolute positioned gradient overlays that might cause sharp corners */
+[class*="absolute"][class*="inset-0"][class*="bg-gradient-"] {
+  overflow: hidden;
+}
+
+/* Fix for floating decorative elements */
+[class*="absolute"][class*="bg-gradient-"][class*="rounded-"] {
+  overflow: hidden;
+}
+
+/* Ensure gradient backgrounds are properly clipped */
+[class*="bg-gradient-"] {
+  background-clip: padding-box;
+}
+
+/* ===== MINIMAL CORNER FIXES ===== */
+/* Only fix the specific issues without breaking existing rounded corners */
+
+/* Ensure gradient backgrounds are properly clipped */
+[class*="bg-gradient-"] {
+  background-clip: padding-box;
+}
+
+/* Fix for the specific sharp corner issue in the fTTK/bTTK field */
+/* This targets the specific component that was showing sharp corners */
+[class*="bg-gradient-"][class*="rounded-xl"] {
+  overflow: hidden;
+}
+
+/* Fix for absolute positioned elements that might cause sharp corners */
+[class*="absolute"][class*="inset-0"] {
+  border-radius: inherit;
+}
+
+/* Ensure floating decorative elements don't break rounded corners */
+[class*="absolute"][class*="bg-gradient-"][class*="rounded-"] {
+  border-radius: inherit;
+}
+
 .hover-glow:hover {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
