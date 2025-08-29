@@ -16,6 +16,7 @@ import Docs from "./pages/Docs";
 import Mint from "./pages/Mint";
 import NotFound from "./pages/NotFound";
 import { ConfigTest } from "./components/ConfigTest";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({
@@ -36,6 +37,7 @@ const App = (): JSX.Element => (
             <ViewProvider>
               <Toaster />
               <Sonner />
+              <ThemeToggle />
               <RouteGuard>
                 <Routes>
                   <Route path="/" element={<Home />} />

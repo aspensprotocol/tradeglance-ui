@@ -146,7 +146,7 @@ export const ConfigTest = (): JSX.Element => {
         </section>
 
         <article className="flex justify-between items-center mb-6 relative z-10">
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-xl font-bold text-neutral-900">
             Arborter Configuration
           </h2>
           <button
@@ -164,7 +164,7 @@ export const ConfigTest = (): JSX.Element => {
         </article>
 
         <section className="mb-6">
-          <h3 className="text-lg font-semibold mb-2 text-gray-800">
+          <h3 className="text-lg font-semibold mb-2 text-neutral-900">
             🔗 Chains ({config.chains.length})
           </h3>
           {config.chains.map((chain: Chain, index: number) => (
@@ -179,41 +179,41 @@ export const ConfigTest = (): JSX.Element => {
               <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
               <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
               <section className="space-y-2 relative z-10">
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>🌐 Network:</strong> {chain.network}
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>🔗 Chain ID:</strong> {chain.chainId}
                 </p>
-                <p className="break-all">
+                <p className="break-all text-neutral-900">
                   <strong>🔌 RPC URL:</strong>{" "}
                   <span className="text-xs sm:text-sm">{chain.rpcUrl}</span>
                 </p>
-                <p className="break-all">
+                <p className="break-all text-neutral-900">
                   <strong>🏢 Service Address:</strong>{" "}
                   <span className="text-xs sm:text-sm">
                     {chain.serviceAddress}
                   </span>
                 </p>
-                <p className="break-all">
+                <p className="break-all text-neutral-900">
                   <strong>📝 Trade Contract:</strong>{" "}
                   <span className="text-xs sm:text-sm">
                     {chain.tradeContract?.address || "Not configured"}
                   </span>
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>⚖️ Base or Quote:</strong>{" "}
                   {chain.baseOrQuote || "Not set"}
                 </p>
               </section>
 
               <section className="mt-4 relative z-10">
-                <p>
+                <p className="text-neutral-900">
                   <strong>🪙 Tokens:</strong>
                 </p>
                 <nav className="ml-4 mt-2 space-y-1">
                   {Object.entries(chain.tokens).map(([symbol, token]) => (
-                    <p key={symbol} className="text-sm break-all">
+                    <p key={symbol} className="text-sm break-all text-neutral-900">
                       <strong>{symbol}:</strong>{" "}
                       <span className="text-xs">{token.address}</span>{" "}
                       (Decimals: {token.decimals})
@@ -226,7 +226,7 @@ export const ConfigTest = (): JSX.Element => {
         </section>
 
         <section className="mb-6">
-          <h3 className="text-lg font-semibold mb-2 text-gray-800">
+          <h3 className="text-lg font-semibold mb-2 text-neutral-900">
             📊 Markets ({config.markets.length})
           </h3>
           {config.markets.map((market: Market, index: number) => (
@@ -241,26 +241,26 @@ export const ConfigTest = (): JSX.Element => {
               <span className="absolute -top-1 -left-1 w-1 h-1 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
               <span className="absolute -top-1 -right-1 w-1 h-1 bg-teal-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
               <section className="space-y-2 relative z-10">
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>📝 Name:</strong> {market.name}
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>🏷️ Slug:</strong> {market.slug}
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>🔗 Base Chain:</strong> {market.baseChainNetwork}
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>🔗 Quote Chain:</strong> {market.quoteChainNetwork}
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>🪙 Base Token:</strong> {market.baseChainTokenSymbol}
                 </p>
-                <p className="break-words">
+                <p className="break-words text-neutral-900">
                   <strong>💎 Quote Token:</strong>{" "}
                   {market.quoteChainTokenSymbol}
                 </p>
-                <p className="break-all">
+                <p className="break-all text-neutral-900">
                   <strong>🆔 Market ID:</strong>{" "}
                   <span className="text-xs sm:text-sm">
                     {market.marketId || "Not assigned"}
