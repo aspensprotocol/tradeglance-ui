@@ -194,7 +194,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           </DropdownMenu>
         </nav>
 
-        <nav className="flex flex-wrap gap-3 sm:gap-6 text-neutral-800 text-xs">
+        <nav className="flex flex-wrap gap-2 sm:gap-3 text-neutral-800 text-xs">
           {/* Enhanced Support Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

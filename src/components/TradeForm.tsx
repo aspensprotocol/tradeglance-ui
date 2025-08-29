@@ -217,52 +217,54 @@ const TradeForm = ({
         {/* Trade Form */}
         <section className="flex-1 flex flex-col justify-between">
           <fieldset className="flex-1 flex flex-col space-y-3 sm:space-y-4 md:space-y-4 lg:space-y-5">
-            {/* Group 3: Price and input field */}
-            {tradingState.activeOrderType === "limit" ? (
-              <section className="space-y-1 mb-2">
-                <header className="flex justify-between items-center mb-1">
-                  <span className="text-sm sm:text-base font-semibold text-gray-700">
-                    Price
-                  </span>
-                </header>
-                <section className="relative">
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formState.price || ""}
-                    onChange={(e) => updatePrice(e.target.value)}
-                    className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
-                    placeholder="0,00"
-                  />
-                  <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
-                    <TokenImage
-                      symbol={tradingPair?.quoteSymbol || "TTK"}
-                      size="sm"
-                    />
-                    <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
-                      {tradingPair?.quoteSymbol || "TTK"}
+            {/* Group 3: Price and input field - Fixed height container */}
+            <section className="h-[88px] mb-2">
+              {tradingState.activeOrderType === "limit" ? (
+                <section className="space-y-1 h-full flex flex-col justify-between">
+                  <header className="flex justify-between items-center mb-1">
+                    <span className="text-sm sm:text-base font-semibold text-gray-700">
+                      Price
                     </span>
+                  </header>
+                  <section className="relative flex-1">
+                    <input
+                      type="number"
+                      id="price"
+                      name="price"
+                      value={formState.price || ""}
+                      onChange={(e) => updatePrice(e.target.value)}
+                      className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                      placeholder="0,00"
+                    />
+                    <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
+                      <TokenImage
+                        symbol={tradingPair?.quoteSymbol || "TTK"}
+                        size="sm"
+                      />
+                      <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
+                        {tradingPair?.quoteSymbol || "TTK"}
+                      </span>
+                    </section>
                   </section>
                 </section>
-              </section>
-            ) : (
-              /* Market Order Info - maintains consistent height */
-              <section className="space-y-1 mb-2">
-                <header className="flex justify-between items-center mb-1">
-                  <span className="text-sm sm:text-base font-semibold text-gray-700">
-                    Market Order
-                  </span>
-                </header>
-                <article className="p-3 sm:p-3.5 md:p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200 relative overflow-hidden">
-                  {/* Subtle gradient overlay */}
-                  <section className="absolute inset-0 bg-gradient-to-r from-blue-400/2 to-indigo-400/2 pointer-events-none"></section>
-                  <p className="text-sm sm:text-base text-blue-700 font-medium relative z-10">
-                    Market orders execute at the best available price
-                  </p>
-                </article>
-              </section>
-            )}
+              ) : (
+                /* Market Order Info - maintains consistent height */
+                <section className="space-y-1 h-full flex flex-col justify-between">
+                  <header className="flex justify-between items-center mb-1">
+                    <span className="text-sm sm:text-base font-semibold text-gray-700">
+                      Market Order
+                    </span>
+                  </header>
+                  <article className="p-3 sm:p-3.5 md:p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200 relative overflow-hidden flex-1 flex items-center">
+                    {/* Subtle gradient overlay */}
+                    <section className="absolute inset-0 bg-gradient-to-r from-blue-400/2 to-indigo-400/2 pointer-events-none"></section>
+                    <p className="text-sm sm:text-base text-blue-700 font-medium relative z-10">
+                      Market orders execute at the best available price
+                    </p>
+                  </article>
+                </section>
+              )}
+            </section>
           </fieldset>
 
           <footer className="mt-2">
