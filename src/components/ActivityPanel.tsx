@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { useAccount } from "wagmi";
-import { useRecentTrades } from "@/hooks/useRecentTrades";
+
 import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
-import { useMarketOrderbook } from "../hooks/useMarketOrderbook";
+
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTabOptimization } from "@/hooks/useTabOptimization";
 import { triggerBalanceRefresh } from "../lib/utils";
@@ -43,8 +42,7 @@ const ActivityPanel = ({
     cacheTimeout: 30000, // 30 seconds
   });
 
-  // Get wallet address
-  const { address } = useAccount();
+
 
   // Get all balances across all tokens and chains using unified hook
   const {
@@ -57,22 +55,37 @@ const ActivityPanel = ({
   // Get the market ID from the trading pair
   const marketId = tradingPair?.id;
 
-  // Use market-specific orderbook hook for open orders
-  const {
-    openOrders,
-    loading: ordersLoading,
-    error: ordersError,
-  } = useMarketOrderbook(marketId || "", showMineOnly ? address : undefined);
+  // TEMPORARILY DISABLED: Use market-specific orderbook hook for open orders
+  // const {
+  //   openOrders,
+  //   loading: ordersLoading,
+  //   error: ordersError,
+  // } = useMarketOrderbook(marketId || "", showMineOnly ? address : undefined);
 
-  // Only call hooks when their corresponding tab is active to prevent data accumulation
-  const {
-    trades,
-    loading: tradesLoading,
-    error: tradesError,
-  } = useRecentTrades(
-    activeTab === "trades" && marketId ? marketId : "", // Only fetch when trades tab is active and marketId exists
-    showMineOnly ? address : undefined,
-  );
+  // TEMPORARILY DISABLED: Only call hooks when their corresponding tab is active to prevent data accumulation
+  // const {
+  //   trades,
+  //   loading: tradesLoading,
+  //   error: tradesError,
+  // } = useRecentTrades(
+  //   activeTab === "trades" && marketId ? marketId : "", // Only fetch when trades tab is active and marketId exists
+  //   showMineOnly ? address : undefined,
+  // );
+
+  // Temporary mock data to prevent crashes
+  const openOrders: OrderbookEntry[] = [];
+  const ordersLoading = false;
+  const ordersError: string | null = null;
+  const trades = useMemo(() => [] as {
+    price: number;
+    quantity: number;
+    timestamp: Date;
+    makerAddress?: string;
+    takerAddress?: string;
+    trader?: string;
+  }[], []);
+  const tradesLoading = false;
+  const tradesError: string | null = null;
 
   // No need for client-side filtering since we're using API-level filtering
   const orders = openOrders;

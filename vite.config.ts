@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   plugins: [react()],
   resolve: {
     alias: {
@@ -105,6 +105,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Performance optimizations
   esbuild: {
-    drop: mode === "production" ? ["console", "debugger"] : [],
+    // Temporarily disable console dropping for debugging
+    // drop: mode === "production" ? ["console", "debugger"] : [],
   },
 }));

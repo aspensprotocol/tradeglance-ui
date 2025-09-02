@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,128 +17,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useAccount } from "wagmi";
 import { useContract } from "@/hooks/useContract";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTradeContracts } from "@/hooks/useTradeContract";
+import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useAllBalances } from "@/hooks/useAllBalances";
-import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
-import {
-  getEtherscanLink,
-  shortenTxHash,
-  triggerBalanceRefresh,
-} from "@/lib/utils";
-import type { Chain } from "@/protos/gen/arborter_config_pb";
+import { getEtherscanLink, shortenTxHash } from "@/lib/utils";
 import { formatDecimalConsistent } from "@/lib/number-utils";
+import type { Chain } from "@/protos/gen/arborter_config_pb";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type?: "deposit" | "withdraw"; // Make type optional since we'll handle it internally
-  onSuccess?: () => void; // Callback for successful transactions
+  type?: "deposit" | "withdraw";
+  onSuccess?: () => void;
 }
-
-interface NetworkSwitcherProps {
-  onNetworkSwitch: () => void;
-}
-
-// Component for switching to supported networks
-const NetworkSwitcher = ({
-  onNetworkSwitch,
-}: NetworkSwitcherProps): JSX.Element => {
-  const { switchToNetwork, getSupportedNetworks, isSwitching } =
-    useNetworkSwitch();
-  const [switchingTo, setSwitchingTo] = useState<string | null>(null);
-
-  const supportedChains = getSupportedNetworks();
-
-  const handleNetworkSwitch = async (chainConfig: Chain) => {
-    setSwitchingTo(chainConfig.network);
-    try {
-      const success = await switchToNetwork(chainConfig);
-      if (success) {
-        // Add a small delay for better UX
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        onNetworkSwitch();
-      }
-    } finally {
-      setSwitchingTo(null);
-    }
-  };
-
-  return (
-    <section className="space-y-4">
-      <header className="text-center">
-        <p className="text-red-600 mb-2 text-sm">
-          Current network is not supported for deposits/withdrawals
-        </p>
-        <p className="text-xs text-neutral-700 mb-4">
-          Please switch to one of the supported networks:
-        </p>
-      </header>
-
-      <nav className="space-y-2">
-        {supportedChains.map((chain) => {
-          const isCurrentlySwitching = switchingTo === chain.network;
-          const isDisabled = isSwitching || isCurrentlySwitching;
-
-          return (
-            <Button
-              key={chain.chainId}
-              variant="outline"
-              className="w-full justify-start bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
-              onClick={() => handleNetworkSwitch(chain)}
-              disabled={isDisabled}
-            >
-              {/* Floating sparkles */}
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-
-              {/* Glowing effect */}
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 rounded opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></span>
-
-              {isCurrentlySwitching ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 relative z-10"></span>
-                  <span className="relative z-10">
-                    Switching to {chain.network}...
-                  </span>
-                </>
-              ) : isSwitching ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 relative z-10"></span>
-                  <span className="relative z-10">Switching...</span>
-                </>
-              ) : (
-                <>
-                  <span className="font-medium relative z-10">
-                    {chain.network}
-                  </span>
-                  <span className="text-white/80 ml-2 relative z-10">
-                    (Chain ID: {chain.chainId})
-                  </span>
-                </>
-              )}
-            </Button>
-          );
-        })}
-      </nav>
-
-      {supportedChains.length === 0 && (
-        <p className="text-center text-neutral-600 text-xs">
-          No supported networks found. Please check your configuration.
-        </p>
-      )}
-
-      <footer className="text-center text-xs text-neutral-600">
-        <p>
-          If you don't see your network listed, please check your wallet
-          settings or contact support.
-        </p>
-      </footer>
-    </section>
-  );
-};
 
 const DepositWithdrawModal = ({
   isOpen,
@@ -157,8 +51,6 @@ const DepositWithdrawModal = ({
   const { toast } = useToast();
 
   const chains = getAllChains();
-
-  // Debug: Log the chains data
 
   // Get all tokens from all chains with chain prefixes
   const allTokens = useMemo((): {
@@ -230,11 +122,6 @@ const DepositWithdrawModal = ({
   const depositedBalanceLoading: boolean = balancesLoading;
   const depositedBalanceError = null; // useAllBalances doesn't provide per-token errors
 
-  // Check if selected chain is supported
-  const isSelectedChainSupported: boolean = chains.some(
-    (chain: Chain) => chain.chainId === selectedChainId,
-  );
-
   // Auto-select first token if available and none selected
   useEffect(() => {
     if (allTokens.length > 0 && !selectedToken) {
@@ -242,31 +129,8 @@ const DepositWithdrawModal = ({
     }
   }, [allTokens, selectedToken]);
 
-  // Auto-switch to the correct chain when a token is selected
-  useEffect(() => {
-    if (
-      selectedTokenData &&
-      selectedChainId &&
-      selectedChainId !== currentChainId
-    ) {
-      // With MetaMask Chain Permissions, we don't automatically switch networks
-      // Instead, we provide guidance to the user
-      if (currentChainId) {
-        toast({
-          title: "Network switch required",
-          description: `Please manually switch to the ${selectedTokenData.network} network in MetaMask to ${activeType} ${selectedTokenData.symbol}`,
-          variant: "default",
-        });
-      }
-    }
-  }, [
-    selectedToken,
-    selectedTokenData,
-    selectedChainId,
-    currentChainId,
-    activeType,
-    toast,
-  ]);
+  // Note: Network switching is now handled seamlessly in the useContract hook
+  // No need to show manual switching messages - the hook will handle it automatically
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -332,11 +196,8 @@ const DepositWithdrawModal = ({
       }
     }
 
-    // Check if selected chain is supported
-    if (!isSelectedChainSupported) {
-      console.error("Selected chain is not supported for deposits/withdrawals");
-      return;
-    }
+    // Note: Network switching is now handled seamlessly in the useContract hook
+    // No need to check chain support - the hook will handle network switching automatically
 
     // Find the selected token object to get the address
     const selectedTokenObj = allTokens.find(
@@ -425,29 +286,22 @@ const DepositWithdrawModal = ({
       if (err instanceof Error) {
         if (err.message?.includes("Internal JSON-RPC error")) {
           errorMessage =
-            "RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.";
+            "RPC connection error. The network endpoint may be down. Please try refreshing the page or ensure you're on the correct network in MetaMask.";
         } else if (err.message?.includes("insufficient funds")) {
-          errorMessage = `Insufficient funds for ${activeType}. Please check your balance.`;
+          errorMessage =
+            "Insufficient funds for transaction. Please check your balance.";
         } else if (err.message?.includes("user rejected")) {
           errorMessage = "Transaction was rejected by user.";
-        } else if (err.message?.includes("reverted")) {
-          errorMessage = `Transaction was reverted on the blockchain. This usually means the ${activeType} failed due to insufficient balance or other contract constraints.`;
-        } else if (err.message?.includes("network")) {
-          errorMessage =
-            "Network error. Please check your connection and try again.";
         } else if (err.message) {
           errorMessage = err.message;
         }
       }
 
       toast({
-        title: `${activeType} failed`,
+        title: `${activeType === "deposit" ? "Deposit" : "Withdrawal"} failed`,
         description: errorMessage,
         variant: "destructive",
       });
-
-      // Trigger global balance refresh even on error to ensure UI is up to date
-      triggerBalanceRefresh();
     }
   };
 
@@ -458,15 +312,9 @@ const DepositWithdrawModal = ({
     onClose();
   };
 
-  const handleNetworkSwitch = async (): Promise<void> => {
-    // Add a small delay to allow the network switch to complete
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Force a refresh of the chain monitor
-    window.dispatchEvent(new Event("chainChanged"));
-
-    // This will trigger a re-render when the network is switched
-    // The useChainMonitor hook will detect the change and update isSupported
+  const triggerBalanceRefresh = (): void => {
+    // Dispatch a custom event to trigger balance refresh
+    window.dispatchEvent(new CustomEvent("balance-refresh"));
   };
 
   return (
@@ -524,8 +372,6 @@ const DepositWithdrawModal = ({
               Please connect to a supported network
             </p>
           </section>
-        ) : !isSelectedChainSupported ? (
-          <NetworkSwitcher onNetworkSwitch={handleNetworkSwitch} />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             {selectedChainId && (
@@ -620,67 +466,53 @@ const DepositWithdrawModal = ({
                 />
                 {activeType === "withdraw" &&
                   depositedBalance &&
-                  parseFloat(depositedBalance) > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-3 text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 rounded-lg"
-                      onClick={() => setAmount(depositedBalance)}
-                    >
-                      MAX
-                    </Button>
+                  parseFloat(amount) > parseFloat(depositedBalance) && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Amount exceeds available balance
+                    </p>
                   )}
                 {activeType === "deposit" &&
                   tokenBalance &&
-                  parseFloat(tokenBalance) > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-3 text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 rounded-lg"
-                      onClick={() => setAmount(tokenBalance)}
-                    >
-                      MAX
-                    </Button>
+                  parseFloat(amount) > parseFloat(tokenBalance) && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Amount exceeds wallet balance
+                    </p>
                   )}
               </section>
             </fieldset>
 
-            {error && (
-              <aside className="text-red-600 text-xs bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-3 py-2 shadow-md animate-pulse">
-                ⚠️ {error}
-              </aside>
-            )}
-
-            <footer className="flex gap-3 sm:gap-4">
+            <footer className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 rounded-xl"
+                className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
               >
-                ❌ Cancel
+                Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !amount || !selectedToken}
-                className={`flex-1 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl ${
-                  activeType === "deposit"
-                    ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600"
-                    : "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white border-0 hover:from-red-600 hover:via-pink-600 hover:to-rose-600"
-                }`}
+                disabled={
+                  isLoading || isConfirming || !selectedToken || !amount
+                }
+                className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 animate-pulse-glow"
               >
-                {isLoading ? (
-                  <>
-                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                    {isConfirming ? "🔐 Confirming..." : "⚡ Processing..."}
-                  </>
+                {isLoading || isConfirming ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    {isConfirming ? "Confirming..." : "Processing..."}
+                  </span>
                 ) : (
-                  `${activeType === "deposit" ? "💸" : "💰"} ${activeType.charAt(0).toUpperCase() + activeType.slice(1)}`
+                  `${activeType === "deposit" ? "Deposit" : "Withdraw"} ${selectedTokenData?.label.split(" ")[0] || "Tokens"}`
                 )}
               </Button>
             </footer>
+
+            {error && (
+              <section className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm">{error}</p>
+              </section>
+            )}
           </form>
         )}
       </DialogContent>

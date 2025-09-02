@@ -283,7 +283,7 @@ export const useTradingBalance = (
     chainId,
     marketId,
     config,
-    fetchTradingBalances,
+    fetchTradingBalances, // Include it since it's memoized with stable dependencies
   ]);
 
   return {

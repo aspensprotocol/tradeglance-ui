@@ -21,7 +21,8 @@ class ConfigUtils {
   }
 
   getAllChains(): Chain[] {
-    return this.config?.chains || [];
+    const chains = this.config?.chains || [];
+    return chains;
   }
 
   getAllMarkets(): Market[] {

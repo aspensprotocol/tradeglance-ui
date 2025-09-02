@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
 import { useUnifiedBalance } from "./useUnifiedBalance";
@@ -6,11 +6,10 @@ import type { TradingPair } from "@/lib/shared-types";
 import type { Chain } from "../protos/gen/arborter_config_pb";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
 
-// MetaMask Chain Permissions Update Notice:
-// As of November 2024, MetaMask introduced a new "Chain Permissions" system that replaces
-// the old wallet_switchEthereumChain and wallet_addEthereumChain methods. This update
-// requires users to manually switch networks in MetaMask instead of automatic switching.
-// See: https://metamask.io/news/metamask-feature-update-chain-permissions
+// MetaMask Network Management Update (August 2025):
+// MetaMask has removed the manual network selection dropdown and introduced a new network management system.
+// Users must manually switch networks using the globe icon in MetaMask instead of automatic switching.
+// This update ensures compatibility with MetaMask's new architecture.
 
 export interface UseFormLogicOptions {
   tradingPair?: TradingPair;
@@ -51,6 +50,7 @@ export interface UseFormLogicReturn {
 
   // Data
   availableBalance: string;
+  walletBalance: string;
   balanceLoading: boolean;
   currentChainId: number | null;
   isConnected: boolean;
@@ -109,7 +109,6 @@ export const useFormLogic = ({
   // Use shared hooks
   const {
     formState,
-    availableBalance,
     balanceLoading,
     currentChainId,
     isConnected,
@@ -122,16 +121,51 @@ export const useFormLogic = ({
     updateFormState: updateFormStateBase,
     getCorrectSideForChain,
     getTargetChainForSide,
-  } = useTradingLogic({ tradingPair, isSimpleForm });
+  } = useTradingLogic({
+    tradingPair,
+    isSimpleForm,
+    availableBalance: "0", // We'll update this after we calculate the correct balance
+  });
 
   // Get unified balance data with caching
-  const {
-    availableBalance: unifiedAvailableBalance,
-    balanceLoading: unifiedBalanceLoading,
-  } = useUnifiedBalance(
-    tradingPair,
-    currentChainId ? getCorrectSideForChain(currentChainId) : undefined,
-  );
+  const { balanceLoading: unifiedBalanceLoading, allBalances } =
+    useUnifiedBalance(
+      tradingPair,
+      activeTab, // Use activeTab instead of getCorrectSideForChain
+    );
+
+  // Calculate wallet balance and deposited balance for the current trading side
+  const { walletBalance, depositedBalance } = useMemo(() => {
+    if (!tradingPair || !allBalances)
+      return { walletBalance: "0", depositedBalance: "0" };
+
+    // Use the activeTab instead of getCorrectSideForChain to get the correct side
+    // This ensures the balance updates when the user switches between buy/sell
+    let targetChainId: number;
+    let targetSymbol: string;
+
+    if (activeTab === BaseOrQuote.QUOTE) {
+      // BUY side - need quote token balance
+      targetChainId = tradingPair.quoteChainId;
+      targetSymbol = tradingPair.quoteSymbol;
+    } else {
+      // SELL side - need base token balance
+      targetChainId = tradingPair.baseChainId;
+      targetSymbol = tradingPair.baseSymbol;
+    }
+
+    const balanceData = allBalances.find(
+      (balance) =>
+        balance.chainId === targetChainId && balance.symbol === targetSymbol,
+    );
+
+    // Debug logging removed for performance
+
+    return {
+      walletBalance: balanceData?.walletBalance || "0",
+      depositedBalance: balanceData?.depositedBalance || "0",
+    };
+  }, [tradingPair, activeTab, allBalances]);
 
   const {
     networkState,
@@ -234,13 +268,19 @@ export const useFormLogic = ({
         }
 
         // Submit the order using shared logic
-        await submitOrder(currentChain.baseOrQuote);
+        await submitOrder(currentChain.baseOrQuote, "limit", depositedBalance);
       } else {
         // For trade form, submit directly with the provided side
-        await submitOrder(side);
+        await submitOrder(side, "limit", depositedBalance);
       }
     },
-    [isSimpleForm, validateNetworksBase, getCurrentChainConfig, submitOrder],
+    [
+      isSimpleForm,
+      validateNetworksBase,
+      getCurrentChainConfig,
+      submitOrder,
+      depositedBalance,
+    ],
   );
 
   const handleSwapTokens = useCallback(async (): Promise<void> => {
@@ -300,17 +340,10 @@ export const useFormLogic = ({
 
       // Get all available chains
       const allChains = getAllChains();
-      const baseChain = allChains.find(
-        (chain) => chain.baseOrQuote === BaseOrQuote.BASE,
-      );
-      const quoteChain = allChains.find(
-        (chain) => chain.baseOrQuote === BaseOrQuote.QUOTE,
-      );
+      console.log("FormLogic: Available chains:", allChains); // Debug logging
 
-      if (!baseChain || !quoteChain) {
-        console.error("FormLogic: Missing base or quote chain configuration");
-        return;
-      }
+      // Always allow side change even if chains aren't loaded yet
+      // This ensures the toggle works immediately for better UX
 
       // Update the active tab first
       setActiveTab(newSide);
@@ -329,12 +362,45 @@ export const useFormLogic = ({
         }
       }
 
-      // With MetaMask's new Chain Permissions system, we don't automatically switch chains
-      // Instead, we provide guidance to the user about which chain they should be on
-      if (newSide === BaseOrQuote.BASE) {
-        // Switching to BASE side (SELL) - suggest base chain
+      // With MetaMask's new network management system, we don't automatically switch networks
+      // Instead, we provide guidance to the user about which network they should be on
+      if (allChains.length > 0) {
+        const baseChain = allChains.find(
+          (chain) => chain.baseOrQuote === BaseOrQuote.BASE,
+        );
+        const quoteChain = allChains.find(
+          (chain) => chain.baseOrQuote === BaseOrQuote.QUOTE,
+        );
+
+        if (baseChain && quoteChain) {
+          // Provide guidance about which network the user should be on
+          if (newSide === BaseOrQuote.BASE) {
+            // BASE side (SELL): user should be on base network
+            console.log(
+              "FormLogic: Switched to BASE side (SELL) - user should be on",
+              baseChain.network,
+            );
+          } else {
+            // QUOTE side (BUY): user should be on quote network
+            console.log(
+              "FormLogic: Switched to QUOTE side (BUY) - user should be on",
+              quoteChain.network,
+            );
+          }
+        } else {
+          console.warn(
+            "FormLogic: Chain configuration incomplete, but side change succeeded",
+            {
+              allChains,
+              baseChain,
+              quoteChain,
+            },
+          );
+        }
       } else {
-        // Switching to QUOTE side (BUY) - suggest quote chain
+        console.log(
+          "FormLogic: Chains not loaded yet, but side change succeeded",
+        );
       }
     },
     [activeTab, getAllChains, tradingPair],
@@ -350,8 +416,10 @@ export const useFormLogic = ({
     // Determine the optimal side based on the current network
     const optimalSide = currentChain.baseOrQuote;
 
-    // Only change if the current side doesn't match the optimal side
+    // IMPORTANT: Only change if the user hasn't manually selected a side
+    // This prevents overriding user's manual toggle selection
     if (
+      !userManuallySelectedSide &&
       activeTab !== optimalSide &&
       (optimalSide === BaseOrQuote.BASE || optimalSide === BaseOrQuote.QUOTE)
     ) {
@@ -383,17 +451,17 @@ export const useFormLogic = ({
 
       if (baseChain && quoteChain) {
         if (optimalSide === BaseOrQuote.BASE) {
-          // BASE side (SELL): sender = base network, receiver = quote network
-          handleSenderNetworkChange(baseChain.network);
-          handleReceiverNetworkChange(quoteChain.network);
-
-          // With MetaMask's new Chain Permissions system, we don't automatically switch chains
+          // BASE side (SELL): user should be on base network
+          console.log(
+            "FormLogic: Optimal side is BASE (SELL) - user should be on",
+            baseChain.network,
+          );
         } else {
-          // QUOTE side (BUY): sender = quote network, receiver = base network
-          handleSenderNetworkChange(quoteChain.network);
-          handleReceiverNetworkChange(baseChain.network);
-
-          // With MetaMask's new Chain Permissions system, we don't automatically switch chains
+          // QUOTE side (BUY): user should be on quote network
+          console.log(
+            "FormLogic: Optimal side is QUOTE (BUY) - user should be on",
+            quoteChain.network,
+          );
         }
       }
     }
@@ -401,9 +469,8 @@ export const useFormLogic = ({
     currentChainId,
     getCurrentChainConfig,
     activeTab,
+    userManuallySelectedSide,
     getAllChains,
-    handleSenderNetworkChange,
-    handleReceiverNetworkChange,
     tradingPair,
   ]);
 
@@ -411,6 +478,17 @@ export const useFormLogic = ({
   useEffect(() => {
     detectAndSetOptimalSide();
   }, [currentChainId, detectAndSetOptimalSide]);
+
+  // Ensure we always have a valid active tab, even if configuration is loading
+  useEffect(() => {
+    if (
+      !activeTab ||
+      (activeTab !== BaseOrQuote.BASE && activeTab !== BaseOrQuote.QUOTE)
+    ) {
+      console.log("FormLogic: Setting default active tab to BASE (SELL)");
+      setActiveTab(BaseOrQuote.BASE);
+    }
+  }, [activeTab]);
 
   // Handle order type changes
   const handleOrderTypeChange = useCallback(
@@ -460,7 +538,8 @@ export const useFormLogic = ({
     },
 
     // Data
-    availableBalance: unifiedAvailableBalance || availableBalance,
+    availableBalance: depositedBalance, // Use the actual deposited balance from allBalances
+    walletBalance,
     balanceLoading: unifiedBalanceLoading || balanceLoading,
     currentChainId,
     isConnected,

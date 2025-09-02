@@ -1,5 +1,5 @@
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { createClient, ConnectError } from "@connectrpc/connect";
+import { createClient } from "@connectrpc/connect";
 import { create } from "@bufbuild/protobuf";
 import { handleApiError } from "./error-handling";
 import { createLogger } from "./logger";
@@ -326,16 +326,49 @@ export const arborterService = {
     signatureHash: Uint8Array,
   ): Promise<SendOrderResponse> {
     try {
+      console.log("🔍 gRPC: Creating sendOrder request:", {
+        order: {
+          side: order.side,
+          quantity: order.quantity,
+          price: order.price,
+          marketId: order.marketId,
+          baseAccountAddress: order.baseAccountAddress,
+          quoteAccountAddress: order.quoteAccountAddress,
+        },
+        signatureHashLength: signatureHash.length,
+        signatureHashHex: Array.from(signatureHash)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(""),
+      });
+
       const request: SendOrderRequest = create(SendOrderRequestSchema, {
         order,
         signatureHash,
       });
 
+      console.log("🔍 gRPC: Sending order request to backend...");
+      console.log("🔍 gRPC: Request details:", {
+        requestType: typeof request,
+        requestKeys: Object.keys(request),
+        orderExists: !!request.order,
+        signatureHashExists: !!request.signatureHash,
+        signatureHashLength: request.signatureHash?.length,
+      });
+      
       const response: SendOrderResponse =
         await arborterClient.sendOrder(request);
+
+      console.log("✅ gRPC: Order sent successfully:", response);
       return response;
     } catch (error) {
-      console.error("Error sending order:", error);
+      console.error("❌ gRPC: Error sending order:", error);
+      console.error("❌ gRPC: Error details:", {
+        errorType: typeof error,
+        errorConstructor:
+          error instanceof Error ? error.constructor.name : "Unknown",
+        errorMessage: error instanceof Error ? error.message : "No message",
+        errorStack: error instanceof Error ? error.stack : "No stack",
+      });
       throw error;
     }
   },
@@ -363,41 +396,17 @@ export const arborterService = {
   // Get orderbook - optimized for speed with improved error handling
   async getOrderbook(
     marketId: string,
-    continueStream = true, // Changed default to true for continuous streaming
+    continueStream = false, // Disable continuous streaming to prevent resource exhaustion
     historicalOpenOrders?: boolean,
     filterByTrader?: string,
   ): Promise<OrderbookEntry[]> {
-    const orderbookLogger = createLogger("Orderbook");
     try {
-      orderbookLogger.info(`Getting orderbook for market: ${marketId}`);
-      orderbookLogger.debug("Request parameters:", {
-        marketId,
-        marketIdType: typeof marketId,
-        marketIdTruthy: !!marketId,
-        continueStream,
-        historicalOpenOrders,
-        filterByTrader,
-        transportBaseUrl: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
-      });
-
       const request: OrderbookRequest = create(OrderbookRequestSchema, {
         marketId,
         continueStream,
         historicalOpenOrders,
         filterByTrader,
       });
-
-      orderbookLogger.debug("Request created:", {
-        requestKeys: Object.keys(request),
-        requestValues: {
-          marketId: request.marketId,
-          continueStream: request.continueStream,
-          historicalOpenOrders: request.historicalOpenOrders,
-          filterByTrader: request.filterByTrader,
-        },
-      });
-
-      orderbookLogger.info("Calling orderbook API...");
 
       // Create a timeout promise to handle connection issues
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -433,24 +442,8 @@ export const arborterService = {
         }
 
         return entries;
-      } catch (streamError) {
-        console.warn(
-          "⚠️ Orderbook stream error, returning collected data:",
-          streamError,
-        );
-
-        // Handle specific gRPC errors
-        if (streamError instanceof ConnectError) {
-          handleApiError(streamError, "Orderbook Stream", async () => {
-            await this.getOrderbook(
-              marketId,
-              continueStream,
-              historicalOpenOrders,
-              filterByTrader,
-            );
-          });
-        }
-
+      } catch {
+        // Silently handle stream errors - empty orderbook is normal
         if (entries.length > 0) {
           return entries;
         }
@@ -476,7 +469,7 @@ export const arborterService = {
   // Get trades - optimized for speed
   async getTrades(
     marketId: string,
-    continueStream = true, // Changed default to true for continuous streaming
+    continueStream = false, // Disable continuous streaming to prevent resource exhaustion
     historicalClosedTrades?: boolean,
     filterByTrader?: string,
   ): Promise<Trade[]> {
@@ -499,11 +492,8 @@ export const arborterService = {
         }
 
         return trades;
-      } catch (streamError) {
-        console.warn(
-          "⚠️ Trades stream error, returning collected data:",
-          streamError,
-        );
+      } catch {
+        // Silently handle stream errors - empty trades is normal
         if (trades.length > 0) {
           return trades;
         }

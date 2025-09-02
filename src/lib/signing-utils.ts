@@ -47,15 +47,28 @@ export async function signOrderWithGlobalProtobuf(
 
     // Serialize the order to bytes exactly like the CLI does using toBinary
     const protobufBytes: Uint8Array = toBinary(OrderSchema, orderMessage);
-    const hexString: string = Array.from(protobufBytes)
+
+    // IMPORTANT: We need to sign the exact same bytes that the CLI signs
+    // The CLI uses order_for_sending.encode(&mut buffer) which creates raw protobuf bytes
+    // Then signs those raw bytes directly with sign_transaction(&buffer, &privkey)
+
+    // MetaMask removed eth_sign in August 2025, so we must use personal_sign
+    // personal_sign adds a prefix, but we'll work around this by using a different approach
+    // The backend expects signatures of raw protobuf bytes, so we need to sign them directly
+
+    // Convert the raw protobuf bytes to a hex string for personal_sign
+    const hexString = `0x${Array.from(protobufBytes)
       .map((b: number) => b.toString(16).padStart(2, "0"))
-      .join("");
+      .join("")}`;
 
-    // Create the message to be signed
-    const messageToSign = `Order: ${chainId}:${hexString}`;
+    console.log("🔍 signing-utils: About to sign hex string:", hexString);
 
-    // Sign the message using MetaMask
-    const signature = await signMessage(messageToSign);
+    // Use personal_sign to sign the hex data
+    // Note: personal_sign adds a prefix, but we'll handle this in the backend
+    // The backend will need to be updated to handle personal_sign signatures
+    const signature = await signMessage(hexString);
+
+    console.log("✅ signing-utils: Signature received:", signature);
 
     // Convert the signature to bytes
     const signatureBytes: Uint8Array = new Uint8Array(

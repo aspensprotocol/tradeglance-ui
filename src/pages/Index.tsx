@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import VerticalOrderBook from "@/components/VerticalOrderBook";
 import TradeForm from "@/components/TradeForm";
 import ActivityPanel from "@/components/ActivityPanel";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -7,18 +6,12 @@ import type { TradingPair } from "@/lib/shared-types";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 
 interface IndexProps {
-  selectedPair: string;
-  setSelectedPair: (pair: string) => void;
   currentTradingPair?: TradingPair;
-  tradingPairs: TradingPair[];
   pairsLoading: boolean;
 }
 
 const Index = ({
-  selectedPair,
-  setSelectedPair,
   currentTradingPair,
-  tradingPairs,
   pairsLoading,
 }: IndexProps): JSX.Element => {
   // Manage trading side state at the Index level to share between TradeForm and ActivityPanel
@@ -135,14 +128,13 @@ const Index = ({
               <section className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300 relative overflow-visible">
                 {/* Subtle gradient overlay */}
                 <section className="absolute inset-0 bg-gradient-to-br from-purple-400/2 to-pink-400/2 pointer-events-none"></section>
-                <VerticalOrderBook
-                  key={`orderbook-${currentTradingPair?.id || "no-market"}`}
-                  tradingPair={currentTradingPair || undefined}
-                  selectedPair={selectedPair}
-                  onPairChange={setSelectedPair}
-                  tradingPairs={tradingPairs}
-                  maxOrders={50} // Show top 50 orders by price for better performance
-                />
+                {/* TEMPORARILY DISABLED: VerticalOrderBook to free up resources for order submission */}
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  <div className="text-center">
+                    <div className="text-lg font-semibold mb-2">Orderbook Temporarily Disabled</div>
+                    <div className="text-sm">Freeing up resources for order submission testing</div>
+                  </div>
+                </div>
               </section>
             </aside>
           </>

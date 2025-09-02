@@ -4,9 +4,9 @@ import { configUtils } from "@/lib/config-utils";
 import { useToast } from "@/hooks/use-toast";
 import type { Chain } from "@/protos/gen/arborter_config_pb";
 
-// MetaMask Chain Permissions Update (November 2024):
+// MetaMask Network Management Update (August 2025):
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
-// - Users must manually switch chains in MetaMask
+// - Users must manually switch networks using the globe icon in MetaMask
 // - This hook now only manages local network state, doesn't attempt to switch chains
 
 export interface NetworkState {
@@ -85,7 +85,7 @@ export const useNetworkManagement = (): {
         return;
       }
 
-      // With MetaMask Chain Permissions, we don't automatically switch networks
+      // With MetaMask's new network management system, we don't automatically switch networks
       // Instead, we provide guidance to the user
 
       // Update sender network
@@ -142,12 +142,12 @@ export const useNetworkManagement = (): {
       receiverNetwork: oldSenderNetwork,
     });
 
-    // With MetaMask Chain Permissions, we don't automatically switch networks
-    // Users need to manually switch networks in MetaMask
+    // With MetaMask's new network management system, we don't automatically switch networks
+    // Users need to manually switch networks in MetaMask using the globe icon
 
     toast({
       title: "Networks swapped",
-      description: `Please manually switch to ${oldReceiverNetwork} in MetaMask to complete the swap`,
+      description: `Please switch to ${oldReceiverNetwork} in MetaMask using the globe icon to complete the swap`,
       variant: "default",
     });
   };

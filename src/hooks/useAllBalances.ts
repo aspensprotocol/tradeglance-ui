@@ -66,6 +66,7 @@ export const useAllBalances = (): {
 
   // Helper function to create a custom public client with the correct RPC URL
   const createCustomPublicClient = useCallback((rpcUrl: string) => {
+    console.log(`🔍 Creating public client for RPC: ${rpcUrl}`);
     return createPublicClient({
       transport: http(rpcUrl),
     });
@@ -157,8 +158,16 @@ export const useAllBalances = (): {
         };
       } catch (err) {
         console.error(
-          `Error checking balances for ${tokenSymbol} on ${network}:`,
-          err,
+          `❌ Error checking balances for ${tokenSymbol} on ${network}:`,
+          {
+            error: err,
+            errorMessage: err instanceof Error ? err.message : String(err),
+            tokenAddress,
+            tradeContractAddress,
+            rpcUrl,
+            chainId,
+            network,
+          },
         );
         // Return zero balances on error
         return {
@@ -179,9 +188,19 @@ export const useAllBalances = (): {
 
   const fetchAllBalances = useCallback(async () => {
     if (!isConnected || !address || !config) {
+      console.log(
+        "🔍 useAllBalances: Skipping fetch - not connected or no config",
+        {
+          isConnected,
+          address,
+          hasConfig: !!config,
+        },
+      );
       setBalances([]);
       return;
     }
+
+    // Debug logging removed for performance
 
     setLoading(true);
     setError(null);
@@ -193,13 +212,16 @@ export const useAllBalances = (): {
 
       for (const chain of config.chains) {
         const chainTokens = Object.keys(chain.tokens);
+        // Debug logging removed for performance
 
         for (const tokenSymbol of chainTokens) {
           const token = chain.tokens[tokenSymbol];
           if (!token || !chain.tradeContract) {
+            // Debug logging removed for performance
             continue;
           }
 
+          // Debug logging removed for performance
           const balance = await checkTokenBalances(
             tokenSymbol,
             chain.chainId,
@@ -210,14 +232,22 @@ export const useAllBalances = (): {
             chain.tradeContract.address,
           );
 
+          // Debug logging removed for performance
           allBalances.push(balance);
         }
       }
 
       // Return all balances, even if they're 0, so we can see what's happening
+      // Debug logging removed for performance
       setBalances(allBalances);
     } catch (err) {
-      console.error("Failed to fetch all balances:", err);
+      console.error("❌ Failed to fetch all balances:", {
+        error: err,
+        errorMessage: err instanceof Error ? err.message : String(err),
+        isConnected,
+        address,
+        hasConfig: !!config,
+      });
       setError(err instanceof Error ? err.message : "Failed to fetch balances");
     } finally {
       setLoading(false);
@@ -226,7 +256,7 @@ export const useAllBalances = (): {
 
   useEffect(() => {
     fetchAllBalances();
-  }, [fetchAllBalances]);
+  }, [fetchAllBalances]); // Include fetchAllBalances but it's memoized with stable dependencies
 
   const refreshBalances = (): void => {
     fetchAllBalances();

@@ -4,6 +4,7 @@ import { parseUnits } from "viem";
 import { configUtils } from "../lib/config-utils";
 import MidribV2ABI from "../lib/abi/MidribV2.json";
 import { createPublicClient, http } from "viem";
+import { useToast } from "./use-toast";
 
 export const useContract = (): {
   isConnected: boolean;
@@ -28,6 +29,7 @@ export const useContract = (): {
   const [currentChainId, setCurrentChainId] = useState<number | null>(null);
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { toast } = useToast();
 
   // Helper function to create a custom public client with the correct RPC URL
   const createCustomPublicClient = (
@@ -236,11 +238,42 @@ export const useContract = (): {
       // Convert amount using correct decimals
       const amountWei = parseUnits(amount, decimals || 18);
 
-      // Check if wallet is on the correct chain
+      // Check if wallet is on the correct chain and switch if needed
       if (currentChainId !== targetChainId) {
-        throw new Error(
-          `Wallet is on chain ${currentChainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`,
-        );
+        try {
+          const targetChainConfig =
+            configUtils.getChainByChainId(targetChainId);
+          if (!targetChainConfig) {
+            throw new Error(
+              `Chain configuration not found for chain ID ${targetChainId}`,
+            );
+          }
+
+          toast({
+            title: "Switching network",
+            description: `Switching to ${targetChainConfig.network}...`,
+          });
+
+          // Use MetaMask's built-in network switching (same as minting page)
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${targetChainId.toString(16)}` }],
+          });
+
+          // Wait a bit for the switch to complete
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Update current chain ID after successful switch
+          setCurrentChainId(targetChainId);
+        } catch (switchError: unknown) {
+          const errorMessage =
+            switchError instanceof Error
+              ? switchError.message
+              : "Failed to switch network";
+          throw new Error(
+            `Failed to switch to the required network: ${errorMessage}. Please try switching manually in MetaMask.`,
+          );
+        }
       }
 
       // Check if the token contract supports approval
@@ -379,11 +412,42 @@ export const useContract = (): {
       // Convert amount using correct decimals
       const amountWei = parseUnits(amount, decimals || 18);
 
-      // Check if wallet is on the correct chain
+      // Check if wallet is on the correct chain and switch if needed
       if (currentChainId !== targetChainId) {
-        throw new Error(
-          `Wallet is on chain ${currentChainId} but transaction requires chain ${targetChainId}. Please switch to the correct network.`,
-        );
+        try {
+          const targetChainConfig =
+            configUtils.getChainByChainId(targetChainId);
+          if (!targetChainConfig) {
+            throw new Error(
+              `Chain configuration not found for chain ID ${targetChainId}`,
+            );
+          }
+
+          toast({
+            title: "Switching network",
+            description: `Switching to ${targetChainConfig.network}...`,
+          });
+
+          // Use MetaMask's built-in network switching (same as minting page)
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${targetChainId.toString(16)}` }],
+          });
+
+          // Wait a bit for the switch to complete
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Update current chain ID after successful switch
+          setCurrentChainId(targetChainId);
+        } catch (switchError: unknown) {
+          const errorMessage =
+            switchError instanceof Error
+              ? switchError.message
+              : "Failed to switch network";
+          throw new Error(
+            `Failed to switch to the required network: ${errorMessage}. Please try switching manually in MetaMask.`,
+          );
+        }
       }
 
       // Attempt the withdrawal
