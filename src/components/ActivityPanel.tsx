@@ -6,7 +6,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTabOptimization } from "@/hooks/useTabOptimization";
 import { triggerBalanceRefresh, getAddressExplorerLink } from "../lib/utils";
 import { formatDecimalConsistent } from "@/lib/number-utils";
-import type { TradingPair } from "@/lib/shared-types";
+import type { TradingPair, RecentTrade } from "@/lib/shared-types";
 import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
 import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
@@ -70,58 +70,11 @@ const ActivityPanel = ({
   //   showMineOnly ? address : undefined,
   // );
 
-  // Temporary mock data to prevent crashes
+  // No mock data - using real data fetching
   const openOrders: OrderbookEntry[] = [];
   const ordersLoading = false;
   const ordersError: string | null = null;
-  const trades = useMemo(
-    () =>
-      [
-        // Sample buy trade: user pays 100 USDC for 2 ATOM
-        {
-          price: 50, // 50 USDC per ATOM
-          quantity: 2, // 2 ATOM
-          timestamp: new Date(Date.now() - 300000), // 5 minutes ago
-          makerAddress: "0x1234567890abcdef1234567890abcdef12345678",
-          takerAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-          trader: "0x1234567890abcdef1234567890abcdef12345678",
-          side: "buy",
-          // Add proper address fields for each chain
-          makerBaseAddress: "0x1234567890abcdef1234567890abcdef12345678",
-          makerQuoteAddress: "0x1111111111111111111111111111111111111111",
-          takerBaseAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-          takerQuoteAddress: "0x2222222222222222222222222222222222222222",
-        },
-        // Sample sell trade: user sells 1.5 ATOM for 75 USDC
-        {
-          price: 50, // 50 USDC per ATOM
-          quantity: 1.5, // 1.5 ATOM
-          timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-          makerAddress: "0x9876543210fedcba9876543210fedcba98765432",
-          takerAddress: "0xfedcba0987654321fedcba0987654321fedcba09",
-          trader: "0x9876543210fedcba9876543210fedcba98765432",
-          side: "sell",
-          // Add proper address fields for each chain
-          makerBaseAddress: "0x9876543210fedcba9876543210fedcba98765432",
-          makerQuoteAddress: "0x3333333333333333333333333333333333333333",
-          takerBaseAddress: "0xfedcba0987654321fedcba0987654321fedcba09",
-          takerQuoteAddress: "0x4444444444444444444444444444444444444444",
-        },
-      ] as {
-        price: number;
-        quantity: number;
-        timestamp: Date;
-        makerAddress?: string;
-        takerAddress?: string;
-        trader?: string;
-        side?: string; // Add side information for color coding
-        makerBaseAddress?: string;
-        makerQuoteAddress?: string;
-        takerBaseAddress?: string;
-        takerQuoteAddress?: string;
-      }[],
-    [],
-  );
+  const trades = useMemo(() => [] as RecentTrade[], []);
   const tradesLoading = false;
   const tradesError: string | null = null;
 
