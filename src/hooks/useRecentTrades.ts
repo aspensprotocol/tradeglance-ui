@@ -72,6 +72,11 @@ export function useRecentTrades(
           makerAddress: trade.makerBaseAddress || "",
           takerAddress: trade.takerBaseAddress || "",
           marketId, // Use the marketId parameter instead of makerBaseAddress
+          // Add proper address fields for each chain
+          makerBaseAddress: trade.makerBaseAddress || "",
+          makerQuoteAddress: trade.makerQuoteAddress || "",
+          takerBaseAddress: trade.takerBaseAddress || "",
+          takerQuoteAddress: trade.takerQuoteAddress || "",
         };
       });
 

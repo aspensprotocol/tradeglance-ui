@@ -32,6 +32,33 @@ export function getEtherscanLink(txHash: string, chainId: number): string {
 }
 
 /**
+ * Generate explorer link for an address based on chain ID
+ * @param address - The wallet address
+ * @param chainId - The chain ID
+ * @returns The explorer URL for the address
+ */
+export function getAddressExplorerLink(
+  address: string,
+  chainId: number,
+): string {
+  // Ensure we have the 0x prefix for the address
+  const cleanAddress = address.startsWith("0x") ? address : `0x${address}`;
+
+  // Get explorer URL from gRPC configuration
+  const chainConfig = configUtils.getChainByChainId(chainId);
+
+  if (chainConfig && chainConfig.explorerUrl) {
+    // Remove trailing slash from explorer URL if present
+    const baseUrl = chainConfig.explorerUrl.replace(/\/$/, "");
+
+    return `${baseUrl}/address/${cleanAddress}`;
+  }
+
+  // If no explorer URL is configured, return just the address
+  return cleanAddress;
+}
+
+/**
  * Generate a shortened transaction hash for display
  * @param txHash - The transaction hash
  * @param startLength - Number of characters to show at the start (default: 6)

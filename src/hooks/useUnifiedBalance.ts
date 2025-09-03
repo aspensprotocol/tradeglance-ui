@@ -124,10 +124,15 @@ export const useUnifiedBalance = (
     balanceCache,
   ]);
 
+  const finalAllBalances =
+    (cachedAllBalances as typeof allBalances) || allBalances;
+
+  // Debug logging removed for performance
+
   return {
     availableBalance,
     lockedBalance,
-    allBalances: (cachedAllBalances as typeof allBalances) || allBalances,
+    allBalances: finalAllBalances,
     balanceLoading,
     allBalancesLoading,
     error: allBalancesError,

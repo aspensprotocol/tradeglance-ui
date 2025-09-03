@@ -15,7 +15,7 @@ import { useFormLogic } from "@/hooks/useFormLogic";
 import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import { useAccount } from "wagmi";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface SimpleFormProps {
   selectedPair?: string;
@@ -43,6 +43,7 @@ const SimpleForm = ({
   // Use the shared form logic hook
   const {
     formState,
+    tradingState,
     networkState,
     availableBalance,
     balanceLoading,
@@ -53,7 +54,7 @@ const SimpleForm = ({
     updateAmount,
     handlePercentageClick,
     handleSubmitOrder,
-    handleSwapTokens,
+    swapNetworks,
     handleSenderNetworkChange,
     handleReceiverNetworkChange,
     getCurrentChainConfig,
@@ -130,12 +131,44 @@ const SimpleForm = ({
     }
   };
 
+  // Note: Auto-update of activeTab is now handled by useFormLogic hook
+
+  // Update token selection when networks change
+  useEffect(() => {
+    if (currentTradingPair && tradingState.activeTab !== undefined) {
+      const newBaseToken =
+        tradingState.activeTab === BaseOrQuote.BASE
+          ? currentTradingPair.baseSymbol
+          : currentTradingPair.quoteSymbol;
+      const newQuoteToken =
+        tradingState.activeTab === BaseOrQuote.BASE
+          ? currentTradingPair.quoteSymbol
+          : currentTradingPair.baseSymbol;
+
+      if (selectedBaseToken !== newBaseToken) {
+        setSelectedBaseToken(newBaseToken);
+      }
+      if (selectedQuoteToken !== newQuoteToken) {
+        setSelectedQuoteToken(newQuoteToken);
+      }
+    }
+  }, [
+    currentTradingPair,
+    tradingState.activeTab,
+    selectedBaseToken,
+    selectedQuoteToken,
+  ]);
+
   // Debug: Log selected pair for state tracking
 
   const handleSubmitSimple = async () => {
-    // Submit the order using shared logic
-    await handleSubmitOrder(BaseOrQuote.BASE); // This will be overridden by the hook logic
+    // Submit the order using the activeTab (like Pro form)
+    if (tradingState.activeTab) {
+      await handleSubmitOrder(tradingState.activeTab);
+    }
   };
+
+  // Debug logging removed to prevent infinite loops
 
   return (
     <section className="h-full animate-fade-in overflow-hidden relative">
@@ -148,7 +181,7 @@ const SimpleForm = ({
       <main className="p-2 sm:p-3 h-full flex flex-col relative z-10">
         {/* Header */}
         <header className="flex flex-row items-center justify-between mb-2 pb-2 border-b border-emerald-200">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
             Simple Swap
           </h2>
           <nav className="flex gap-1">
@@ -279,7 +312,9 @@ const SimpleForm = ({
                   ) : (
                     <span className="text-emerald-600 font-semibold">
                       {formatDecimalConsistent(availableBalance)}{" "}
-                      {currentTradingPair?.baseSymbol || "ATOM"}
+                      {tradingState.activeTab === BaseOrQuote.BASE
+                        ? currentTradingPair?.baseSymbol || "ATOM"
+                        : currentTradingPair?.quoteSymbol || "USDC"}
                     </span>
                   )}
                 </span>
@@ -308,7 +343,7 @@ const SimpleForm = ({
           {/* Swap Button */}
           <section className="flex justify-center py-1">
             <Button
-              onClick={handleSwapTokens}
+              onClick={swapNetworks}
               variant="ghost"
               size="sm"
               className="rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
@@ -447,10 +482,7 @@ const SimpleForm = ({
               (() => {
                 if (!currentChainId)
                   return "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 text-white";
-                const currentChain = getCurrentChainConfig();
-                const isBaseChain =
-                  currentChain?.baseOrQuote === BaseOrQuote.BASE;
-                return isBaseChain
+                return tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 hover:from-red-600 hover:via-pink-600 hover:to-rose-600 text-white" // Sell (red)
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white"; // Buy (green)
               })(),
@@ -475,10 +507,9 @@ const SimpleForm = ({
               <span className="relative z-10">
                 {(() => {
                   if (!currentChainId) return "Simple Tokens";
-                  const currentChain = getCurrentChainConfig();
-                  const isBaseChain =
-                    currentChain?.baseOrQuote === BaseOrQuote.BASE;
-                  return isBaseChain ? "Sell" : "Buy";
+                  return tradingState.activeTab === BaseOrQuote.BASE
+                    ? "Sell"
+                    : "Buy";
                 })()}
               </span>
             )}

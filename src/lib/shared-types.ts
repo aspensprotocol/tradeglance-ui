@@ -64,6 +64,11 @@ export interface RecentTrade {
   makerAddress: string;
   takerAddress: string;
   marketId: string;
+  // Add proper address fields for each chain
+  makerBaseAddress?: string;
+  makerQuoteAddress?: string;
+  takerBaseAddress?: string;
+  takerQuoteAddress?: string;
 }
 
 // Trading pair interface using proto types

@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TokenImage } from "@/components/ui/token-image";
 import { useFormLogic } from "@/hooks/useFormLogic";
+import { useConfig } from "@/hooks/useConfig";
 import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradeFormProps } from "@/lib/shared-types";
@@ -25,6 +26,13 @@ const TradeForm = ({
     handleOrderTypeChange,
   } = useFormLogic({ tradingPair, isSimpleForm: false });
 
+  // Debug logging removed for performance
+
+  // Check if configuration is still loading
+  const { config, loading: configLoading } = useConfig();
+  const chains = config?.chains || [];
+  const isConfigReady = chains.length > 0;
+
   const handleSubmitOrderForm = async (): Promise<void> => {
     // Submit the order using shared logic
     if (tradingState.activeTab) {
@@ -43,6 +51,26 @@ const TradeForm = ({
       <main className="p-4 sm:p-5 md:p-6 lg:p-6 h-full flex flex-col relative z-10">
         {/* Group 1: Buy/Sell Tabs and Order Type Toggle */}
         <section className="space-y-3 mb-4">
+          {/* Configuration Loading Indicator */}
+          {!isConfigReady && (
+            <section className="text-center p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <span className="text-sm text-yellow-700">
+                {configLoading
+                  ? "Loading configuration..."
+                  : "Configuration not ready"}
+              </span>
+            </section>
+          )}
+
+          {/* Configuration Error Indicator */}
+          {!configLoading && !isConfigReady && (
+            <section className="text-center p-2 bg-red-50 border border-red-200 rounded-lg">
+              <span className="text-sm text-red-700">
+                Unable to load trading configuration. Please refresh the page.
+              </span>
+            </section>
+          )}
+
           {/* Buy/Sell Tabs - Buy always left, Sell always right */}
           <fieldset className="flex bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 rounded-xl p-1.5 shadow-inner relative overflow-hidden">
             {/* Subtle gradient overlay */}
@@ -51,14 +79,19 @@ const TradeForm = ({
             {/* Buy button - always left */}
             <button
               onClick={() => {
+                console.log(
+                  "TradeForm: Buy button clicked, calling handleSideChange with QUOTE",
+                );
                 handleSideChange(BaseOrQuote.QUOTE);
                 onTradingSideChange?.(BaseOrQuote.QUOTE);
               }}
+              disabled={!isConfigReady}
               className={cn(
                 "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
                 tradingState.activeTab === BaseOrQuote.QUOTE
                   ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow" // Buy (green)
                   : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
+                !isConfigReady && "opacity-50 cursor-not-allowed",
               )}
             >
               {tradingState.activeTab === BaseOrQuote.QUOTE && (
@@ -69,14 +102,19 @@ const TradeForm = ({
             {/* Sell button - always right */}
             <button
               onClick={() => {
+                console.log(
+                  "TradeForm: Sell button clicked, calling handleSideChange with BASE",
+                );
                 handleSideChange(BaseOrQuote.BASE);
                 onTradingSideChange?.(BaseOrQuote.BASE);
               }}
+              disabled={!isConfigReady}
               className={cn(
                 "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
                 tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white shadow-lg animate-pulse-glow" // Sell (red)
                   : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
+                !isConfigReady && "opacity-50 cursor-not-allowed",
               )}
             >
               {tradingState.activeTab === BaseOrQuote.BASE && (
@@ -133,15 +171,26 @@ const TradeForm = ({
               </label>
             </header>
             <span className="text-sm text-gray-600">
-              Available:{" "}
-              {balanceLoading ? (
-                <span className="text-blue-500 font-medium animate-pulse">
-                  Loading...
-                </span>
-              ) : (
-                <span className="text-emerald-600 font-semibold">
-                  {formatDecimalConsistent(availableBalance)}{" "}
-                  {tradingPair?.baseSymbol || "ATOM"}
+              <div className="flex flex-col gap-1">
+                <div>
+                  Available:{" "}
+                  {balanceLoading ? (
+                    <span className="text-blue-500 font-medium animate-pulse">
+                      Loading...
+                    </span>
+                  ) : (
+                    <span className="text-emerald-600 font-semibold">
+                      {formatDecimalConsistent(availableBalance)}{" "}
+                      {tradingState.activeTab === BaseOrQuote.QUOTE
+                        ? tradingPair?.quoteSymbol || "USDC"
+                        : tradingPair?.baseSymbol || "ATOM"}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {parseFloat(availableBalance) === 0 && (
+                <span className="text-orange-600 text-xs block mt-1">
+                  💡 You need to deposit tokens first to start trading
                 </span>
               )}
             </span>
@@ -182,19 +231,62 @@ const TradeForm = ({
             />
             <span id="amount-available" className="sr-only">
               Available balance: {formatDecimalConsistent(availableBalance)}{" "}
-              {tradingPair?.baseSymbol || "ATOM"}
+              {tradingState.activeTab === BaseOrQuote.QUOTE
+                ? tradingPair?.quoteSymbol || "USDC"
+                : tradingPair?.baseSymbol || "ATOM"}
             </span>
             <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
               <TokenImage
-                symbol={tradingPair?.baseSymbol || "ATOM"}
+                symbol={
+                  tradingState.activeTab === BaseOrQuote.QUOTE
+                    ? tradingPair?.quoteSymbol || "USDC"
+                    : tradingPair?.baseSymbol || "ATOM"
+                }
                 size="sm"
-                chainId={tradingPair?.baseChainId}
+                chainId={
+                  tradingState.activeTab === BaseOrQuote.QUOTE
+                    ? tradingPair?.quoteChainId
+                    : tradingPair?.baseChainId
+                }
               />
               <span className="text-sm text-gray-600 truncate max-w-[3rem] sm:max-w-[3.5rem] md:max-w-[4rem] lg:max-w-[4.5rem] xl:max-w-[5rem] font-medium">
-                {tradingPair?.baseSymbol || "ATOM"}
+                {tradingState.activeTab === BaseOrQuote.QUOTE
+                  ? tradingPair?.quoteSymbol || "USDC"
+                  : tradingPair?.baseSymbol || "ATOM"}
               </span>
             </section>
           </section>
+
+          {/* Balance Information and Deposit Link */}
+          {parseFloat(availableBalance) === 0 && (
+            <section className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-orange-800">
+                  <span className="font-medium">
+                    No tokens available for trading
+                  </span>
+                  <p className="text-xs text-orange-600 mt-1">
+                    You need to deposit{" "}
+                    {tradingState.activeTab === BaseOrQuote.QUOTE
+                      ? tradingPair?.quoteSymbol || "USDC"
+                      : tradingPair?.baseSymbol || "ATOM"}{" "}
+                    tokens first
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // You can implement a modal or navigation to deposit page here
+                    console.log("Navigate to deposit page");
+                  }}
+                  className="text-orange-700 border-orange-300 hover:bg-orange-100 text-xs px-3 py-1"
+                >
+                  Deposit
+                </Button>
+              </div>
+            </section>
+          )}
 
           {/* Percentage Buttons */}
           <section className="-mt-1">
@@ -251,12 +343,22 @@ const TradeForm = ({
                     />
                     <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
                       <TokenImage
-                        symbol={tradingPair?.quoteSymbol || "TTK"}
+                        symbol={
+                          tradingState.activeTab === BaseOrQuote.QUOTE
+                            ? tradingPair?.baseSymbol || "ATOM"
+                            : tradingPair?.quoteSymbol || "USDC"
+                        }
                         size="sm"
-                        chainId={tradingPair?.quoteChainId}
+                        chainId={
+                          tradingState.activeTab === BaseOrQuote.QUOTE
+                            ? tradingPair?.baseChainId
+                            : tradingPair?.quoteChainId
+                        }
                       />
                       <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
-                        {tradingPair?.quoteSymbol || "TTK"}
+                        {tradingState.activeTab === BaseOrQuote.QUOTE
+                          ? tradingPair?.baseSymbol || "ATOM"
+                          : tradingPair?.quoteSymbol || "USDC"}
                       </span>
                     </section>
                   </section>
@@ -313,7 +415,9 @@ const TradeForm = ({
                   <dt className="text-neutral-700 font-medium">Amount:</dt>
                   <dd className="text-neutral-900 font-semibold">
                     {formState.amount || "0"}{" "}
-                    {tradingPair?.baseSymbol || "ATOM"}
+                    {tradingState.activeTab === BaseOrQuote.QUOTE
+                      ? tradingPair?.quoteSymbol || "USDC"
+                      : tradingPair?.baseSymbol || "ATOM"}
                   </dd>
                 </section>
                 {tradingState.activeOrderType === "limit" && (
@@ -321,7 +425,9 @@ const TradeForm = ({
                     <dt className="text-neutral-700 font-medium">Price:</dt>
                     <dd className="text-neutral-900 font-semibold">
                       {formState.price || "0"}{" "}
-                      {tradingPair?.quoteSymbol || "USDC"}
+                      {tradingState.activeTab === BaseOrQuote.QUOTE
+                        ? tradingPair?.baseSymbol || "ATOM"
+                        : tradingPair?.quoteSymbol || "USDC"}
                     </dd>
                   </section>
                 )}
@@ -347,7 +453,11 @@ const TradeForm = ({
                       const feeAmount = amount * price * feeRate;
 
                       if (feeAmount > 0) {
-                        return `${feeAmount.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
+                        return `${feeAmount.toFixed(3)} ${
+                          tradingState.activeTab === BaseOrQuote.QUOTE
+                            ? tradingPair?.baseSymbol || "ATOM"
+                            : tradingPair?.quoteSymbol || "USDC"
+                        }`;
                       }
                       return "0.000";
                     })()}
@@ -410,7 +520,11 @@ const TradeForm = ({
                 </span>
               ) : (
                 <span className="relative z-10">
-                  {`${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${tradingPair?.baseSymbol || "ATOM"}`}
+                  {`${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${
+                    tradingState.activeTab === BaseOrQuote.QUOTE
+                      ? tradingPair?.quoteSymbol || "USDC"
+                      : tradingPair?.baseSymbol || "ATOM"
+                  }`}
                 </span>
               )}
             </Button>

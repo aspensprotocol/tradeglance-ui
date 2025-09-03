@@ -3,11 +3,10 @@ import { configUtils } from "../lib/config-utils";
 import type { Chain } from "../protos/gen/arborter_config_pb";
 import { useToast } from "./use-toast";
 
-// MetaMask Chain Permissions Update Notice:
-// As of November 2024, MetaMask introduced a new "Chain Permissions" system that replaces
-// the old wallet_switchEthereumChain and wallet_addEthereumChain methods. This update
-// requires users to manually switch networks in MetaMask instead of automatic switching.
-// See: https://metamask.io/news/metamask-feature-update-chain-permissions
+// MetaMask Network Management Update (August 2025):
+// MetaMask has removed the manual network selection dropdown and introduced a new network management system.
+// Users must manually switch networks using the globe icon in MetaMask instead of automatic switching.
+// This update ensures compatibility with MetaMask's new architecture.
 
 export const useNetworkSwitch = (): {
   switchToNetwork: (chainConfig: Chain) => Promise<boolean>;
@@ -33,8 +32,8 @@ export const useNetworkSwitch = (): {
       // Instead, we provide guidance to the user
 
       toast({
-        title: "Manual network switch required",
-        description: `Please manually switch to ${chainConfig.network} in MetaMask. The new Chain Permissions system requires manual network switching.`,
+        title: "Network switch required",
+        description: `Please switch to ${chainConfig.network} in MetaMask by clicking the globe icon in your wallet and selecting the desired network.`,
         variant: "default",
       });
 

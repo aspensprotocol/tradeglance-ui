@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { configUtils } from "@/lib/config-utils";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
-import { useNetworkSwitch } from "@/hooks/useNetworkSwitch";
 import { Layout } from "@/components/Layout";
 import { getEtherscanLink } from "@/lib/utils";
 import type { Chain } from "@/protos/gen/arborter_config_pb";
@@ -15,7 +14,7 @@ const Mint = (): JSX.Element => {
   const { address, isConnected } = useAccount();
   const { currentChainId } = useChainMonitor();
   const { toast } = useToast();
-  const { switchToNetwork } = useNetworkSwitch();
+
   const { data: walletClient } = useWalletClient();
 
   // Helper function to get the correct chain based on chain ID from config
@@ -89,6 +88,9 @@ const Mint = (): JSX.Element => {
     }
 
     // Switch to the target chain if not already on it
+    console.log(
+      `🔄 Network switch needed: Current chain ${currentChainId} -> Target chain ${chainId}`,
+    );
     if (currentChainId !== chainId) {
       try {
         // Get the chain config for the target chain
@@ -108,22 +110,87 @@ const Mint = (): JSX.Element => {
           description: `Switching to ${chainConfig.network}...`,
         });
 
-        // Use our custom network switching
-        const success = await switchToNetwork(chainConfig);
-        if (!success) {
-          toast({
-            title: "Network switch failed",
-            description: "Failed to switch to the required network",
-            variant: "destructive",
+        // Use MetaMask's built-in network switching with enhanced error handling
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${chainId.toString(16)}` }],
           });
-          return;
+        } catch (switchError: unknown) {
+          // If the chain is not added to MetaMask (error code 4902), try to add it
+          if (
+            switchError &&
+            typeof switchError === "object" &&
+            "code" in switchError
+          ) {
+            const errorCode = (switchError as { code: number }).code;
+            if (errorCode === 4902) {
+              // Chain not found, try to add it
+              try {
+                await window.ethereum.request({
+                  method: "wallet_addEthereumChain",
+                  params: [
+                    {
+                      chainId: `0x${chainId.toString(16)}`,
+                      chainName: chainConfig.network,
+                      nativeCurrency: {
+                        name: "Ether",
+                        symbol: "ETH",
+                        decimals: 18,
+                      },
+                      rpcUrls: [chainConfig.rpcUrl],
+                      blockExplorerUrls: chainConfig.explorerUrl
+                        ? [chainConfig.explorerUrl]
+                        : [],
+                    },
+                  ],
+                });
+              } catch (addError: unknown) {
+                console.error("Failed to add chain:", addError);
+                throw new Error(
+                  `Failed to add ${chainConfig.network} to MetaMask. Please add it manually.`,
+                );
+              }
+            } else {
+              // Re-throw other switch errors
+              throw switchError;
+            }
+          } else {
+            throw switchError;
+          }
         }
 
         // Wait a bit for the switch to complete
         await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Verify the switch was successful by checking the current chain
+        const newChainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
+        const newChainIdNumber = parseInt(newChainId, 16);
+
+        if (newChainIdNumber !== chainId) {
+          throw new Error(
+            `Network switch verification failed. Expected chain ${chainId}, got ${newChainIdNumber}`,
+          );
+        }
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to switch network";
+        let errorMessage = "Failed to switch network";
+
+        if (error instanceof Error) {
+          if (error.message.includes("user rejected")) {
+            errorMessage = "Network switch was cancelled by user";
+          } else if (error.message.includes("verification failed")) {
+            errorMessage =
+              "Network switch verification failed. Please try again.";
+          } else if (error.message.includes("Failed to add")) {
+            errorMessage = error.message;
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
+        console.error("Network switch error:", error);
         toast({
           title: "Network switch failed",
           description: errorMessage,
@@ -196,7 +263,7 @@ const Mint = (): JSX.Element => {
       if (err instanceof Error) {
         if (err.message?.includes("Internal JSON-RPC error")) {
           errorMessage =
-            "RPC connection error. The network endpoint may be down. Please try refreshing the page or switching networks.";
+            "RPC connection error. The network endpoint may be down. Please try refreshing the page or ensure you're on the correct network in MetaMask.";
         } else if (err.message?.includes("insufficient funds")) {
           errorMessage =
             "Insufficient funds for transaction. Please check your balance.";
@@ -363,7 +430,7 @@ const Mint = (): JSX.Element => {
           <ul className="text-xs text-blue-800 space-y-1">
             <li>• Connect your wallet to mint test tokens</li>
             <li>• Click "Mint" on each chain to get 1000 test tokens</li>
-            <li>• The app will automatically switch networks if needed</li>
+            <li>• MetaMask will automatically switch networks as needed</li>
             <li>• Use these tokens to test deposits and trading</li>
           </ul>
         </aside>

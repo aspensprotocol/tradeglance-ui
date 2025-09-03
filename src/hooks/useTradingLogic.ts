@@ -6,7 +6,11 @@ import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
 import { arborterService } from "@/lib/grpc-client";
 import type { OrderCreationData } from "@/lib/shared-types";
 import { Side } from "@/protos/gen/arborter_pb";
-import { ExecutionType, OrderSchema } from "@/protos/gen/arborter_pb";
+import {
+  ExecutionType,
+  OrderSchema,
+  type Order,
+} from "@/protos/gen/arborter_pb";
 import { create } from "@bufbuild/protobuf";
 import { configUtils } from "@/lib/config-utils";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
@@ -25,6 +29,7 @@ export interface TradingFormState {
 export interface UseTradingLogicOptions {
   tradingPair?: TradingPair;
   isSimpleForm?: boolean;
+  availableBalance?: string; // Allow passing in the correct available balance
 }
 
 // Define the valid trading sides (excluding UNSPECIFIED)
@@ -42,8 +47,15 @@ export interface UseTradingLogicReturn {
   tradingPairs: TradingPair[];
   handlePercentageClick: (percentage: number) => void;
   handleMaxClick: () => void;
-  validateOrder: (side: TradingSide) => { isValid: boolean; error?: string };
-  submitOrder: (side: TradingSide) => Promise<void>;
+  validateOrder: (
+    side: TradingSide,
+    availableBalance?: string,
+  ) => { isValid: boolean; errorMessage?: string };
+  submitOrder: (
+    side: TradingSide,
+    orderType?: "limit" | "market",
+    customAvailableBalance?: string,
+  ) => Promise<void>;
   updateFormState: (updates: Partial<TradingFormState>) => void;
   updateAmount: (amount: string) => void;
   getCorrectSideForChain: (chainId: number) => TradingSide;
@@ -54,6 +66,7 @@ export interface UseTradingLogicReturn {
 export const useTradingLogic = ({
   tradingPair,
   isSimpleForm = false,
+  availableBalance: externalAvailableBalance,
 }: UseTradingLogicOptions): UseTradingLogicReturn => {
   const [formState, setFormState] = useState<TradingFormState>({
     amount: "",
@@ -83,8 +96,15 @@ export const useTradingLogic = ({
   const currentSide = currentChainId
     ? getCorrectSideForChain(currentChainId)
     : undefined;
-  const { availableBalance, lockedBalance, balanceLoading, refreshBalance } =
-    useBalanceManager(tradingPair, currentSide);
+  const {
+    availableBalance: internalAvailableBalance,
+    lockedBalance,
+    balanceLoading,
+    refreshBalance,
+  } = useBalanceManager(tradingPair, currentSide);
+
+  // Use external available balance if provided, otherwise use internal
+  const availableBalance = externalAvailableBalance || internalAvailableBalance;
 
   // Helper function to get the target chain for a given side
   const getTargetChainForSide = (side: TradingSide): number | null => {
@@ -158,12 +178,28 @@ export const useTradingLogic = ({
     }));
   };
 
-  const validateOrder = (): { isValid: boolean; errorMessage?: string } => {
+  const validateOrder = (
+    side: TradingSide,
+    customAvailableBalance?: string,
+  ): { isValid: boolean; errorMessage?: string } => {
+    console.log("🔍 validateOrder: Starting validation with:", {
+      side,
+      customAvailableBalance,
+      availableBalance,
+      isConnected,
+      address,
+      currentChainId,
+      tradingPair,
+      formStateAmount: formState.amount,
+    });
+
     if (!isConnected || !address || !currentChainId) {
+      console.log("❌ validateOrder: Wallet not connected");
       return { isValid: false, errorMessage: "Please connect your wallet" };
     }
 
     if (!tradingPair) {
+      console.log("❌ validateOrder: No trading pair selected");
       return {
         isValid: false,
         errorMessage: "Please select a valid trading pair",
@@ -171,21 +207,32 @@ export const useTradingLogic = ({
     }
 
     const quantity: number = parseFloat(formState.amount);
+    console.log("🔍 validateOrder: Parsed quantity:", quantity);
     if (isNaN(quantity) || quantity <= 0) {
+      console.log("❌ validateOrder: Invalid quantity");
       return { isValid: false, errorMessage: "Please enter a valid amount" };
     }
 
     // Check if user has enough available balance
-    const availableBalanceNum: number = parseFloat(availableBalance);
+    const balanceToCheck = customAvailableBalance || availableBalance;
+    const availableBalanceNum: number = parseFloat(balanceToCheck);
+    console.log("🔍 validateOrder: Balance check:", {
+      balanceToCheck,
+      availableBalanceNum,
+      quantity,
+      isNaN: isNaN(availableBalanceNum),
+      exceedsBalance: quantity > availableBalanceNum,
+    });
+
     if (isNaN(availableBalanceNum) || quantity > availableBalanceNum) {
-      // Get the correct token symbol based on current side
+      // Get the correct token symbol based on the actual trading side (not current chain)
       const tokenSymbol =
-        currentSide === BaseOrQuote.QUOTE
+        side === BaseOrQuote.QUOTE
           ? tradingPair.quoteSymbol
           : tradingPair.baseSymbol;
       return {
         isValid: false,
-        errorMessage: `You only have ${availableBalance} ${tokenSymbol} available`,
+        errorMessage: `You only have ${balanceToCheck} ${tokenSymbol} available`,
       };
     }
 
@@ -248,10 +295,25 @@ export const useTradingLogic = ({
   const submitOrder = async (
     side: TradingSide,
     orderType: "limit" | "market" = "limit",
+    customAvailableBalance?: string,
   ): Promise<void> => {
+    console.log("🔍 useTradingLogic: About to validate order:", {
+      side,
+      customAvailableBalance,
+      availableBalance,
+      currentSide,
+    });
+
     const validation: { isValid: boolean; errorMessage?: string } =
-      validateOrder();
+      validateOrder(side, customAvailableBalance);
+
+    console.log("🔍 useTradingLogic: Validation result:", validation);
+
     if (!validation.isValid) {
+      console.error(
+        "❌ useTradingLogic: Order validation failed:",
+        validation.errorMessage,
+      );
       toast({
         title: "Validation failed",
         description: validation.errorMessage,
@@ -259,6 +321,10 @@ export const useTradingLogic = ({
       });
       return;
     }
+
+    console.log(
+      "✅ useTradingLogic: Order validation passed, proceeding to sign and submit",
+    );
 
     setFormState((prev) => ({ ...prev, isSubmitting: true }));
 
@@ -271,15 +337,31 @@ export const useTradingLogic = ({
       }
 
       // Sign the order with MetaMask using the target chain ID
+      // IMPORTANT: MetaMask removed eth_sign in August 2025, so we must use personal_sign
+      // personal_sign adds a prefix, but we'll work around this by using a different approach
       const signMessage = async (message: string): Promise<string> => {
         if (!window.ethereum) {
           throw new Error("MetaMask is not installed");
         }
-        return await window.ethereum.request({
+
+        // Use personal_sign to sign the raw protobuf bytes
+        // Note: personal_sign adds a prefix, but we'll handle this in the backend
+        // The backend will need to be updated to handle personal_sign signatures
+        console.log("🔍 useTradingLogic: About to call personal_sign with:", {
+          address,
+          message,
+        });
+
+        const signature = await window.ethereum.request({
           method: "personal_sign",
           params: [message, address],
         });
+
+        console.log("✅ useTradingLogic: personal_sign returned:", signature);
+        return signature;
       };
+
+      console.log("🔍 useTradingLogic: About to create signature...");
 
       const signatureHash: Uint8Array = await signOrderWithGlobalProtobuf(
         orderData,
@@ -287,8 +369,13 @@ export const useTradingLogic = ({
         signMessage,
       );
 
+      console.log(
+        "✅ useTradingLogic: Signature created successfully:",
+        signatureHash,
+      );
+
       // Create the order object for gRPC using protobuf Order type
-      const orderForGrpc = create(OrderSchema, {
+      const orderForGrpc: Order = create(OrderSchema, {
         side: orderData.side,
         quantity: orderData.quantity,
         price: orderData.price,
@@ -334,10 +421,55 @@ export const useTradingLogic = ({
     } catch (error: unknown) {
       console.error("Error submitting order:", error);
 
-      const errorMessage: string =
-        error instanceof Error
-          ? error.message
-          : "Failed to submit order. Please try again.";
+      // Enhanced error handling with more specific error messages
+      let errorMessage: string;
+
+      // Convert error to string for analysis
+      const errorString =
+        error instanceof Error ? error.message : String(error);
+      const errorStringLower = errorString.toLowerCase();
+
+      // Check for specific error types
+      if (
+        errorStringLower.includes("signature") ||
+        errorStringLower.includes("invalid signature")
+      ) {
+        errorMessage = "Signature validation failed. Please try again.";
+      } else if (
+        errorStringLower.includes("balance") ||
+        errorStringLower.includes("insufficient")
+      ) {
+        errorMessage =
+          "Insufficient balance. Please check your available tokens.";
+      } else if (
+        errorStringLower.includes("network") ||
+        errorStringLower.includes("connection") ||
+        errorStringLower.includes("fetch")
+      ) {
+        errorMessage =
+          "Network error. Please check your connection and try again.";
+      } else if (errorStringLower.includes("timeout")) {
+        errorMessage = "Request timed out. Please try again.";
+      } else if (
+        errorStringLower.includes("grpc") ||
+        errorStringLower.includes("rpc")
+      ) {
+        errorMessage = "Backend communication error. Please try again.";
+      } else if (errorStringLower.includes("cors")) {
+        errorMessage = "CORS error. Please check your connection.";
+      } else if (
+        errorStringLower.includes("aborted") ||
+        errorStringLower.includes("cancelled")
+      ) {
+        errorMessage = "Request was cancelled. Please try again.";
+      } else {
+        // Show the actual error message if available
+        errorMessage =
+          error instanceof Error
+            ? `Order submission failed: ${error.message}`
+            : `Order submission failed: ${String(error)}`;
+      }
+
       toast({
         title: "Order submission failed",
         description: errorMessage,

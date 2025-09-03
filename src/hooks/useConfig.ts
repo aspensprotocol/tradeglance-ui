@@ -30,10 +30,12 @@ export function useConfig(): UseConfigReturn {
       const response = await configService.getConfig();
 
       if (response.config) {
+        console.log("useConfig: Received config:", response.config);
         setConfig(response.config);
         // Update the global configUtils instance so other parts of the app can access it
         configUtils.setConfig(response.config);
       } else {
+        console.error("useConfig: Empty configuration received from backend");
         setError("Empty configuration received from backend");
       }
     } catch (err: unknown) {

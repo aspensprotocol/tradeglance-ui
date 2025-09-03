@@ -35,9 +35,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
           const result = (
             <h1 key={index} className="text-3xl font-bold text-center mb-8">
               <span className="text-3xl">{emoji}</span>
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {text}
-              </span>
+              <span className="text-neutral-900">{text}</span>
             </h1>
           );
           processedLines.push(result);
@@ -45,9 +43,7 @@ export const MarkdownRenderer: React.FC<{ content: string }> = ({
         } else {
           const result = (
             <h1 key={index} className="text-3xl font-bold text-center mb-8">
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {headerText}
-              </span>
+              <span className="text-neutral-900">{headerText}</span>
             </h1>
           );
           processedLines.push(result);

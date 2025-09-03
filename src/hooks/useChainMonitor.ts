@@ -3,9 +3,9 @@ import { useConfig } from "./useConfig";
 import { configUtils } from "../lib/config-utils";
 import type { Chain } from "../protos/gen/arborter_config_pb";
 
-// MetaMask Chain Permissions Update (November 2024):
+// MetaMask Network Management Update (August 2025):
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated
-// - Users must manually switch chains in MetaMask
+// - Users must manually switch networks using the globe icon in MetaMask
 // - This hook now only monitors chain state, doesn't attempt to switch chains
 
 export const useChainMonitor = (): {

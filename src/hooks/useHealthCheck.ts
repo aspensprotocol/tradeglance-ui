@@ -46,8 +46,6 @@ export const useHealthCheck = (): HealthCheckResult => {
 
       for (const url of healthCheckUrls) {
         try {
-          console.log(`Health check: Testing ${url}`);
-
           // For gRPC reflection endpoint, try a proper reflection request
           const response = await fetch(url, {
             method: "POST",
@@ -99,16 +97,12 @@ export const useHealthCheck = (): HealthCheckResult => {
 
               if (isGrpcReflectionResponse) {
                 success = true;
-                console.log(
-                  "Health check: gRPC reflection endpoint responded correctly",
-                );
+                // gRPC reflection endpoint responded correctly
                 break;
               } else {
                 // Fallback: if we get a 200 response but not gRPC format,
                 // the server might be running but with different response format
-                console.log(
-                  "Health check: Got 200 response but not gRPC format, checking if server is reachable...",
-                );
+                // Got 200 response but not gRPC format, checking if server is reachable
 
                 // Try a simple ping test to see if the server is at least responding
                 try {
@@ -123,39 +117,27 @@ export const useHealthCheck = (): HealthCheckResult => {
 
                   if (pingResponse.ok) {
                     success = true;
-                    console.log(
-                      "Health check: Server is responding (fallback ping test succeeded)",
-                    );
+                    // Server is responding (fallback ping test succeeded)
                     break;
                   }
-                } catch (pingErr) {
-                  console.log(
-                    "Health check: Fallback ping test failed:",
-                    pingErr,
-                  );
+                } catch {
+                  // Fallback ping test failed
                 }
 
                 lastError = "Response doesn't look like valid gRPC reflection";
-                console.log(
-                  "Health check: Response format not recognized as valid gRPC reflection",
-                );
                 console.log("Full response for debugging:", responseText);
               }
-            } catch (parseErr) {
+            } catch {
               lastError = "Failed to parse response";
-              console.log("Health check: Failed to parse response", parseErr);
             }
           } else {
             lastError = `HTTP ${response.status}: ${response.statusText}`;
-            console.log(`Health check: HTTP error ${response.status}`);
           }
         } catch (err) {
           if (err instanceof Error && err.name === "AbortError") {
             lastError = "Request timeout";
-            console.log("Health check: Request timeout");
           } else {
             lastError = err instanceof Error ? err.message : "Request failed";
-            console.log("Health check: Request failed", err);
           }
         }
       }
@@ -163,19 +145,16 @@ export const useHealthCheck = (): HealthCheckResult => {
       if (success) {
         setIsOnline(true);
         setLastCheck(new Date());
-        console.log("Health check: Service is ONLINE");
       } else {
         setIsOnline(false);
         setError(lastError);
         setLastCheck(new Date());
-        console.log("Health check: Service is OFFLINE -", lastError);
       }
     } catch (err) {
       setIsOnline(false);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
       setLastCheck(new Date());
-      console.log("Health check: Unexpected error", err);
     } finally {
       setIsLoading(false);
     }
@@ -202,8 +181,8 @@ export const useHealthCheck = (): HealthCheckResult => {
     return () => window.removeEventListener("focus", handleFocus);
   }, [performHealthCheck]);
 
-  // Expose health check function globally for debugging
-  useEffect(() => {
+  // Expose health check function globally for debugging - memoized to prevent recreation
+  const debugFunctions = useCallback(() => {
     window.testHealthCheck = performHealthCheck;
     window.getHealthStatus = () => ({
       isOnline,
@@ -211,12 +190,16 @@ export const useHealthCheck = (): HealthCheckResult => {
       lastCheck,
       error,
     });
+  }, [performHealthCheck, isOnline, isLoading, lastCheck, error]);
+
+  useEffect(() => {
+    debugFunctions();
 
     return () => {
       delete window.testHealthCheck;
       delete window.getHealthStatus;
     };
-  }, [performHealthCheck, isOnline, isLoading, lastCheck, error]);
+  }, [debugFunctions]);
 
   return {
     isOnline,
