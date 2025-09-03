@@ -210,10 +210,10 @@ export const useFormLogic = ({
     }
   }, [formState.amount, isSimpleForm]);
 
-  // Auto-update active tab based on current chain (for trade form)
+  // Auto-update active tab based on current chain (for both trade form and simple form)
   // But only if the user hasn't manually selected a side
   useEffect(() => {
-    if (!isSimpleForm && currentChainId && !userManuallySelectedSide) {
+    if (currentChainId && !userManuallySelectedSide) {
       const correctSide: BaseOrQuote.BASE | BaseOrQuote.QUOTE =
         getCorrectSideForChain(currentChainId);
 
@@ -340,7 +340,7 @@ export const useFormLogic = ({
 
       // Get all available chains
       const allChains = getAllChains();
-      console.log("FormLogic: Available chains:", allChains); // Debug logging
+
 
       // Always allow side change even if chains aren't loaded yet
       // This ensures the toggle works immediately for better UX
@@ -376,16 +376,10 @@ export const useFormLogic = ({
           // Provide guidance about which network the user should be on
           if (newSide === BaseOrQuote.BASE) {
             // BASE side (SELL): user should be on base network
-            console.log(
-              "FormLogic: Switched to BASE side (SELL) - user should be on",
-              baseChain.network,
-            );
+
           } else {
             // QUOTE side (BUY): user should be on quote network
-            console.log(
-              "FormLogic: Switched to QUOTE side (BUY) - user should be on",
-              quoteChain.network,
-            );
+
           }
         } else {
           console.warn(
@@ -397,87 +391,12 @@ export const useFormLogic = ({
             },
           );
         }
-      } else {
-        console.log(
-          "FormLogic: Chains not loaded yet, but side change succeeded",
-        );
       }
     },
     [activeTab, getAllChains, tradingPair],
   );
 
-  // Smart side detection based on current network
-  const detectAndSetOptimalSide = useCallback((): void => {
-    if (!currentChainId) return;
-
-    const currentChain = getCurrentChainConfig();
-    if (!currentChain) return;
-
-    // Determine the optimal side based on the current network
-    const optimalSide = currentChain.baseOrQuote;
-
-    // IMPORTANT: Only change if the user hasn't manually selected a side
-    // This prevents overriding user's manual toggle selection
-    if (
-      !userManuallySelectedSide &&
-      activeTab !== optimalSide &&
-      (optimalSide === BaseOrQuote.BASE || optimalSide === BaseOrQuote.QUOTE)
-    ) {
-      setActiveTab(optimalSide as BaseOrQuote.BASE | BaseOrQuote.QUOTE);
-      // Reset the manual selection flag since this is an automatic change
-      setUserManuallySelectedSide(false);
-
-      // Update tokens based on the optimal side
-      if (tradingPair) {
-        if (optimalSide === BaseOrQuote.QUOTE) {
-          // BUY side - sending quote token, receiving base token
-          setSenderToken(tradingPair.quoteSymbol);
-          setReceiverToken(tradingPair.baseSymbol);
-        } else {
-          // SELL side - sending base token, receiving quote token
-          setSenderToken(tradingPair.baseSymbol);
-          setReceiverToken(tradingPair.quoteSymbol);
-        }
-      }
-
-      // Update networks to match the optimal side
-      const allChains = getAllChains();
-      const baseChain = allChains.find(
-        (chain) => chain.baseOrQuote === BaseOrQuote.BASE,
-      );
-      const quoteChain = allChains.find(
-        (chain) => chain.baseOrQuote === BaseOrQuote.QUOTE,
-      );
-
-      if (baseChain && quoteChain) {
-        if (optimalSide === BaseOrQuote.BASE) {
-          // BASE side (SELL): user should be on base network
-          console.log(
-            "FormLogic: Optimal side is BASE (SELL) - user should be on",
-            baseChain.network,
-          );
-        } else {
-          // QUOTE side (BUY): user should be on quote network
-          console.log(
-            "FormLogic: Optimal side is QUOTE (BUY) - user should be on",
-            quoteChain.network,
-          );
-        }
-      }
-    }
-  }, [
-    currentChainId,
-    getCurrentChainConfig,
-    activeTab,
-    userManuallySelectedSide,
-    getAllChains,
-    tradingPair,
-  ]);
-
-  // Auto-detect optimal side when chain changes
-  useEffect(() => {
-    detectAndSetOptimalSide();
-  }, [currentChainId, detectAndSetOptimalSide]);
+  // Removed duplicate auto-update mechanism - using the simpler one above
 
   // Ensure we always have a valid active tab, even if configuration is loading
   useEffect(() => {
@@ -485,7 +404,7 @@ export const useFormLogic = ({
       !activeTab ||
       (activeTab !== BaseOrQuote.BASE && activeTab !== BaseOrQuote.QUOTE)
     ) {
-      console.log("FormLogic: Setting default active tab to BASE (SELL)");
+
       setActiveTab(BaseOrQuote.BASE);
     }
   }, [activeTab]);

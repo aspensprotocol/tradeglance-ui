@@ -49,7 +49,11 @@ export function useSharedOrderbookData(
   const hasInitializedRef = useRef<boolean>(false);
   const lastMarketIdRef = useRef<string>("");
   const lastFilterRef = useRef<string | undefined>(undefined);
-  const circuitBreakerRef = useRef<{ failures: number; lastFailure: number; isOpen: boolean }>({
+  const circuitBreakerRef = useRef<{
+    failures: number;
+    lastFailure: number;
+    isOpen: boolean;
+  }>({
     failures: 0,
     lastFailure: 0,
     isOpen: false,
@@ -224,7 +228,8 @@ export function useSharedOrderbookData(
 
     // Circuit breaker: if we've had too many failures recently, stop trying
     const circuitBreaker = circuitBreakerRef.current;
-    if (circuitBreaker.isOpen && now - circuitBreaker.lastFailure < 30000) { // 30 second cooldown
+    if (circuitBreaker.isOpen && now - circuitBreaker.lastFailure < 30000) {
+      // 30 second cooldown
       console.log("🚫 Circuit breaker is open, skipping request");
       return;
     }
@@ -241,7 +246,7 @@ export function useSharedOrderbookData(
 
     try {
       console.log("🔄 Fetching orderbook data for market:", marketId);
-      
+
       // Fetch orderbook data
       const orderbookEntries = await arborterService.getOrderbook(
         marketId,
@@ -268,7 +273,7 @@ export function useSharedOrderbookData(
 
           return newData;
         });
-        
+
         console.log("✅ Orderbook data processed successfully");
       } else {
         console.log("📭 No orderbook entries received");
@@ -276,9 +281,13 @@ export function useSharedOrderbookData(
 
       setRetryCount(0);
       setInitialLoading(false);
-      
+
       // Reset circuit breaker on success
-      circuitBreakerRef.current = { failures: 0, lastFailure: 0, isOpen: false };
+      circuitBreakerRef.current = {
+        failures: 0,
+        lastFailure: 0,
+        isOpen: false,
+      };
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Unknown error occurred";
@@ -289,7 +298,7 @@ export function useSharedOrderbookData(
       const breaker = circuitBreakerRef.current;
       breaker.failures += 1;
       breaker.lastFailure = Date.now();
-      
+
       // Open circuit breaker after 3 consecutive failures
       if (breaker.failures >= 3) {
         breaker.isOpen = true;
@@ -325,7 +334,7 @@ export function useSharedOrderbookData(
   useEffect(() => {
     if (marketId && marketId.trim() !== "" && isRealMarketChange) {
       console.log("🔄 Market ID changed, checking cache for:", marketId);
-      
+
       // Check if we have cached data for this market
       const marketCachedData = globalCache.getCachedData(
         marketId,
@@ -367,12 +376,7 @@ export function useSharedOrderbookData(
         hasInitializedRef.current = false;
       }
     }
-  }, [
-    marketId,
-    filterByTrader,
-    isRealMarketChange,
-    globalCache,
-  ]);
+  }, [marketId, filterByTrader, isRealMarketChange, globalCache]);
 
   // Set up initial fetch - simplified to prevent loops
   useEffect(() => {

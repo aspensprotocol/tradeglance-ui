@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
 
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTabOptimization } from "@/hooks/useTabOptimization";
-import { triggerBalanceRefresh } from "../lib/utils";
+import { triggerBalanceRefresh, getAddressExplorerLink } from "../lib/utils";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradingPair } from "@/lib/shared-types";
 import { cn } from "@/lib/utils";
@@ -42,8 +42,6 @@ const ActivityPanel = ({
     cacheTimeout: 30000, // 30 seconds
   });
 
-
-
   // Get all balances across all tokens and chains using unified hook
   const {
     allBalances: balances,
@@ -76,14 +74,54 @@ const ActivityPanel = ({
   const openOrders: OrderbookEntry[] = [];
   const ordersLoading = false;
   const ordersError: string | null = null;
-  const trades = useMemo(() => [] as {
-    price: number;
-    quantity: number;
-    timestamp: Date;
-    makerAddress?: string;
-    takerAddress?: string;
-    trader?: string;
-  }[], []);
+  const trades = useMemo(
+    () =>
+      [
+        // Sample buy trade: user pays 100 USDC for 2 ATOM
+        {
+          price: 50, // 50 USDC per ATOM
+          quantity: 2, // 2 ATOM
+          timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+          makerAddress: "0x1234567890abcdef1234567890abcdef12345678",
+          takerAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
+          trader: "0x1234567890abcdef1234567890abcdef12345678",
+          side: "buy",
+          // Add proper address fields for each chain
+          makerBaseAddress: "0x1234567890abcdef1234567890abcdef12345678",
+          makerQuoteAddress: "0x1111111111111111111111111111111111111111",
+          takerBaseAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
+          takerQuoteAddress: "0x2222222222222222222222222222222222222222",
+        },
+        // Sample sell trade: user sells 1.5 ATOM for 75 USDC
+        {
+          price: 50, // 50 USDC per ATOM
+          quantity: 1.5, // 1.5 ATOM
+          timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+          makerAddress: "0x9876543210fedcba9876543210fedcba98765432",
+          takerAddress: "0xfedcba0987654321fedcba0987654321fedcba09",
+          trader: "0x9876543210fedcba9876543210fedcba98765432",
+          side: "sell",
+          // Add proper address fields for each chain
+          makerBaseAddress: "0x9876543210fedcba9876543210fedcba98765432",
+          makerQuoteAddress: "0x3333333333333333333333333333333333333333",
+          takerBaseAddress: "0xfedcba0987654321fedcba0987654321fedcba09",
+          takerQuoteAddress: "0x4444444444444444444444444444444444444444",
+        },
+      ] as {
+        price: number;
+        quantity: number;
+        timestamp: Date;
+        makerAddress?: string;
+        takerAddress?: string;
+        trader?: string;
+        side?: string; // Add side information for color coding
+        makerBaseAddress?: string;
+        makerQuoteAddress?: string;
+        takerBaseAddress?: string;
+        takerQuoteAddress?: string;
+      }[],
+    [],
+  );
   const tradesLoading = false;
   const tradesError: string | null = null;
 
@@ -99,8 +137,8 @@ const ActivityPanel = ({
 
       switch (sortField) {
         case "price":
-          aValue = a.price || 0;
-          bValue = b.price || 0;
+          aValue = (a.price || 0) * (a.quantity || 0); // Sort by total value
+          bValue = (b.price || 0) * (b.quantity || 0); // Sort by total value
           break;
         case "quantity":
           aValue = a.quantity || 0;
@@ -204,12 +242,33 @@ const ActivityPanel = ({
   };
 
   const formatTradeTime = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString("en-US", {
+    return timestamp.toLocaleString("en-US", {
+      year: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true, // Use 12-hour format with AM/PM
-      timeZone: "Europe/Berlin", // Force CET timezone
+      hour12: false, // Use 24-hour format
+      // Use browser's local timezone (no timeZone specified)
     });
+  };
+
+  // Helper function to determine which chain an address traded from
+  const getAddressChainId = (
+    _address: string,
+    isMaker: boolean,
+    tradeSide: string,
+  ): number => {
+    if (!tradingPair) return 0;
+
+    // Simple color-based logic:
+    // - Green addresses (buyers) always link to quote chain
+    // - Red addresses (sellers) always link to base chain
+    
+    // Determine if this address is a buyer (green) or seller (red)
+    const isBuyer = (isMaker && tradeSide === "buy") || (!isMaker && tradeSide === "sell");
+    
+    return isBuyer ? tradingPair.quoteChainId : tradingPair.baseChainId;
   };
 
   return (
@@ -423,31 +482,140 @@ const ActivityPanel = ({
                       <span className="absolute -top-1 -left-1 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping transition-all duration-300 pointer-events-none"></span>
                       <span className="absolute -top-1 -right-1 w-1 h-1 bg-indigo-400 rounded-full opacity-0 group-hover:opacity-75 group-hover:animate-ping delay-300 transition-all duration-300 pointer-events-none"></span>
 
-                      <span className="text-right truncate font-semibold text-gray-800 relative z-10">
-                        {formatDecimalConsistent(trade.price)}{" "}
+                      <span
+                        className={cn(
+                          "text-right truncate font-semibold relative z-10",
+                          trade.side === "buy"
+                            ? "text-red-600" // Red for buy (user pays)
+                            : "text-green-600", // Green for sell (user receives)
+                        )}
+                      >
+                        {formatDecimalConsistent(trade.price * trade.quantity)}{" "}
                         {tradingPair?.quoteSymbol || "TTK"}
                       </span>
-                      <span className="text-right truncate font-semibold text-gray-800 relative z-10">
+                      <span
+                        className={cn(
+                          "text-right truncate font-semibold relative z-10",
+                          trade.side === "buy"
+                            ? "text-green-600" // Green for buy (user receives tokens)
+                            : "text-red-600", // Red for sell (user gives tokens)
+                        )}
+                      >
                         {formatDecimalConsistent(trade.quantity)}{" "}
                         {tradingPair?.baseSymbol || "ATOM"}
                       </span>
-                      <span
-                        className="text-right truncate text-gray-600 hidden sm:block relative z-10"
-                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}
+                      <a
+                        href={
+                          trade.makerAddress || trade.trader
+                            ? getAddressExplorerLink(
+                                trade.makerAddress || trade.trader || "",
+                                getAddressChainId(
+                                  trade.makerAddress || trade.trader || "",
+                                  true,
+                                  trade.side || "",
+                                ),
+                              )
+                            : "#"
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          "text-right truncate hidden sm:block relative z-10 font-medium hover:underline cursor-pointer",
+                          trade.side === "buy"
+                            ? "text-green-600 hover:text-green-700" // Maker is buyer in buy trades
+                            : "text-red-600 hover:text-red-700", // Maker is seller in sell trades
+                        )}
+                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}\nClick to view on ${
+                          getAddressChainId(
+                            trade.makerAddress || trade.trader || "",
+                            true,
+                            trade.side || "",
+                          ) === tradingPair?.baseChainId
+                            ? tradingPair?.baseChainNetwork === "base-sepolia"
+                              ? "Base Sepolia Explorer"
+                              : tradingPair?.baseChainNetwork === "base-mainnet"
+                                ? "Base Explorer"
+                                : tradingPair?.baseChainNetwork ===
+                                    "flare-mainnet"
+                                  ? "Flare Explorer"
+                                  : tradingPair?.baseChainNetwork ===
+                                      "flare-testnet"
+                                    ? "Flare Testnet Explorer"
+                                    : "Base Chain Explorer"
+                            : tradingPair?.quoteChainNetwork === "base-sepolia"
+                              ? "Base Sepolia Explorer"
+                              : tradingPair?.quoteChainNetwork ===
+                                  "base-mainnet"
+                                ? "Base Explorer"
+                                : tradingPair?.quoteChainNetwork ===
+                                    "flare-mainnet"
+                                  ? "Flare Explorer"
+                                  : tradingPair?.quoteChainNetwork ===
+                                      "flare-testnet"
+                                    ? "Flare Testnet Explorer"
+                                    : "Quote Chain Explorer"
+                        }`}
                       >
-                        M:{" "}
                         {trade.makerAddress || trade.trader
-                          ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
+                          ? `${(trade.makerAddress || trade.trader || "").slice(0, 6)}...${(trade.makerAddress || trade.trader || "").slice(-4)}`
                           : "Unknown"}
-                      </span>
-                      <span
-                        className="text-right truncate text-gray-600 relative z-10"
-                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}`}
+                      </a>
+                      <a
+                        href={
+                          trade.takerAddress
+                            ? getAddressExplorerLink(
+                                trade.takerAddress,
+                                getAddressChainId(
+                                  trade.takerAddress,
+                                  false,
+                                  trade.side || "",
+                                ),
+                              )
+                            : "#"
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          "text-right truncate relative z-10 font-medium hover:underline cursor-pointer",
+                          trade.side === "buy"
+                            ? "text-red-600 hover:text-red-700" // Taker is seller in buy trades
+                            : "text-green-600 hover:text-green-700", // Taker is buyer in sell trades
+                        )}
+                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}\nClick to view on ${
+                          getAddressChainId(
+                            trade.takerAddress || "",
+                            false,
+                            trade.side || "",
+                          ) === tradingPair?.baseChainId
+                            ? tradingPair?.baseChainNetwork === "base-sepolia"
+                              ? "Base Sepolia Explorer"
+                              : tradingPair?.baseChainNetwork === "base-mainnet"
+                                ? "Base Explorer"
+                                : tradingPair?.baseChainNetwork ===
+                                    "flare-mainnet"
+                                  ? "Flare Explorer"
+                                  : tradingPair?.baseChainNetwork ===
+                                      "flare-testnet"
+                                    ? "Flare Testnet Explorer"
+                                    : "Base Chain Explorer"
+                            : tradingPair?.quoteChainNetwork === "base-sepolia"
+                              ? "Base Sepolia Explorer"
+                              : tradingPair?.quoteChainNetwork ===
+                                  "base-mainnet"
+                                ? "Base Explorer"
+                                : tradingPair?.quoteChainNetwork ===
+                                    "flare-mainnet"
+                                  ? "Flare Explorer"
+                                  : tradingPair?.quoteChainNetwork ===
+                                      "flare-testnet"
+                                    ? "Flare Testnet Explorer"
+                                    : "Quote Chain Explorer"
+                        }`}
                       >
-                        {trade.makerAddress || trade.trader
-                          ? `${(trade.makerAddress || trade.trader).slice(0, 6)}...${(trade.makerAddress || trade.trader).slice(-4)}`
+                        {trade.takerAddress
+                          ? `${trade.takerAddress.slice(0, 6)}...${trade.takerAddress.slice(-4)}`
                           : "Unknown"}
-                      </span>
+                      </a>
                       <span className="text-right truncate text-gray-600 font-medium relative z-10">
                         {formatTradeTime(trade.timestamp)}
                       </span>

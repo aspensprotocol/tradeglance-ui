@@ -347,23 +347,17 @@ export const useTradingLogic = ({
         // Use personal_sign to sign the raw protobuf bytes
         // Note: personal_sign adds a prefix, but we'll handle this in the backend
         // The backend will need to be updated to handle personal_sign signatures
-        console.log(
-          "🔍 useTradingLogic: About to call personal_sign with:",
-          {
-            address,
-            message,
-          },
-        );
+        console.log("🔍 useTradingLogic: About to call personal_sign with:", {
+          address,
+          message,
+        });
 
         const signature = await window.ethereum.request({
           method: "personal_sign",
           params: [message, address],
         });
 
-        console.log(
-          "✅ useTradingLogic: personal_sign returned:",
-          signature,
-        );
+        console.log("✅ useTradingLogic: personal_sign returned:", signature);
         return signature;
       };
 

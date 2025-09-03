@@ -354,7 +354,7 @@ export const arborterService = {
         signatureHashExists: !!request.signatureHash,
         signatureHashLength: request.signatureHash?.length,
       });
-      
+
       const response: SendOrderResponse =
         await arborterClient.sendOrder(request);
 

@@ -46,7 +46,6 @@ export const useHealthCheck = (): HealthCheckResult => {
 
       for (const url of healthCheckUrls) {
         try {
-
           // For gRPC reflection endpoint, try a proper reflection request
           const response = await fetch(url, {
             method: "POST",
