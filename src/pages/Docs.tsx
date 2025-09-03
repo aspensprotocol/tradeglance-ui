@@ -3,9 +3,7 @@ import { DocumentationViewer } from "@/components/DocumentationViewer";
 import { MarkdownRenderer } from "@/lib/markdown-utils";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import {
-  TypographyP,
-} from "@/components/ui/typography";
+import { TypographyP } from "@/components/ui/typography";
 
 // Import the README content from docs-source
 import readmeContent from "../../docs-source/README.md?raw";
@@ -23,8 +21,6 @@ const Docs = (): JSX.Element => {
           <section className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/5 to-teal-400/5 rounded-full blur-xl animate-pulse delay-700"></section>
           <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-full blur-lg animate-pulse delay-1000"></section>
         </section>
-
-
 
         <DocumentationViewer>
           <MarkdownRenderer content={content} />

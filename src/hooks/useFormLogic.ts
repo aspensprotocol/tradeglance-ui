@@ -341,7 +341,6 @@ export const useFormLogic = ({
       // Get all available chains
       const allChains = getAllChains();
 
-
       // Always allow side change even if chains aren't loaded yet
       // This ensures the toggle works immediately for better UX
 
@@ -376,10 +375,8 @@ export const useFormLogic = ({
           // Provide guidance about which network the user should be on
           if (newSide === BaseOrQuote.BASE) {
             // BASE side (SELL): user should be on base network
-
           } else {
             // QUOTE side (BUY): user should be on quote network
-
           }
         } else {
           console.warn(
@@ -404,7 +401,6 @@ export const useFormLogic = ({
       !activeTab ||
       (activeTab !== BaseOrQuote.BASE && activeTab !== BaseOrQuote.QUOTE)
     ) {
-
       setActiveTab(BaseOrQuote.BASE);
     }
   }, [activeTab]);

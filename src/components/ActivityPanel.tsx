@@ -217,10 +217,11 @@ const ActivityPanel = ({
     // Simple color-based logic:
     // - Green addresses (buyers) always link to quote chain
     // - Red addresses (sellers) always link to base chain
-    
+
     // Determine if this address is a buyer (green) or seller (red)
-    const isBuyer = (isMaker && tradeSide === "buy") || (!isMaker && tradeSide === "sell");
-    
+    const isBuyer =
+      (isMaker && tradeSide === "buy") || (!isMaker && tradeSide === "sell");
+
     return isBuyer ? tradingPair.quoteChainId : tradingPair.baseChainId;
   };
 
