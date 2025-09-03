@@ -181,7 +181,7 @@ const SimpleForm = ({
       <main className="p-2 sm:p-3 h-full flex flex-col relative z-10">
         {/* Header */}
         <header className="flex flex-row items-center justify-between mb-2 pb-2 border-b border-emerald-200">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
             Simple Swap
           </h2>
           <nav className="flex gap-1">

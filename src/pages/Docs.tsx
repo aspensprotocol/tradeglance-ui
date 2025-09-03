@@ -4,8 +4,6 @@ import { MarkdownRenderer } from "@/lib/markdown-utils";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
-  TypographyH1,
-  TypographyLead,
   TypographyP,
 } from "@/components/ui/typography";
 
@@ -26,14 +24,7 @@ const Docs = (): JSX.Element => {
           <section className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/5 to-pink-400/5 rounded-full blur-lg animate-pulse delay-1000"></section>
         </section>
 
-        <header className="mb-8 relative z-10">
-          <TypographyH1 className="text-center text-neutral-900 text-lg sm:text-xl">
-            Documentation
-          </TypographyH1>
-          <TypographyLead className="text-center mt-4 text-neutral-700 text-sm">
-            Learn how to use Trade Glance and explore our features
-          </TypographyLead>
-        </header>
+
 
         <DocumentationViewer>
           <MarkdownRenderer content={content} />

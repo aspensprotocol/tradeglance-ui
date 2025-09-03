@@ -328,8 +328,8 @@ const DepositWithdrawModal = ({
 
         <DialogHeader className="relative z-10">
           <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-            <span className="text-base sm:text-lg text-neutral-900 font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              {activeType === "deposit" ? "💰 Deposit" : "💸 Withdraw"} Tokens
+            <span className="text-base sm:text-lg text-neutral-900 font-bold">
+              {activeType === "deposit" ? "Deposit" : "Withdraw"} Tokens
             </span>
             <nav className="flex space-x-2 w-full sm:w-auto">
               <Button
@@ -342,7 +342,7 @@ const DepositWithdrawModal = ({
                     : "bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
                 }`}
               >
-                💰 Deposit
+                Deposit
               </Button>
               <Button
                 variant={activeType === "withdraw" ? "default" : "outline"}
@@ -354,7 +354,7 @@ const DepositWithdrawModal = ({
                     : "bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
                 }`}
               >
-                💸 Withdraw
+                Withdraw
               </Button>
             </nav>
           </DialogTitle>
@@ -380,7 +380,7 @@ const DepositWithdrawModal = ({
                   htmlFor="token"
                   className="text-neutral-800 font-semibold text-xs"
                 >
-                  🎯 Select Token
+                  Select Token
                 </Label>
                 <Select value={selectedToken} onValueChange={setSelectedToken}>
                   <SelectTrigger className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm font-semibold text-neutral-900">
@@ -420,7 +420,7 @@ const DepositWithdrawModal = ({
                   htmlFor="amount"
                   className="text-neutral-800 font-semibold text-xs"
                 >
-                  💎 Amount
+                  Amount
                 </Label>
                 {selectedToken && (
                   <span className="text-xs text-neutral-700 bg-gradient-to-r from-blue-100 to-indigo-100 px-2 py-1 rounded-lg border border-blue-200">
@@ -433,7 +433,7 @@ const DepositWithdrawModal = ({
                           Error loading wallet balance
                         </span>
                       ) : (
-                        `💰 Wallet: ${formatDecimalConsistent(tokenBalance)}`
+                        `Wallet: ${formatDecimalConsistent(tokenBalance)}`
                       )
                     ) : // For withdrawals, show deposited balance (available locked funds)
                     depositedBalanceLoading ? (
@@ -443,7 +443,7 @@ const DepositWithdrawModal = ({
                         Error loading available balance
                       </span>
                     ) : (
-                      `🔒 Available: ${formatDecimalConsistent(depositedBalance)}`
+                      `Available: ${formatDecimalConsistent(depositedBalance)}`
                     )}
                   </span>
                 )}

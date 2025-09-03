@@ -13,7 +13,7 @@ export const DocumentationViewer = ({
     <article
       className={cn(
         "prose prose-xs sm:prose-sm lg:prose-base max-w-none prose-headings:text-neutral-900 prose-headings:font-bold",
-        "prose-h1:text-xl sm:text-2xl lg:text-3xl prose-h1:mb-4 sm:mb-6 lg:mb-8 prose-h1:text-center prose-h1:bg-gradient-to-r prose-h1:from-blue-600 prose-h1:to-purple-600 prose-h1:bg-clip-text prose-h1:text-transparent",
+        "prose-h1:text-xl sm:text-2xl lg:text-3xl prose-h1:mb-4 sm:mb-6 lg:mb-8 prose-h1:text-center prose-h1:text-neutral-900",
         "prose-h2:text-lg sm:text-xl lg:text-2xl prose-h2:mt-8 sm:mt-10 lg:mt-12 prose-h2:mb-4 sm:mb-5 lg:mb-6 prose-h2:text-neutral-800 prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-2",
         "prose-h3:text-base sm:text-lg lg:text-xl prose-h3:mt-6 sm:mt-7 lg:mt-8 prose-h3:mb-3 sm:mb-4 prose-h3:text-neutral-700",
         "prose-p:text-neutral-700 prose-p:leading-relaxed prose-p:text-xs sm:text-sm",
