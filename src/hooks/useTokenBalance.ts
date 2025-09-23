@@ -23,7 +23,7 @@ const MIDRIB_V2_ABI = [
       { name: "depositorAddress", type: "address" },
       { name: "tokenContract", type: "address" },
     ],
-    name: "getBalance",
+    name: "tradeBalance",
     outputs: [{ name: "", type: "uint256" }],
     type: "function",
   },
@@ -33,7 +33,7 @@ const MIDRIB_V2_ABI = [
       { name: "depositorAddress", type: "address" },
       { name: "tokenContract", type: "address" },
     ],
-    name: "getLockedBalance",
+    name: "lockedTradeBalance",
     outputs: [{ name: "", type: "uint256" }],
     type: "function",
   },
@@ -192,19 +192,19 @@ export const useTradingBalance = (
       // Create custom public client with the correct RPC URL from config
       const customPublicClient = createCustomPublicClient(chainConfig.rpcUrl);
 
-      // Read deposited balance (getBalance) - use tokenAddress, not marketId
+      // Read deposited balance (tradeBalance) - use tokenAddress, not marketId
       const depositedResult = await customPublicClient.readContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MIDRIB_V2_ABI,
-        functionName: "getBalance",
+        functionName: "tradeBalance",
         args: [address as `0x${string}`, tokenAddress as `0x${string}`], // Use tokenAddress, not marketId
       });
 
-      // Read locked balance (getLockedBalance) - use tokenAddress, not marketId
+      // Read locked balance (lockedTradeBalance) - use tokenAddress, not marketId
       const lockedResult = await customPublicClient.readContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MIDRIB_V2_ABI,
-        functionName: "getLockedBalance",
+        functionName: "lockedTradeBalance",
         args: [address as `0x${string}`, tokenAddress as `0x${string}`], // Use tokenAddress, not marketId
       });
 

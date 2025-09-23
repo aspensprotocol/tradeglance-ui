@@ -355,8 +355,17 @@ export const arborterService = {
         signatureHashLength: request.signatureHash?.length,
       });
 
-      const response: SendOrderResponse =
-        await arborterClient.sendOrder(request);
+      // Add timeout wrapper for SendOrder specifically
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("SendOrder request timed out after 30 seconds"));
+        }, 30000);
+      });
+
+      const response: SendOrderResponse = await Promise.race([
+        arborterClient.sendOrder(request),
+        timeoutPromise,
+      ]);
 
       console.log("✅ gRPC: Order sent successfully:", response);
       return response;

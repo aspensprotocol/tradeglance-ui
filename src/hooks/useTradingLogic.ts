@@ -383,8 +383,7 @@ export const useTradingLogic = ({
         baseAccountAddress: orderData.baseAccountAddress,
         quoteAccountAddress: orderData.quoteAccountAddress,
         executionType: orderData.executionType,
-        matchingOrderIds:
-          orderData.matchingOrderIds?.map((id: number) => BigInt(id)) || [], // Convert number[] to bigint[]
+        matchingOrderIds: orderData.matchingOrderIds?.map((id) => BigInt(id)) || [],
       });
 
       // Send the order
