@@ -9,7 +9,7 @@ on:
 env:
   IMAGE_NAME: aspens/tradeglance
   AWS_REGION: us-east-2
-  PUBLIC_ECR_REPOSITORY: public.ecr.aws/v4f6x5y1/aspens-xyz/tradeglance
+  PUBLIC_ECR_REGISTRY: public.ecr.aws/v4f6x5y1/aspens-xyz/tradeglance
 
 jobs:
   build-and-push:
