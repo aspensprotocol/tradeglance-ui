@@ -224,19 +224,23 @@ export function useSharedOrderbookData(
     }
 
     const now = Date.now();
-    const minFetchInterval = 2000; // Increased to 2 seconds to prevent resource exhaustion
+    const minFetchInterval = 3000; // Increased to 3 seconds to prevent resource exhaustion
 
     // Circuit breaker: if we've had too many failures recently, stop trying
     const circuitBreaker = circuitBreakerRef.current;
-    if (circuitBreaker.isOpen && now - circuitBreaker.lastFailure < 30000) {
-      // 30 second cooldown
+    if (circuitBreaker.isOpen && now - circuitBreaker.lastFailure < 60000) {
+      // 60 second cooldown for circuit breaker
       console.log("🚫 Circuit breaker is open, skipping request");
       return;
     }
 
-    // Prevent too frequent requests
-    if (now - lastFetchTime.current < minFetchInterval) {
-      console.log("🚫 Throttling orderbook request - too frequent");
+    // Prevent too frequent requests with exponential backoff
+    const timeSinceLastFetch = now - lastFetchTime.current;
+    const backoffMultiplier = Math.min(Math.pow(2, retryCount), 8); // Max 8x backoff
+    const dynamicInterval = minFetchInterval * backoffMultiplier;
+    
+    if (timeSinceLastFetch < dynamicInterval) {
+      console.log(`🚫 Throttling orderbook request - too frequent (${timeSinceLastFetch}ms < ${dynamicInterval}ms)`);
       return;
     }
 
@@ -289,8 +293,21 @@ export function useSharedOrderbookData(
         isOpen: false,
       };
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error occurred";
+      let errorMessage = "Unknown error occurred";
+      
+      if (err instanceof Error) {
+        if (err.message.includes("503") || err.message.includes("Service Unavailable")) {
+          errorMessage = "Service temporarily unavailable. Please try again in a moment.";
+        } else if (err.message.includes("ERR_INCOMPLETE_CHUNKED_ENCODING")) {
+          errorMessage = "Network connection issue. Retrying...";
+        } else if (err.message.includes("upstream connect error") || err.message.includes("reset before headers")) {
+          errorMessage = "Connection reset. Retrying...";
+        } else if (err.message.includes("timeout")) {
+          errorMessage = "Request timed out. Retrying...";
+        } else {
+          errorMessage = err.message;
+        }
+      }
 
       console.error("❌ Orderbook fetch error:", errorMessage);
 

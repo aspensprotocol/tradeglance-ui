@@ -2,342 +2,309 @@
 // @generated from file arborter_config.proto (package xyz.aspens.arborter_config.v1, syntax proto3)
 /* eslint-disable */
 
-import type {
-  GenEnum,
-  GenFile,
-  GenMessage,
-  GenService,
-} from "@bufbuild/protobuf/codegenv2";
-import {
-  enumDesc,
-  fileDesc,
-  messageDesc,
-  serviceDesc,
-} from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file arborter_config.proto.
  */
-export const file_arborter_config: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    "ChVhcmJvcnRlcl9jb25maWcucHJvdG8SHXh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxIkUKFURlcGxveUNvbnRyYWN0UmVxdWVzdBIVCg1jaGFpbl9uZXR3b3JrGAEgASgJEhUKDWJhc2Vfb3JfcXVvdGUYAiABKAkiRQoWRGVwbG95Q29udHJhY3RSZXNwb25zZRIUCgxiYXNlX2FkZHJlc3MYASABKAkSFQoNcXVvdGVfYWRkcmVzcxgCIAEoCSJGCg9BZGRDaGFpblJlcXVlc3QSMwoFY2hhaW4YASABKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbiJhChBBZGRDaGFpblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiJdCg9BZGRUb2tlblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCRIzCgV0b2tlbhgCIAEoCzIkLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRva2VuImEKEEFkZFRva2VuUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIrECChBBZGRNYXJrZXRSZXF1ZXN0EhoKEmJhc2VfY2hhaW5fbmV0d29yaxgBIAEoCRIbChNxdW90ZV9jaGFpbl9uZXR3b3JrGAIgASgJEh8KF2Jhc2VfY2hhaW5fdG9rZW5fc3ltYm9sGAMgASgJEiAKGHF1b3RlX2NoYWluX3Rva2VuX3N5bWJvbBgEIAEoCRIgChhiYXNlX2NoYWluX3Rva2VuX2FkZHJlc3MYBSABKAkSIQoZcXVvdGVfY2hhaW5fdG9rZW5fYWRkcmVzcxgGIAEoCRIhChliYXNlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAcgASgFEiIKGnF1b3RlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAggASgFEhUKDXBhaXJfZGVjaW1hbHMYCSABKAUiYgoRQWRkTWFya2V0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIjwKF0FkZFRyYWRlQ29udHJhY3RSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSEAoIY2hhaW5faWQYAiABKAUiYAoYQWRkVHJhZGVDb250cmFjdFJlc3BvbnNlEkQKDnRyYWRlX2NvbnRyYWN0GAEgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuVHJhZGVDb250cmFjdCISChBHZXRDb25maWdSZXF1ZXN0IlEKEUdldENvbmZpZ1Jlc3BvbnNlEjwKBmNvbmZpZxgBIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24ifQoNQ29uZmlndXJhdGlvbhI0CgZjaGFpbnMYASADKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbhI2CgdtYXJrZXRzGAIgAygLMiUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuTWFya2V0IkoKDVRyYWRlQ29udHJhY3QSGAoLY29udHJhY3RfaWQYASABKAlIAIgBARIPCgdhZGRyZXNzGAIgASgJQg4KDF9jb250cmFjdF9pZCLuAwoFQ2hhaW4SFAoMYXJjaGl0ZWN0dXJlGAEgASgJEhYKDmNhbm9uaWNhbF9uYW1lGAIgASgJEg8KB25ldHdvcmsYAyABKAkSEAoIY2hhaW5faWQYBCABKAUSHgoWY29udHJhY3Rfb3duZXJfYWRkcmVzcxgFIAEoCRIZCgxleHBsb3Jlcl91cmwYBiABKAlIAIgBARIPCgdycGNfdXJsGAcgASgJEhcKD3NlcnZpY2VfYWRkcmVzcxgIIAEoCRJECg50cmFkZV9jb250cmFjdBgJIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRyYWRlQ29udHJhY3QSQAoGdG9rZW5zGAogAygLMjAueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ2hhaW4uVG9rZW5zRW50cnkSQQoNYmFzZV9vcl9xdW90ZRgLIAEoDjIqLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkJhc2VPclF1b3RlGlMKC1Rva2Vuc0VudHJ5EgsKA2tleRgBIAEoCRIzCgV2YWx1ZRgCIAEoCzIkLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRva2VuOgI4AUIPCg1fZXhwbG9yZXJfdXJsIqQCCgZNYXJrZXQSDAoEc2x1ZxgBIAEoCRIMCgRuYW1lGAIgASgJEhoKEmJhc2VfY2hhaW5fbmV0d29yaxgDIAEoCRIbChNxdW90ZV9jaGFpbl9uZXR3b3JrGAQgASgJEh8KF2Jhc2VfY2hhaW5fdG9rZW5fc3ltYm9sGAUgASgJEiAKGHF1b3RlX2NoYWluX3Rva2VuX3N5bWJvbBgGIAEoCRIhChliYXNlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAcgASgFEiIKGnF1b3RlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAggASgFEhUKDXBhaXJfZGVjaW1hbHMYCSABKAUSFgoJbWFya2V0X2lkGAogASgJSACIAQFCDAoKX21hcmtldF9pZCKFAQoFVG9rZW4SDAoEbmFtZRgBIAEoCRIOCgZzeW1ib2wYAiABKAkSDwoHYWRkcmVzcxgDIAEoCRIVCgh0b2tlbl9pZBgEIAEoCUgAiAEBEhAKCGRlY2ltYWxzGAUgASgFEhcKD3RyYWRlX3ByZWNpc2lvbhgGIAEoBUILCglfdG9rZW5faWQiKAoTRGVsZXRlTWFya2V0UmVxdWVzdBIRCgltYXJrZXRfaWQYASABKAkiZQoURGVsZXRlTWFya2V0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIkEKEkRlbGV0ZVRva2VuUmVxdWVzdBIVCg1jaGFpbl9uZXR3b3JrGAEgASgJEhQKDHRva2VuX3N5bWJvbBgCIAEoCSJkChNEZWxldGVUb2tlblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiIrChJEZWxldGVDaGFpblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCSJkChNEZWxldGVDaGFpblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiIuChpEZWxldGVUcmFkZUNvbnRyYWN0UmVxdWVzdBIQCghjaGFpbl9pZBgBIAEoBSJsChtEZWxldGVUcmFkZUNvbnRyYWN0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIgcKBUVtcHR5IsMBCgtWZXJzaW9uSW5mbxIPCgd2ZXJzaW9uGAEgASgJEhcKD2dpdF9jb21taXRfaGFzaBgCIAEoCRIXCg9naXRfY29tbWl0X2RhdGUYAyABKAkSEgoKZ2l0X2JyYW5jaBgEIAEoCRIXCg9idWlsZF90aW1lc3RhbXAYBSABKAkSFQoNdGFyZ2V0X3RyaXBsZRgGIAEoCRIVCg1ydXN0Y192ZXJzaW9uGAcgASgJEhYKDmNhcmdvX2ZlYXR1cmVzGAggAygJKl0KC0Jhc2VPclF1b3RlEh0KGUJBU0VfT1JfUVVPVEVfVU5TUEVDSUZJRUQQABIWChJCQVNFX09SX1FVT1RFX0JBU0UQARIXChNCQVNFX09SX1FVT1RFX1FVT1RFEAIyuAoKDUNvbmZpZ1NlcnZpY2USfwoORGVwbG95Q29udHJhY3QSNC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZXBsb3lDb250cmFjdFJlcXVlc3QaNS54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZXBsb3lDb250cmFjdFJlc3BvbnNlIgASbQoIQWRkQ2hhaW4SLi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRDaGFpblJlcXVlc3QaLy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRDaGFpblJlc3BvbnNlIgASbQoIQWRkVG9rZW4SLi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRUb2tlblJlcXVlc3QaLy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRUb2tlblJlc3BvbnNlIgAScAoJQWRkTWFya2V0Ei8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkTWFya2V0UmVxdWVzdBowLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkFkZE1hcmtldFJlc3BvbnNlIgAShQEKEEFkZFRyYWRlQ29udHJhY3QSNi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRUcmFkZUNvbnRyYWN0UmVxdWVzdBo3Lnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkFkZFRyYWRlQ29udHJhY3RSZXNwb25zZSIAEnAKCUdldENvbmZpZxIvLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkdldENvbmZpZ1JlcXVlc3QaMC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5HZXRDb25maWdSZXNwb25zZSIAEmAKCkdldFZlcnNpb24SJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5FbXB0eRoqLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlZlcnNpb25JbmZvIgASeQoMRGVsZXRlTWFya2V0EjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlTWFya2V0UmVxdWVzdBozLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkRlbGV0ZU1hcmtldFJlc3BvbnNlIgASdgoLRGVsZXRlVG9rZW4SMS54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVUb2tlblJlcXVlc3QaMi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVUb2tlblJlc3BvbnNlIgASdgoLRGVsZXRlQ2hhaW4SMS54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVDaGFpblJlcXVlc3QaMi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVDaGFpblJlc3BvbnNlIgASjgEKE0RlbGV0ZVRyYWRlQ29udHJhY3QSOS54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVUcmFkZUNvbnRyYWN0UmVxdWVzdBo6Lnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkRlbGV0ZVRyYWRlQ29udHJhY3RSZXNwb25zZSIAQgJIAWIGcHJvdG8z",
-  );
+export const file_arborter_config: GenFile = /*@__PURE__*/
+  fileDesc("ChVhcmJvcnRlcl9jb25maWcucHJvdG8SHXh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxIkUKFURlcGxveUNvbnRyYWN0UmVxdWVzdBIVCg1jaGFpbl9uZXR3b3JrGAEgASgJEhUKDWJhc2Vfb3JfcXVvdGUYAiABKAkiRQoWRGVwbG95Q29udHJhY3RSZXNwb25zZRIUCgxiYXNlX2FkZHJlc3MYASABKAkSFQoNcXVvdGVfYWRkcmVzcxgCIAEoCSJGCg9BZGRDaGFpblJlcXVlc3QSMwoFY2hhaW4YASABKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbiJhChBBZGRDaGFpblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiJdCg9BZGRUb2tlblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCRIzCgV0b2tlbhgCIAEoCzIkLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRva2VuImEKEEFkZFRva2VuUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIrECChBBZGRNYXJrZXRSZXF1ZXN0EhoKEmJhc2VfY2hhaW5fbmV0d29yaxgBIAEoCRIbChNxdW90ZV9jaGFpbl9uZXR3b3JrGAIgASgJEh8KF2Jhc2VfY2hhaW5fdG9rZW5fc3ltYm9sGAMgASgJEiAKGHF1b3RlX2NoYWluX3Rva2VuX3N5bWJvbBgEIAEoCRIgChhiYXNlX2NoYWluX3Rva2VuX2FkZHJlc3MYBSABKAkSIQoZcXVvdGVfY2hhaW5fdG9rZW5fYWRkcmVzcxgGIAEoCRIhChliYXNlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAcgASgFEiIKGnF1b3RlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAggASgFEhUKDXBhaXJfZGVjaW1hbHMYCSABKAUiYgoRQWRkTWFya2V0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIjwKF0FkZFRyYWRlQ29udHJhY3RSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSEAoIY2hhaW5faWQYAiABKAUiYAoYQWRkVHJhZGVDb250cmFjdFJlc3BvbnNlEkQKDnRyYWRlX2NvbnRyYWN0GAEgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuVHJhZGVDb250cmFjdCISChBHZXRDb25maWdSZXF1ZXN0IlEKEUdldENvbmZpZ1Jlc3BvbnNlEjwKBmNvbmZpZxgBIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24ifQoNQ29uZmlndXJhdGlvbhI0CgZjaGFpbnMYASADKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbhI2CgdtYXJrZXRzGAIgAygLMiUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuTWFya2V0IkoKDVRyYWRlQ29udHJhY3QSGAoLY29udHJhY3RfaWQYASABKAlIAIgBARIPCgdhZGRyZXNzGAIgASgJQg4KDF9jb250cmFjdF9pZCKHBAoFQ2hhaW4SFAoMYXJjaGl0ZWN0dXJlGAEgASgJEhYKDmNhbm9uaWNhbF9uYW1lGAIgASgJEg8KB25ldHdvcmsYAyABKAkSEAoIY2hhaW5faWQYBCABKAUSHgoWY29udHJhY3Rfb3duZXJfYWRkcmVzcxgFIAEoCRIZCgxleHBsb3Jlcl91cmwYBiABKAlIAIgBARIPCgdycGNfdXJsGAcgASgJEhcKD3NlcnZpY2VfYWRkcmVzcxgIIAEoCRIXCg9wZXJtaXQyX2FkZHJlc3MYCSABKAkSRAoOdHJhZGVfY29udHJhY3QYCiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5UcmFkZUNvbnRyYWN0EkAKBnRva2VucxgLIAMoCzIwLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNoYWluLlRva2Vuc0VudHJ5EkEKDWJhc2Vfb3JfcXVvdGUYDCABKA4yKi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5CYXNlT3JRdW90ZRpTCgtUb2tlbnNFbnRyeRILCgNrZXkYASABKAkSMwoFdmFsdWUYAiABKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Ub2tlbjoCOAFCDwoNX2V4cGxvcmVyX3VybCKkAgoGTWFya2V0EgwKBHNsdWcYASABKAkSDAoEbmFtZRgCIAEoCRIaChJiYXNlX2NoYWluX25ldHdvcmsYAyABKAkSGwoTcXVvdGVfY2hhaW5fbmV0d29yaxgEIAEoCRIfChdiYXNlX2NoYWluX3Rva2VuX3N5bWJvbBgFIAEoCRIgChhxdW90ZV9jaGFpbl90b2tlbl9zeW1ib2wYBiABKAkSIQoZYmFzZV9jaGFpbl90b2tlbl9kZWNpbWFscxgHIAEoBRIiChpxdW90ZV9jaGFpbl90b2tlbl9kZWNpbWFscxgIIAEoBRIVCg1wYWlyX2RlY2ltYWxzGAkgASgFEhYKCW1hcmtldF9pZBgKIAEoCUgAiAEBQgwKCl9tYXJrZXRfaWQihQEKBVRva2VuEgwKBG5hbWUYASABKAkSDgoGc3ltYm9sGAIgASgJEg8KB2FkZHJlc3MYAyABKAkSFQoIdG9rZW5faWQYBCABKAlIAIgBARIQCghkZWNpbWFscxgFIAEoBRIXCg90cmFkZV9wcmVjaXNpb24YBiABKAVCCwoJX3Rva2VuX2lkIigKE0RlbGV0ZU1hcmtldFJlcXVlc3QSEQoJbWFya2V0X2lkGAEgASgJImUKFERlbGV0ZU1hcmtldFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiJBChJEZWxldGVUb2tlblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCRIUCgx0b2tlbl9zeW1ib2wYAiABKAkiZAoTRGVsZXRlVG9rZW5SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEjwKBmNvbmZpZxgCIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24iKwoSRGVsZXRlQ2hhaW5SZXF1ZXN0EhUKDWNoYWluX25ldHdvcmsYASABKAkiZAoTRGVsZXRlQ2hhaW5SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEjwKBmNvbmZpZxgCIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24iLgoaRGVsZXRlVHJhZGVDb250cmFjdFJlcXVlc3QSEAoIY2hhaW5faWQYASABKAUibAobRGVsZXRlVHJhZGVDb250cmFjdFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiIHCgVFbXB0eSLDAQoLVmVyc2lvbkluZm8SDwoHdmVyc2lvbhgBIAEoCRIXCg9naXRfY29tbWl0X2hhc2gYAiABKAkSFwoPZ2l0X2NvbW1pdF9kYXRlGAMgASgJEhIKCmdpdF9icmFuY2gYBCABKAkSFwoPYnVpbGRfdGltZXN0YW1wGAUgASgJEhUKDXRhcmdldF90cmlwbGUYBiABKAkSFQoNcnVzdGNfdmVyc2lvbhgHIAEoCRIWCg5jYXJnb19mZWF0dXJlcxgIIAMoCSpdCgtCYXNlT3JRdW90ZRIdChlCQVNFX09SX1FVT1RFX1VOU1BFQ0lGSUVEEAASFgoSQkFTRV9PUl9RVU9URV9CQVNFEAESFwoTQkFTRV9PUl9RVU9URV9RVU9URRACMrgKCg1Db25maWdTZXJ2aWNlEn8KDkRlcGxveUNvbnRyYWN0EjQueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVwbG95Q29udHJhY3RSZXF1ZXN0GjUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVwbG95Q29udHJhY3RSZXNwb25zZSIAEm0KCEFkZENoYWluEi4ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkQ2hhaW5SZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkQ2hhaW5SZXNwb25zZSIAEm0KCEFkZFRva2VuEi4ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVG9rZW5SZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVG9rZW5SZXNwb25zZSIAEnAKCUFkZE1hcmtldBIvLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkFkZE1hcmtldFJlcXVlc3QaMC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRNYXJrZXRSZXNwb25zZSIAEoUBChBBZGRUcmFkZUNvbnRyYWN0EjYueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVHJhZGVDb250cmFjdFJlcXVlc3QaNy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRUcmFkZUNvbnRyYWN0UmVzcG9uc2UiABJwCglHZXRDb25maWcSLy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5HZXRDb25maWdSZXF1ZXN0GjAueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuR2V0Q29uZmlnUmVzcG9uc2UiABJgCgpHZXRWZXJzaW9uEiQueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRW1wdHkaKi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5WZXJzaW9uSW5mbyIAEnkKDERlbGV0ZU1hcmtldBIyLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkRlbGV0ZU1hcmtldFJlcXVlc3QaMy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVNYXJrZXRSZXNwb25zZSIAEnYKC0RlbGV0ZVRva2VuEjEueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVG9rZW5SZXF1ZXN0GjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVG9rZW5SZXNwb25zZSIAEnYKC0RlbGV0ZUNoYWluEjEueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlQ2hhaW5SZXF1ZXN0GjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlQ2hhaW5SZXNwb25zZSIAEo4BChNEZWxldGVUcmFkZUNvbnRyYWN0EjkueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVHJhZGVDb250cmFjdFJlcXVlc3QaOi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVUcmFkZUNvbnRyYWN0UmVzcG9uc2UiAEICSAFiBnByb3RvMw");
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.DeployContractRequest
  */
-export type DeployContractRequest =
-  Message<"xyz.aspens.arborter_config.v1.DeployContractRequest"> & {
-    /**
-     * The name of the chain to deploy the contract on. e.g. base-sepolia
-     *
-     * @generated from field: string chain_network = 1;
-     */
-    chainNetwork: string;
+export type DeployContractRequest = Message<"xyz.aspens.arborter_config.v1.DeployContractRequest"> & {
+  /**
+   * The name of the chain to deploy the contract on. e.g. base-sepolia
+   *
+   * @generated from field: string chain_network = 1;
+   */
+  chainNetwork: string;
 
-    /**
-     * designate whether to deploy the contract on the base or quote chain
-     *
-     * @generated from field: string base_or_quote = 2;
-     */
-    baseOrQuote: string;
-  };
+  /**
+   * designate whether to deploy the contract on the base or quote chain
+   *
+   * @generated from field: string base_or_quote = 2;
+   */
+  baseOrQuote: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeployContractRequest.
  * Use `create(DeployContractRequestSchema)` to create a new message.
  */
-export const DeployContractRequestSchema: GenMessage<DeployContractRequest> =
-  /*@__PURE__*/
+export const DeployContractRequestSchema: GenMessage<DeployContractRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 0);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.DeployContractResponse
  */
-export type DeployContractResponse =
-  Message<"xyz.aspens.arborter_config.v1.DeployContractResponse"> & {
-    /**
-     * The address that the contract is deployed to on the base chain.
-     *
-     * @generated from field: string base_address = 1;
-     */
-    baseAddress: string;
+export type DeployContractResponse = Message<"xyz.aspens.arborter_config.v1.DeployContractResponse"> & {
+  /**
+   * The address that the contract is deployed to on the base chain.
+   *
+   * @generated from field: string base_address = 1;
+   */
+  baseAddress: string;
 
-    /**
-     * The address that the contract is deployed to on the quote chain.
-     *
-     * @generated from field: string quote_address = 2;
-     */
-    quoteAddress: string;
-  };
+  /**
+   * The address that the contract is deployed to on the quote chain.
+   *
+   * @generated from field: string quote_address = 2;
+   */
+  quoteAddress: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeployContractResponse.
  * Use `create(DeployContractResponseSchema)` to create a new message.
  */
-export const DeployContractResponseSchema: GenMessage<DeployContractResponse> =
-  /*@__PURE__*/
+export const DeployContractResponseSchema: GenMessage<DeployContractResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 1);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddChainRequest
  */
-export type AddChainRequest =
-  Message<"xyz.aspens.arborter_config.v1.AddChainRequest"> & {
-    /**
-     * The chain to add
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Chain chain = 1;
-     */
-    chain?: Chain;
-  };
+export type AddChainRequest = Message<"xyz.aspens.arborter_config.v1.AddChainRequest"> & {
+  /**
+   * The chain to add
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Chain chain = 1;
+   */
+  chain?: Chain;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddChainRequest.
  * Use `create(AddChainRequestSchema)` to create a new message.
  */
-export const AddChainRequestSchema: GenMessage<AddChainRequest> =
-  /*@__PURE__*/
+export const AddChainRequestSchema: GenMessage<AddChainRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 2);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddChainResponse
  */
-export type AddChainResponse =
-  Message<"xyz.aspens.arborter_config.v1.AddChainResponse"> & {
-    /**
-     * Indicates if the chain was added successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type AddChainResponse = Message<"xyz.aspens.arborter_config.v1.AddChainResponse"> & {
+  /**
+   * Indicates if the chain was added successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddChainResponse.
  * Use `create(AddChainResponseSchema)` to create a new message.
  */
-export const AddChainResponseSchema: GenMessage<AddChainResponse> =
-  /*@__PURE__*/
+export const AddChainResponseSchema: GenMessage<AddChainResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 3);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddTokenRequest
  */
-export type AddTokenRequest =
-  Message<"xyz.aspens.arborter_config.v1.AddTokenRequest"> & {
-    /**
-     * The name of the chain to add the token to. e.g. base-sepolia
-     *
-     * @generated from field: string chain_network = 1;
-     */
-    chainNetwork: string;
+export type AddTokenRequest = Message<"xyz.aspens.arborter_config.v1.AddTokenRequest"> & {
+  /**
+   * The name of the chain to add the token to. e.g. base-sepolia
+   *
+   * @generated from field: string chain_network = 1;
+   */
+  chainNetwork: string;
 
-    /**
-     * The token to ad
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Token token = 2;
-     */
-    token?: Token;
-  };
+  /**
+   * The token to ad
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Token token = 2;
+   */
+  token?: Token;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddTokenRequest.
  * Use `create(AddTokenRequestSchema)` to create a new message.
  */
-export const AddTokenRequestSchema: GenMessage<AddTokenRequest> =
-  /*@__PURE__*/
+export const AddTokenRequestSchema: GenMessage<AddTokenRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 4);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddTokenResponse
  */
-export type AddTokenResponse =
-  Message<"xyz.aspens.arborter_config.v1.AddTokenResponse"> & {
-    /**
-     * Indicates if the token was added successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type AddTokenResponse = Message<"xyz.aspens.arborter_config.v1.AddTokenResponse"> & {
+  /**
+   * Indicates if the token was added successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddTokenResponse.
  * Use `create(AddTokenResponseSchema)` to create a new message.
  */
-export const AddTokenResponseSchema: GenMessage<AddTokenResponse> =
-  /*@__PURE__*/
+export const AddTokenResponseSchema: GenMessage<AddTokenResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 5);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddMarketRequest
  */
-export type AddMarketRequest =
-  Message<"xyz.aspens.arborter_config.v1.AddMarketRequest"> & {
-    /**
-     * The base chain network
-     *
-     * @generated from field: string base_chain_network = 1;
-     */
-    baseChainNetwork: string;
+export type AddMarketRequest = Message<"xyz.aspens.arborter_config.v1.AddMarketRequest"> & {
+  /**
+   * The base chain network
+   *
+   * @generated from field: string base_chain_network = 1;
+   */
+  baseChainNetwork: string;
 
-    /**
-     * The quote chain network
-     *
-     * @generated from field: string quote_chain_network = 2;
-     */
-    quoteChainNetwork: string;
+  /**
+   * The quote chain network
+   *
+   * @generated from field: string quote_chain_network = 2;
+   */
+  quoteChainNetwork: string;
 
-    /**
-     * The base chain token symbol
-     *
-     * @generated from field: string base_chain_token_symbol = 3;
-     */
-    baseChainTokenSymbol: string;
+  /**
+   * The base chain token symbol
+   *
+   * @generated from field: string base_chain_token_symbol = 3;
+   */
+  baseChainTokenSymbol: string;
 
-    /**
-     * The quote chain token symbol
-     *
-     * @generated from field: string quote_chain_token_symbol = 4;
-     */
-    quoteChainTokenSymbol: string;
+  /**
+   * The quote chain token symbol
+   *
+   * @generated from field: string quote_chain_token_symbol = 4;
+   */
+  quoteChainTokenSymbol: string;
 
-    /**
-     * The base chain token address
-     *
-     * @generated from field: string base_chain_token_address = 5;
-     */
-    baseChainTokenAddress: string;
+  /**
+   * The base chain token address
+   *
+   * @generated from field: string base_chain_token_address = 5;
+   */
+  baseChainTokenAddress: string;
 
-    /**
-     * The quote chain token address
-     *
-     * @generated from field: string quote_chain_token_address = 6;
-     */
-    quoteChainTokenAddress: string;
+  /**
+   * The quote chain token address
+   *
+   * @generated from field: string quote_chain_token_address = 6;
+   */
+  quoteChainTokenAddress: string;
 
-    /**
-     * The base chain token decimals
-     *
-     * @generated from field: int32 base_chain_token_decimals = 7;
-     */
-    baseChainTokenDecimals: number;
+  /**
+   * The base chain token decimals
+   *
+   * @generated from field: int32 base_chain_token_decimals = 7;
+   */
+  baseChainTokenDecimals: number;
 
-    /**
-     * The quote chain token decimals
-     *
-     * @generated from field: int32 quote_chain_token_decimals = 8;
-     */
-    quoteChainTokenDecimals: number;
+  /**
+   * The quote chain token decimals
+   *
+   * @generated from field: int32 quote_chain_token_decimals = 8;
+   */
+  quoteChainTokenDecimals: number;
 
-    /**
-     * The pair decimals (this is chosen by the stack admin)
-     *
-     * @generated from field: int32 pair_decimals = 9;
-     */
-    pairDecimals: number;
-  };
+  /**
+   * The pair decimals (this is chosen by the stack admin)
+   *
+   * @generated from field: int32 pair_decimals = 9;
+   */
+  pairDecimals: number;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddMarketRequest.
  * Use `create(AddMarketRequestSchema)` to create a new message.
  */
-export const AddMarketRequestSchema: GenMessage<AddMarketRequest> =
-  /*@__PURE__*/
+export const AddMarketRequestSchema: GenMessage<AddMarketRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 6);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddMarketResponse
  */
-export type AddMarketResponse =
-  Message<"xyz.aspens.arborter_config.v1.AddMarketResponse"> & {
-    /**
-     * Indicates if the market was added successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type AddMarketResponse = Message<"xyz.aspens.arborter_config.v1.AddMarketResponse"> & {
+  /**
+   * Indicates if the market was added successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddMarketResponse.
  * Use `create(AddMarketResponseSchema)` to create a new message.
  */
-export const AddMarketResponseSchema: GenMessage<AddMarketResponse> =
-  /*@__PURE__*/
+export const AddMarketResponseSchema: GenMessage<AddMarketResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 7);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddTradeContractRequest
  */
-export type AddTradeContractRequest =
-  Message<"xyz.aspens.arborter_config.v1.AddTradeContractRequest"> & {
-    /**
-     * The chain address of the trade contract
-     *
-     * @generated from field: string address = 1;
-     */
-    address: string;
+export type AddTradeContractRequest = Message<"xyz.aspens.arborter_config.v1.AddTradeContractRequest"> & {
+  /**
+   * The chain address of the trade contract
+   *
+   * @generated from field: string address = 1;
+   */
+  address: string;
 
-    /**
-     * The chain ID to associate the trade contract with
-     *
-     * @generated from field: int32 chain_id = 2;
-     */
-    chainId: number;
-  };
+  /**
+   * The chain ID to associate the trade contract with
+   *
+   * @generated from field: int32 chain_id = 2;
+   */
+  chainId: number;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddTradeContractRequest.
  * Use `create(AddTradeContractRequestSchema)` to create a new message.
  */
-export const AddTradeContractRequestSchema: GenMessage<AddTradeContractRequest> =
-  /*@__PURE__*/
+export const AddTradeContractRequestSchema: GenMessage<AddTradeContractRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 8);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.AddTradeContractResponse
  */
-export type AddTradeContractResponse =
-  Message<"xyz.aspens.arborter_config.v1.AddTradeContractResponse"> & {
-    /**
-     * The created trade contract
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.TradeContract trade_contract = 1;
-     */
-    tradeContract?: TradeContract;
-  };
+export type AddTradeContractResponse = Message<"xyz.aspens.arborter_config.v1.AddTradeContractResponse"> & {
+  /**
+   * The created trade contract
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.TradeContract trade_contract = 1;
+   */
+  tradeContract?: TradeContract;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.AddTradeContractResponse.
  * Use `create(AddTradeContractResponseSchema)` to create a new message.
  */
-export const AddTradeContractResponseSchema: GenMessage<AddTradeContractResponse> =
-  /*@__PURE__*/
+export const AddTradeContractResponseSchema: GenMessage<AddTradeContractResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 9);
 
 /**
@@ -347,36 +314,33 @@ export const AddTradeContractResponseSchema: GenMessage<AddTradeContractResponse
  *
  * @generated from message xyz.aspens.arborter_config.v1.GetConfigRequest
  */
-export type GetConfigRequest =
-  Message<"xyz.aspens.arborter_config.v1.GetConfigRequest"> & {};
+export type GetConfigRequest = Message<"xyz.aspens.arborter_config.v1.GetConfigRequest"> & {
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.GetConfigRequest.
  * Use `create(GetConfigRequestSchema)` to create a new message.
  */
-export const GetConfigRequestSchema: GenMessage<GetConfigRequest> =
-  /*@__PURE__*/
+export const GetConfigRequestSchema: GenMessage<GetConfigRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 10);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.GetConfigResponse
  */
-export type GetConfigResponse =
-  Message<"xyz.aspens.arborter_config.v1.GetConfigResponse"> & {
-    /**
-     * The configuration object
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 1;
-     */
-    config?: Configuration;
-  };
+export type GetConfigResponse = Message<"xyz.aspens.arborter_config.v1.GetConfigResponse"> & {
+  /**
+   * The configuration object
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 1;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.GetConfigResponse.
  * Use `create(GetConfigResponseSchema)` to create a new message.
  */
-export const GetConfigResponseSchema: GenMessage<GetConfigResponse> =
-  /*@__PURE__*/
+export const GetConfigResponseSchema: GenMessage<GetConfigResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 11);
 
 /**
@@ -384,29 +348,27 @@ export const GetConfigResponseSchema: GenMessage<GetConfigResponse> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.Configuration
  */
-export type Configuration =
-  Message<"xyz.aspens.arborter_config.v1.Configuration"> & {
-    /**
-     * List of supported chains
-     *
-     * @generated from field: repeated xyz.aspens.arborter_config.v1.Chain chains = 1;
-     */
-    chains: Chain[];
+export type Configuration = Message<"xyz.aspens.arborter_config.v1.Configuration"> & {
+  /**
+   * List of supported chains
+   *
+   * @generated from field: repeated xyz.aspens.arborter_config.v1.Chain chains = 1;
+   */
+  chains: Chain[];
 
-    /**
-     * List of supported markets
-     *
-     * @generated from field: repeated xyz.aspens.arborter_config.v1.Market markets = 2;
-     */
-    markets: Market[];
-  };
+  /**
+   * List of supported markets
+   *
+   * @generated from field: repeated xyz.aspens.arborter_config.v1.Market markets = 2;
+   */
+  markets: Market[];
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.Configuration.
  * Use `create(ConfigurationSchema)` to create a new message.
  */
-export const ConfigurationSchema: GenMessage<Configuration> =
-  /*@__PURE__*/
+export const ConfigurationSchema: GenMessage<Configuration> = /*@__PURE__*/
   messageDesc(file_arborter_config, 12);
 
 /**
@@ -414,29 +376,27 @@ export const ConfigurationSchema: GenMessage<Configuration> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.TradeContract
  */
-export type TradeContract =
-  Message<"xyz.aspens.arborter_config.v1.TradeContract"> & {
-    /**
-     * Optional: For non-EVM chains like Hedera, Solana, etc.
-     *
-     * @generated from field: optional string contract_id = 1;
-     */
-    contractId?: string;
+export type TradeContract = Message<"xyz.aspens.arborter_config.v1.TradeContract"> & {
+  /**
+   * Optional: For non-EVM chains like Hedera, Solana, etc.
+   *
+   * @generated from field: optional string contract_id = 1;
+   */
+  contractId?: string;
 
-    /**
-     * The chain address of the trade contract
-     *
-     * @generated from field: string address = 2;
-     */
-    address: string;
-  };
+  /**
+   * The chain address of the trade contract
+   *
+   * @generated from field: string address = 2;
+   */
+  address: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.TradeContract.
  * Use `create(TradeContractSchema)` to create a new message.
  */
-export const TradeContractSchema: GenMessage<TradeContract> =
-  /*@__PURE__*/
+export const TradeContractSchema: GenMessage<TradeContract> = /*@__PURE__*/
   messageDesc(file_arborter_config, 13);
 
 /**
@@ -502,23 +462,30 @@ export type Chain = Message<"xyz.aspens.arborter_config.v1.Chain"> & {
   serviceAddress: string;
 
   /**
+   * The address of the permit2 contract on this chain
+   *
+   * @generated from field: string permit2_address = 9;
+   */
+  permit2Address: string;
+
+  /**
    * The trade contract details
    *
-   * @generated from field: xyz.aspens.arborter_config.v1.TradeContract trade_contract = 9;
+   * @generated from field: xyz.aspens.arborter_config.v1.TradeContract trade_contract = 10;
    */
   tradeContract?: TradeContract;
 
   /**
    * Mapping of token symbols to token details
    *
-   * @generated from field: map<string, xyz.aspens.arborter_config.v1.Token> tokens = 10;
+   * @generated from field: map<string, xyz.aspens.arborter_config.v1.Token> tokens = 11;
    */
   tokens: { [key: string]: Token };
 
   /**
    * Declare whether this chain should act as the base or quote side of the trading pairs
    *
-   * @generated from field: xyz.aspens.arborter_config.v1.BaseOrQuote base_or_quote = 11;
+   * @generated from field: xyz.aspens.arborter_config.v1.BaseOrQuote base_or_quote = 12;
    */
   baseOrQuote: BaseOrQuote;
 };
@@ -527,8 +494,7 @@ export type Chain = Message<"xyz.aspens.arborter_config.v1.Chain"> & {
  * Describes the message xyz.aspens.arborter_config.v1.Chain.
  * Use `create(ChainSchema)` to create a new message.
  */
-export const ChainSchema: GenMessage<Chain> =
-  /*@__PURE__*/
+export const ChainSchema: GenMessage<Chain> = /*@__PURE__*/
   messageDesc(file_arborter_config, 14);
 
 /**
@@ -612,8 +578,7 @@ export type Market = Message<"xyz.aspens.arborter_config.v1.Market"> & {
  * Describes the message xyz.aspens.arborter_config.v1.Market.
  * Use `create(MarketSchema)` to create a new message.
  */
-export const MarketSchema: GenMessage<Market> =
-  /*@__PURE__*/
+export const MarketSchema: GenMessage<Market> = /*@__PURE__*/
   messageDesc(file_arborter_config, 15);
 
 /**
@@ -669,8 +634,7 @@ export type Token = Message<"xyz.aspens.arborter_config.v1.Token"> & {
  * Describes the message xyz.aspens.arborter_config.v1.Token.
  * Use `create(TokenSchema)` to create a new message.
  */
-export const TokenSchema: GenMessage<Token> =
-  /*@__PURE__*/
+export const TokenSchema: GenMessage<Token> = /*@__PURE__*/
   messageDesc(file_arborter_config, 16);
 
 /**
@@ -678,22 +642,20 @@ export const TokenSchema: GenMessage<Token> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteMarketRequest
  */
-export type DeleteMarketRequest =
-  Message<"xyz.aspens.arborter_config.v1.DeleteMarketRequest"> & {
-    /**
-     * The market ID to delete
-     *
-     * @generated from field: string market_id = 1;
-     */
-    marketId: string;
-  };
+export type DeleteMarketRequest = Message<"xyz.aspens.arborter_config.v1.DeleteMarketRequest"> & {
+  /**
+   * The market ID to delete
+   *
+   * @generated from field: string market_id = 1;
+   */
+  marketId: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteMarketRequest.
  * Use `create(DeleteMarketRequestSchema)` to create a new message.
  */
-export const DeleteMarketRequestSchema: GenMessage<DeleteMarketRequest> =
-  /*@__PURE__*/
+export const DeleteMarketRequestSchema: GenMessage<DeleteMarketRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 17);
 
 /**
@@ -701,29 +663,27 @@ export const DeleteMarketRequestSchema: GenMessage<DeleteMarketRequest> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteMarketResponse
  */
-export type DeleteMarketResponse =
-  Message<"xyz.aspens.arborter_config.v1.DeleteMarketResponse"> & {
-    /**
-     * Indicates if the market was deleted successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type DeleteMarketResponse = Message<"xyz.aspens.arborter_config.v1.DeleteMarketResponse"> & {
+  /**
+   * Indicates if the market was deleted successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object after deletion
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object after deletion
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteMarketResponse.
  * Use `create(DeleteMarketResponseSchema)` to create a new message.
  */
-export const DeleteMarketResponseSchema: GenMessage<DeleteMarketResponse> =
-  /*@__PURE__*/
+export const DeleteMarketResponseSchema: GenMessage<DeleteMarketResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 18);
 
 /**
@@ -731,29 +691,27 @@ export const DeleteMarketResponseSchema: GenMessage<DeleteMarketResponse> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteTokenRequest
  */
-export type DeleteTokenRequest =
-  Message<"xyz.aspens.arborter_config.v1.DeleteTokenRequest"> & {
-    /**
-     * The chain network where the token exists
-     *
-     * @generated from field: string chain_network = 1;
-     */
-    chainNetwork: string;
+export type DeleteTokenRequest = Message<"xyz.aspens.arborter_config.v1.DeleteTokenRequest"> & {
+  /**
+   * The chain network where the token exists
+   *
+   * @generated from field: string chain_network = 1;
+   */
+  chainNetwork: string;
 
-    /**
-     * The token symbol to delete
-     *
-     * @generated from field: string token_symbol = 2;
-     */
-    tokenSymbol: string;
-  };
+  /**
+   * The token symbol to delete
+   *
+   * @generated from field: string token_symbol = 2;
+   */
+  tokenSymbol: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteTokenRequest.
  * Use `create(DeleteTokenRequestSchema)` to create a new message.
  */
-export const DeleteTokenRequestSchema: GenMessage<DeleteTokenRequest> =
-  /*@__PURE__*/
+export const DeleteTokenRequestSchema: GenMessage<DeleteTokenRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 19);
 
 /**
@@ -761,29 +719,27 @@ export const DeleteTokenRequestSchema: GenMessage<DeleteTokenRequest> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteTokenResponse
  */
-export type DeleteTokenResponse =
-  Message<"xyz.aspens.arborter_config.v1.DeleteTokenResponse"> & {
-    /**
-     * Indicates if the token was deleted successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type DeleteTokenResponse = Message<"xyz.aspens.arborter_config.v1.DeleteTokenResponse"> & {
+  /**
+   * Indicates if the token was deleted successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object after deletion
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object after deletion
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteTokenResponse.
  * Use `create(DeleteTokenResponseSchema)` to create a new message.
  */
-export const DeleteTokenResponseSchema: GenMessage<DeleteTokenResponse> =
-  /*@__PURE__*/
+export const DeleteTokenResponseSchema: GenMessage<DeleteTokenResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 20);
 
 /**
@@ -791,22 +747,20 @@ export const DeleteTokenResponseSchema: GenMessage<DeleteTokenResponse> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteChainRequest
  */
-export type DeleteChainRequest =
-  Message<"xyz.aspens.arborter_config.v1.DeleteChainRequest"> & {
-    /**
-     * The chain network to delete
-     *
-     * @generated from field: string chain_network = 1;
-     */
-    chainNetwork: string;
-  };
+export type DeleteChainRequest = Message<"xyz.aspens.arborter_config.v1.DeleteChainRequest"> & {
+  /**
+   * The chain network to delete
+   *
+   * @generated from field: string chain_network = 1;
+   */
+  chainNetwork: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteChainRequest.
  * Use `create(DeleteChainRequestSchema)` to create a new message.
  */
-export const DeleteChainRequestSchema: GenMessage<DeleteChainRequest> =
-  /*@__PURE__*/
+export const DeleteChainRequestSchema: GenMessage<DeleteChainRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 21);
 
 /**
@@ -814,29 +768,27 @@ export const DeleteChainRequestSchema: GenMessage<DeleteChainRequest> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteChainResponse
  */
-export type DeleteChainResponse =
-  Message<"xyz.aspens.arborter_config.v1.DeleteChainResponse"> & {
-    /**
-     * Indicates if the chain was deleted successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type DeleteChainResponse = Message<"xyz.aspens.arborter_config.v1.DeleteChainResponse"> & {
+  /**
+   * Indicates if the chain was deleted successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object after deletion
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object after deletion
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteChainResponse.
  * Use `create(DeleteChainResponseSchema)` to create a new message.
  */
-export const DeleteChainResponseSchema: GenMessage<DeleteChainResponse> =
-  /*@__PURE__*/
+export const DeleteChainResponseSchema: GenMessage<DeleteChainResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 22);
 
 /**
@@ -844,22 +796,20 @@ export const DeleteChainResponseSchema: GenMessage<DeleteChainResponse> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteTradeContractRequest
  */
-export type DeleteTradeContractRequest =
-  Message<"xyz.aspens.arborter_config.v1.DeleteTradeContractRequest"> & {
-    /**
-     * The chain ID to delete the trade contract from
-     *
-     * @generated from field: int32 chain_id = 1;
-     */
-    chainId: number;
-  };
+export type DeleteTradeContractRequest = Message<"xyz.aspens.arborter_config.v1.DeleteTradeContractRequest"> & {
+  /**
+   * The chain ID to delete the trade contract from
+   *
+   * @generated from field: int32 chain_id = 1;
+   */
+  chainId: number;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteTradeContractRequest.
  * Use `create(DeleteTradeContractRequestSchema)` to create a new message.
  */
-export const DeleteTradeContractRequestSchema: GenMessage<DeleteTradeContractRequest> =
-  /*@__PURE__*/
+export const DeleteTradeContractRequestSchema: GenMessage<DeleteTradeContractRequest> = /*@__PURE__*/
   messageDesc(file_arborter_config, 23);
 
 /**
@@ -867,42 +817,40 @@ export const DeleteTradeContractRequestSchema: GenMessage<DeleteTradeContractReq
  *
  * @generated from message xyz.aspens.arborter_config.v1.DeleteTradeContractResponse
  */
-export type DeleteTradeContractResponse =
-  Message<"xyz.aspens.arborter_config.v1.DeleteTradeContractResponse"> & {
-    /**
-     * Indicates if the trade contract was deleted successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type DeleteTradeContractResponse = Message<"xyz.aspens.arborter_config.v1.DeleteTradeContractResponse"> & {
+  /**
+   * Indicates if the trade contract was deleted successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The configuration object after deletion
-     *
-     * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
-     */
-    config?: Configuration;
-  };
+  /**
+   * The configuration object after deletion
+   *
+   * @generated from field: xyz.aspens.arborter_config.v1.Configuration config = 2;
+   */
+  config?: Configuration;
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.DeleteTradeContractResponse.
  * Use `create(DeleteTradeContractResponseSchema)` to create a new message.
  */
-export const DeleteTradeContractResponseSchema: GenMessage<DeleteTradeContractResponse> =
-  /*@__PURE__*/
+export const DeleteTradeContractResponseSchema: GenMessage<DeleteTradeContractResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 24);
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.Empty
  */
-export type Empty = Message<"xyz.aspens.arborter_config.v1.Empty"> & {};
+export type Empty = Message<"xyz.aspens.arborter_config.v1.Empty"> & {
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.Empty.
  * Use `create(EmptySchema)` to create a new message.
  */
-export const EmptySchema: GenMessage<Empty> =
-  /*@__PURE__*/
+export const EmptySchema: GenMessage<Empty> = /*@__PURE__*/
   messageDesc(file_arborter_config, 25);
 
 /**
@@ -910,71 +858,69 @@ export const EmptySchema: GenMessage<Empty> =
  *
  * @generated from message xyz.aspens.arborter_config.v1.VersionInfo
  */
-export type VersionInfo =
-  Message<"xyz.aspens.arborter_config.v1.VersionInfo"> & {
-    /**
-     * The version of the application (e.g., "1.0.0")
-     *
-     * @generated from field: string version = 1;
-     */
-    version: string;
+export type VersionInfo = Message<"xyz.aspens.arborter_config.v1.VersionInfo"> & {
+  /**
+   * The version of the application (e.g., "1.0.0")
+   *
+   * @generated from field: string version = 1;
+   */
+  version: string;
 
-    /**
-     * The git commit hash
-     *
-     * @generated from field: string git_commit_hash = 2;
-     */
-    gitCommitHash: string;
+  /**
+   * The git commit hash
+   *
+   * @generated from field: string git_commit_hash = 2;
+   */
+  gitCommitHash: string;
 
-    /**
-     * The git commit date
-     *
-     * @generated from field: string git_commit_date = 3;
-     */
-    gitCommitDate: string;
+  /**
+   * The git commit date
+   *
+   * @generated from field: string git_commit_date = 3;
+   */
+  gitCommitDate: string;
 
-    /**
-     * The git branch name
-     *
-     * @generated from field: string git_branch = 4;
-     */
-    gitBranch: string;
+  /**
+   * The git branch name
+   *
+   * @generated from field: string git_branch = 4;
+   */
+  gitBranch: string;
 
-    /**
-     * The build timestamp
-     *
-     * @generated from field: string build_timestamp = 5;
-     */
-    buildTimestamp: string;
+  /**
+   * The build timestamp
+   *
+   * @generated from field: string build_timestamp = 5;
+   */
+  buildTimestamp: string;
 
-    /**
-     * The target triple
-     *
-     * @generated from field: string target_triple = 6;
-     */
-    targetTriple: string;
+  /**
+   * The target triple
+   *
+   * @generated from field: string target_triple = 6;
+   */
+  targetTriple: string;
 
-    /**
-     * The rustc version used to build
-     *
-     * @generated from field: string rustc_version = 7;
-     */
-    rustcVersion: string;
+  /**
+   * The rustc version used to build
+   *
+   * @generated from field: string rustc_version = 7;
+   */
+  rustcVersion: string;
 
-    /**
-     * The cargo features enabled
-     *
-     * @generated from field: repeated string cargo_features = 8;
-     */
-    cargoFeatures: string[];
-  };
+  /**
+   * The cargo features enabled
+   *
+   * @generated from field: repeated string cargo_features = 8;
+   */
+  cargoFeatures: string[];
+};
 
 /**
  * Describes the message xyz.aspens.arborter_config.v1.VersionInfo.
  * Use `create(VersionInfoSchema)` to create a new message.
  */
-export const VersionInfoSchema: GenMessage<VersionInfo> =
-  /*@__PURE__*/
+export const VersionInfoSchema: GenMessage<VersionInfo> = /*@__PURE__*/
   messageDesc(file_arborter_config, 26);
 
 /**
@@ -1000,8 +946,7 @@ export enum BaseOrQuote {
 /**
  * Describes the enum xyz.aspens.arborter_config.v1.BaseOrQuote.
  */
-export const BaseOrQuoteSchema: GenEnum<BaseOrQuote> =
-  /*@__PURE__*/
+export const BaseOrQuoteSchema: GenEnum<BaseOrQuote> = /*@__PURE__*/
   enumDesc(file_arborter_config, 0);
 
 /**
@@ -1019,7 +964,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof DeployContractRequestSchema;
     output: typeof DeployContractResponseSchema;
-  };
+  },
   /**
    * rpc service to add a chain to the configuration
    *
@@ -1029,7 +974,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof AddChainRequestSchema;
     output: typeof AddChainResponseSchema;
-  };
+  },
   /**
    * rpc service to add a new token to trade
    *
@@ -1039,7 +984,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof AddTokenRequestSchema;
     output: typeof AddTokenResponseSchema;
-  };
+  },
   /**
    * rpc service to add a new market to trade
    *
@@ -1049,7 +994,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof AddMarketRequestSchema;
     output: typeof AddMarketResponseSchema;
-  };
+  },
   /**
    * rpc service to add a new trade contract
    *
@@ -1059,7 +1004,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof AddTradeContractRequestSchema;
     output: typeof AddTradeContractResponseSchema;
-  };
+  },
   /**
    * rpc service to get the configuration
    *
@@ -1069,7 +1014,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof GetConfigRequestSchema;
     output: typeof GetConfigResponseSchema;
-  };
+  },
   /**
    * rpc service to get version information
    *
@@ -1079,7 +1024,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof EmptySchema;
     output: typeof VersionInfoSchema;
-  };
+  },
   /**
    * rpc service to delete a market
    *
@@ -1089,7 +1034,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof DeleteMarketRequestSchema;
     output: typeof DeleteMarketResponseSchema;
-  };
+  },
   /**
    * rpc service to delete a token
    *
@@ -1099,7 +1044,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof DeleteTokenRequestSchema;
     output: typeof DeleteTokenResponseSchema;
-  };
+  },
   /**
    * rpc service to delete a chain
    *
@@ -1109,7 +1054,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof DeleteChainRequestSchema;
     output: typeof DeleteChainResponseSchema;
-  };
+  },
   /**
    * rpc service to delete a trade contract
    *
@@ -1119,5 +1064,7 @@ export const ConfigService: GenService<{
     methodKind: "unary";
     input: typeof DeleteTradeContractRequestSchema;
     output: typeof DeleteTradeContractResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_arborter_config, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_arborter_config, 0);
+

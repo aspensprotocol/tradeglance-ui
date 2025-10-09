@@ -142,7 +142,14 @@ export const handleApiError = (
       // More specific patterns for common spam errors
       error.message.includes("ConnectError: [unknown]") ||
       (error.message.includes("ConnectError") &&
-        error.message.includes("[unknown]")));
+        error.message.includes("[unknown]")) ||
+      // Add 503 Service Unavailable and connection reset errors
+      error.message.includes("503") ||
+      error.message.includes("Service Unavailable") ||
+      error.message.includes("upstream connect error") ||
+      error.message.includes("reset before headers") ||
+      error.message.includes("remote reset") ||
+      error.message.includes("ERR_INCOMPLETE_CHUNKED_ENCODING"));
 
   // Create a more specific error key for API errors
   const apiErrorKey = `API-${endpoint || "unknown"}-${error instanceof Error ? error.message.substring(0, 100) : "unknown"}`;
