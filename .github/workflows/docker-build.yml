@@ -7,8 +7,9 @@ on:
     branches: [main, master]
 
 env:
+  IMAGE_NAME: aspens/tradeglance
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  PUBLIC_ECR_REGISTRY: public.ecr.aws/v4f6x5y1/aspens-xyz/tradeglance
 
 jobs:
   build-and-push:
@@ -18,33 +19,47 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image
-        env:
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
-          VITE_GRPC_WEB_PROXY_URL: ${{ vars.VITE_GRPC_WEB_PROXY_URL }}
+      - name: Login to Public ECR
         run: |
-          # Build a docker container
-          docker build --build-arg VITE_GRPC_WEB_PROXY_URL=$VITE_GRPC_WEB_PROXY_URL -t $ECR_REPOSITORY:$IMAGE_TAG .
+          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/v4f6x5y1
 
-      - name: Push Docker image to ECR
-        env:
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Pull latest image for caching
         run: |
-          # Push the image to ECR
-          docker push $ECR_REPOSITORY:$IMAGE_TAG
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:latest || true
 
-          echo "image=$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      - name: Build and push Docker image
+        run: |
+          docker build -f Dockerfile \
+            --cache-from ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:latest \
+            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:latest \
+            -t ${{ env.PUBLIC_ECR_REGISTRY }}:${{ github.sha }} \
+            -t ${{ env.PUBLIC_ECR_REGISTRY }}:latest \
+            .
+
+      - name: Push to AWS ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push to Public ECR
+        run: |
+          docker push ${{ env.PUBLIC_ECR_REGISTRY }}:${{ github.sha }}
+          docker push ${{ env.PUBLIC_ECR_REGISTRY }}:latest
