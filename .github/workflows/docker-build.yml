@@ -7,8 +7,9 @@ on:
     branches: [main, master]
 
 env:
+  IMAGE_NAE: aspens/tradeglance
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECR_REPOSITORY: public.ecr.aws/v4f6x5y1/aspens-xyz/tradeglance
 
 jobs:
   build-and-push:
