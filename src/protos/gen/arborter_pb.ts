@@ -2,134 +2,122 @@
 // @generated from file arborter.proto (package xyz.aspens.arborter.v1, syntax proto3)
 /* eslint-disable */
 
-import type {
-  GenEnum,
-  GenFile,
-  GenMessage,
-  GenService,
-} from "@bufbuild/protobuf/codegenv2";
-import {
-  enumDesc,
-  fileDesc,
-  messageDesc,
-  serviceDesc,
-} from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file arborter.proto.
  */
-export const file_arborter: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    "Cg5hcmJvcnRlci5wcm90bxIWeHl6LmFzcGVucy5hcmJvcnRlci52MSIHCgVFbXB0eSJiChJDYW5jZWxPcmRlclJlcXVlc3QSNAoFb3JkZXIYASABKAsyJS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyVG9DYW5jZWwSFgoOc2lnbmF0dXJlX2hhc2gYAiABKAwicgoTQ2FuY2VsT3JkZXJSZXNwb25zZRIWCg5vcmRlcl9jYW5jZWxlZBgBIAEoCBJDChJ0cmFuc2FjdGlvbl9oYXNoZXMYAiADKAsyJy54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlRyYW5zYWN0aW9uSGFzaCKyAQoQT3JkZXJib29rUmVxdWVzdBIXCg9jb250aW51ZV9zdHJlYW0YASABKAgSEQoJbWFya2V0X2lkGAIgASgJEiMKFmhpc3RvcmljYWxfb3Blbl9vcmRlcnMYAyABKAhIAIgBARIdChBmaWx0ZXJfYnlfdHJhZGVyGAQgASgJSAGIAQFCGQoXX2hpc3RvcmljYWxfb3Blbl9vcmRlcnNCEwoRX2ZpbHRlcl9ieV90cmFkZXIisgEKDFRyYWRlUmVxdWVzdBIXCg9jb250aW51ZV9zdHJlYW0YASABKAgSEQoJbWFya2V0X2lkGAIgASgJEiUKGGhpc3RvcmljYWxfY2xvc2VkX3RyYWRlcxgDIAEoCEgAiAEBEh0KEGZpbHRlcl9ieV90cmFkZXIYBCABKAlIAYgBAUIbChlfaGlzdG9yaWNhbF9jbG9zZWRfdHJhZGVzQhMKEV9maWx0ZXJfYnlfdHJhZGVyIlgKEFNlbmRPcmRlclJlcXVlc3QSLAoFb3JkZXIYASABKAsyHS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyEhYKDnNpZ25hdHVyZV9oYXNoGAIgASgMIo4CCgVPcmRlchIqCgRzaWRlGAEgASgOMhwueHl6LmFzcGVucy5hcmJvcnRlci52MS5TaWRlEhAKCHF1YW50aXR5GAIgASgJEhIKBXByaWNlGAMgASgJSACIAQESEQoJbWFya2V0X2lkGAQgASgJEhwKFGJhc2VfYWNjb3VudF9hZGRyZXNzGAUgASgJEh0KFXF1b3RlX2FjY291bnRfYWRkcmVzcxgGIAEoCRI9Cg5leGVjdXRpb25fdHlwZRgHIAEoDjIlLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuRXhlY3V0aW9uVHlwZRIaChJtYXRjaGluZ19vcmRlcl9pZHMYCCADKARCCAoGX3ByaWNlIsoCCgVUcmFkZRIRCgl0aW1lc3RhbXAYASABKAQSDQoFcHJpY2UYAiABKAkSCwoDcXR5GAMgASgJEhAKCG1ha2VyX2lkGAQgASgJEhAKCHRha2VyX2lkGAUgASgJEhoKEm1ha2VyX2Jhc2VfYWRkcmVzcxgGIAEoCRIbChNtYWtlcl9xdW90ZV9hZGRyZXNzGAcgASgJEhoKEnRha2VyX2Jhc2VfYWRkcmVzcxgIIAEoCRIbChN0YWtlcl9xdW90ZV9hZGRyZXNzGAkgASgJEjMKCGJ1eWVyX2lzGAogASgOMiEueHl6LmFzcGVucy5hcmJvcnRlci52MS5UcmFkZVJvbGUSNAoJc2VsbGVyX2lzGAsgASgOMiEueHl6LmFzcGVucy5hcmJvcnRlci52MS5UcmFkZVJvbGUSEQoJb3JkZXJfaGl0GAwgASgEIjgKD1RyYW5zYWN0aW9uSGFzaBIRCgloYXNoX3R5cGUYASABKAkSEgoKaGFzaF92YWx1ZRgCIAEoCSLbAQoRU2VuZE9yZGVyUmVzcG9uc2USFQoNb3JkZXJfaW5fYm9vaxgBIAEoCBIxCgVvcmRlchgCIAEoCzIdLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuT3JkZXJIAIgBARItCgZ0cmFkZXMYAyADKAsyHS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlRyYWRlEkMKEnRyYW5zYWN0aW9uX2hhc2hlcxgEIAMoCzInLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuVHJhbnNhY3Rpb25IYXNoQggKBl9vcmRlciJ3Cg1PcmRlclRvQ2FuY2VsEhEKCW1hcmtldF9pZBgBIAEoCRIqCgRzaWRlGAIgASgOMhwueHl6LmFzcGVucy5hcmJvcnRlci52MS5TaWRlEhUKDXRva2VuX2FkZHJlc3MYAyABKAkSEAoIb3JkZXJfaWQYBCABKAQigwIKDk9yZGVyYm9va0VudHJ5EhEKCXRpbWVzdGFtcBgBIAEoBBIQCghvcmRlcl9pZBgCIAEoBBINCgVwcmljZRgDIAEoCRIQCghxdWFudGl0eRgEIAEoCRIqCgRzaWRlGAUgASgOMhwueHl6LmFzcGVucy5hcmJvcnRlci52MS5TaWRlEhoKEm1ha2VyX2Jhc2VfYWRkcmVzcxgGIAEoCRIbChNtYWtlcl9xdW90ZV9hZGRyZXNzGAcgASgJEjMKBnN0YXR1cxgIIAEoDjIjLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuT3JkZXJTdGF0dXMSEQoJbWFya2V0X2lkGAkgASgJIkAKE0FkZE9yZGVyYm9va1JlcXVlc3QSEQoJbWFya2V0X2lkGAEgASgJEhYKDmRlY2ltYWxfcGxhY2VzGAIgASgFIjoKFEFkZE9yZGVyYm9va1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSEQoJbWFya2V0X2lkGAIgASgJIisKFlJlbW92ZU9yZGVyYm9va1JlcXVlc3QSEQoJbWFya2V0X2lkGAEgASgJIj0KF1JlbW92ZU9yZGVyYm9va1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSEQoJbWFya2V0X2lkGAIgASgJIl4KGlVuTm9ybWFsaXplRGVjaW1hbHNSZXF1ZXN0EhEKCW1hcmtldF9pZBgBIAEoCRIMCgRzaWRlGAIgASgJEhAKCHF1YW50aXR5GAMgASgJEg0KBXByaWNlGAQgASgJIqoBChtVbk5vcm1hbGl6ZURlY2ltYWxzUmVzcG9uc2USGwoTYmFzZV90b2tlbl9xdWFudGl0eRgBIAEoCRIcChRxdW90ZV90b2tlbl9xdWFudGl0eRgCIAEoCRIbChNiYXNlX3Rva2VuX2RlY2ltYWxzGAMgASgNEhwKFHF1b3RlX3Rva2VuX2RlY2ltYWxzGAQgASgNEhUKDXBhaXJfZGVjaW1hbHMYBSABKA0qOAoEU2lkZRIUChBTSURFX1VOU1BFQ0lGSUVEEAASDAoIU0lERV9CSUQQARIMCghTSURFX0FTSxACKlEKDUV4ZWN1dGlvblR5cGUSHgoaRVhFQ1VUSU9OX1RZUEVfVU5TUEVDSUZJRUQQABIgChxFWEVDVVRJT05fVFlQRV9ESVNDUkVUSU9OQVJZEAEqdwoLT3JkZXJTdGF0dXMSHAoYT1JERVJfU1RBVFVTX1VOU1BFQ0lGSUVEEAASFgoST1JERVJfU1RBVFVTX0FEREVEEAESGAoUT1JERVJfU1RBVFVTX1VQREFURUQQAhIYChRPUkRFUl9TVEFUVVNfUkVNT1ZFRBADKj0KCVRyYWRlUm9sZRIaChZUUkFERV9ST0xFX1VOU1BFQ0lGSUVEEAASCQoFTUFLRVIQARIJCgVUQUtFUhACMvgFCg9BcmJvcnRlclNlcnZpY2USYgoJU2VuZE9yZGVyEigueHl6LmFzcGVucy5hcmJvcnRlci52MS5TZW5kT3JkZXJSZXF1ZXN0GikueHl6LmFzcGVucy5hcmJvcnRlci52MS5TZW5kT3JkZXJSZXNwb25zZSIAEmgKC0NhbmNlbE9yZGVyEioueHl6LmFzcGVucy5hcmJvcnRlci52MS5DYW5jZWxPcmRlclJlcXVlc3QaKy54eXouYXNwZW5zLmFyYm9ydGVyLnYxLkNhbmNlbE9yZGVyUmVzcG9uc2UiABJRCgZUcmFkZXMSJC54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlRyYWRlUmVxdWVzdBodLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuVHJhZGUiADABEmEKCU9yZGVyYm9vaxIoLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuT3JkZXJib29rUmVxdWVzdBomLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuT3JkZXJib29rRW50cnkiADABEmsKDEFkZE9yZGVyYm9vaxIrLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuQWRkT3JkZXJib29rUmVxdWVzdBosLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuQWRkT3JkZXJib29rUmVzcG9uc2UiABJ0Cg9SZW1vdmVPcmRlcmJvb2sSLi54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlJlbW92ZU9yZGVyYm9va1JlcXVlc3QaLy54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlJlbW92ZU9yZGVyYm9va1Jlc3BvbnNlIgASfgoTVW5Ob3JtYWxpemVEZWNpbWFscxIyLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuVW5Ob3JtYWxpemVEZWNpbWFsc1JlcXVlc3QaMy54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlVuTm9ybWFsaXplRGVjaW1hbHNSZXNwb25zZUICSAFiBnByb3RvMw",
-  );
+export const file_arborter: GenFile = /*@__PURE__*/
+  fileDesc("Cg5hcmJvcnRlci5wcm90bxIWeHl6LmFzcGVucy5hcmJvcnRlci52MSIHCgVFbXB0eSJiChJDYW5jZWxPcmRlclJlcXVlc3QSNAoFb3JkZXIYASABKAsyJS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyVG9DYW5jZWwSFgoOc2lnbmF0dXJlX2hhc2gYAiABKAwitQEKE0NhbmNlbE9yZGVyUmVzcG9uc2USFgoOb3JkZXJfY2FuY2VsZWQYASABKAgSQwoSdHJhbnNhY3Rpb25faGFzaGVzGAIgAygLMicueHl6LmFzcGVucy5hcmJvcnRlci52MS5UcmFuc2FjdGlvbkhhc2gSQQoRY3VycmVudF9vcmRlcmJvb2sYAyADKAsyJi54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyYm9va0VudHJ5IrIBChBPcmRlcmJvb2tSZXF1ZXN0EhcKD2NvbnRpbnVlX3N0cmVhbRgBIAEoCBIRCgltYXJrZXRfaWQYAiABKAkSIwoWaGlzdG9yaWNhbF9vcGVuX29yZGVycxgDIAEoCEgAiAEBEh0KEGZpbHRlcl9ieV90cmFkZXIYBCABKAlIAYgBAUIZChdfaGlzdG9yaWNhbF9vcGVuX29yZGVyc0ITChFfZmlsdGVyX2J5X3RyYWRlciKyAQoMVHJhZGVSZXF1ZXN0EhcKD2NvbnRpbnVlX3N0cmVhbRgBIAEoCBIRCgltYXJrZXRfaWQYAiABKAkSJQoYaGlzdG9yaWNhbF9jbG9zZWRfdHJhZGVzGAMgASgISACIAQESHQoQZmlsdGVyX2J5X3RyYWRlchgEIAEoCUgBiAEBQhsKGV9oaXN0b3JpY2FsX2Nsb3NlZF90cmFkZXNCEwoRX2ZpbHRlcl9ieV90cmFkZXIiWAoQU2VuZE9yZGVyUmVxdWVzdBIsCgVvcmRlchgBIAEoCzIdLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuT3JkZXISFgoOc2lnbmF0dXJlX2hhc2gYAiABKAwijgIKBU9yZGVyEioKBHNpZGUYASABKA4yHC54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlNpZGUSEAoIcXVhbnRpdHkYAiABKAkSEgoFcHJpY2UYAyABKAlIAIgBARIRCgltYXJrZXRfaWQYBCABKAkSHAoUYmFzZV9hY2NvdW50X2FkZHJlc3MYBSABKAkSHQoVcXVvdGVfYWNjb3VudF9hZGRyZXNzGAYgASgJEj0KDmV4ZWN1dGlvbl90eXBlGAcgASgOMiUueHl6LmFzcGVucy5hcmJvcnRlci52MS5FeGVjdXRpb25UeXBlEhoKEm1hdGNoaW5nX29yZGVyX2lkcxgIIAMoBEIICgZfcHJpY2UiygIKBVRyYWRlEhEKCXRpbWVzdGFtcBgBIAEoBBINCgVwcmljZRgCIAEoCRILCgNxdHkYAyABKAkSEAoIbWFrZXJfaWQYBCABKAkSEAoIdGFrZXJfaWQYBSABKAkSGgoSbWFrZXJfYmFzZV9hZGRyZXNzGAYgASgJEhsKE21ha2VyX3F1b3RlX2FkZHJlc3MYByABKAkSGgoSdGFrZXJfYmFzZV9hZGRyZXNzGAggASgJEhsKE3Rha2VyX3F1b3RlX2FkZHJlc3MYCSABKAkSMwoIYnV5ZXJfaXMYCiABKA4yIS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlRyYWRlUm9sZRI0CglzZWxsZXJfaXMYCyABKA4yIS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlRyYWRlUm9sZRIRCglvcmRlcl9oaXQYDCABKAQiOAoPVHJhbnNhY3Rpb25IYXNoEhEKCWhhc2hfdHlwZRgBIAEoCRISCgpoYXNoX3ZhbHVlGAIgASgJIp4CChFTZW5kT3JkZXJSZXNwb25zZRIVCg1vcmRlcl9pbl9ib29rGAEgASgIEjEKBW9yZGVyGAIgASgLMh0ueHl6LmFzcGVucy5hcmJvcnRlci52MS5PcmRlckgAiAEBEi0KBnRyYWRlcxgDIAMoCzIdLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuVHJhZGUSQwoSdHJhbnNhY3Rpb25faGFzaGVzGAQgAygLMicueHl6LmFzcGVucy5hcmJvcnRlci52MS5UcmFuc2FjdGlvbkhhc2gSQQoRY3VycmVudF9vcmRlcmJvb2sYBSADKAsyJi54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyYm9va0VudHJ5QggKBl9vcmRlciJ3Cg1PcmRlclRvQ2FuY2VsEhEKCW1hcmtldF9pZBgBIAEoCRIqCgRzaWRlGAIgASgOMhwueHl6LmFzcGVucy5hcmJvcnRlci52MS5TaWRlEhUKDXRva2VuX2FkZHJlc3MYAyABKAkSEAoIb3JkZXJfaWQYBCABKAQigwIKDk9yZGVyYm9va0VudHJ5EhEKCXRpbWVzdGFtcBgBIAEoBBIQCghvcmRlcl9pZBgCIAEoBBINCgVwcmljZRgDIAEoCRIQCghxdWFudGl0eRgEIAEoCRIqCgRzaWRlGAUgASgOMhwueHl6LmFzcGVucy5hcmJvcnRlci52MS5TaWRlEhoKEm1ha2VyX2Jhc2VfYWRkcmVzcxgGIAEoCRIbChNtYWtlcl9xdW90ZV9hZGRyZXNzGAcgASgJEjMKBnN0YXR1cxgIIAEoDjIjLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuT3JkZXJTdGF0dXMSEQoJbWFya2V0X2lkGAkgASgJIkAKE0FkZE9yZGVyYm9va1JlcXVlc3QSEQoJbWFya2V0X2lkGAEgASgJEhYKDmRlY2ltYWxfcGxhY2VzGAIgASgFIjoKFEFkZE9yZGVyYm9va1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSEQoJbWFya2V0X2lkGAIgASgJIisKFlJlbW92ZU9yZGVyYm9va1JlcXVlc3QSEQoJbWFya2V0X2lkGAEgASgJIj0KF1JlbW92ZU9yZGVyYm9va1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSEQoJbWFya2V0X2lkGAIgASgJIl4KGlVuTm9ybWFsaXplRGVjaW1hbHNSZXF1ZXN0EhEKCW1hcmtldF9pZBgBIAEoCRIMCgRzaWRlGAIgASgJEhAKCHF1YW50aXR5GAMgASgJEg0KBXByaWNlGAQgASgJIqoBChtVbk5vcm1hbGl6ZURlY2ltYWxzUmVzcG9uc2USGwoTYmFzZV90b2tlbl9xdWFudGl0eRgBIAEoCRIcChRxdW90ZV90b2tlbl9xdWFudGl0eRgCIAEoCRIbChNiYXNlX3Rva2VuX2RlY2ltYWxzGAMgASgNEhwKFHF1b3RlX3Rva2VuX2RlY2ltYWxzGAQgASgNEhUKDXBhaXJfZGVjaW1hbHMYBSABKA0iHwodR2V0U3Ryb25naG9sZFB1YmxpY0tleVJlcXVlc3QiXwoeR2V0U3Ryb25naG9sZFB1YmxpY0tleVJlc3BvbnNlEh0KFWJhc2VfY2hhaW5fcHVibGljX2tleRgBIAEoCRIeChZxdW90ZV9jaGFpbl9wdWJsaWNfa2V5GAIgASgJKjgKBFNpZGUSFAoQU0lERV9VTlNQRUNJRklFRBAAEgwKCFNJREVfQklEEAESDAoIU0lERV9BU0sQAipRCg1FeGVjdXRpb25UeXBlEh4KGkVYRUNVVElPTl9UWVBFX1VOU1BFQ0lGSUVEEAASIAocRVhFQ1VUSU9OX1RZUEVfRElTQ1JFVElPTkFSWRABKncKC09yZGVyU3RhdHVzEhwKGE9SREVSX1NUQVRVU19VTlNQRUNJRklFRBAAEhYKEk9SREVSX1NUQVRVU19BRERFRBABEhgKFE9SREVSX1NUQVRVU19VUERBVEVEEAISGAoUT1JERVJfU1RBVFVTX1JFTU9WRUQQAyo9CglUcmFkZVJvbGUSGgoWVFJBREVfUk9MRV9VTlNQRUNJRklFRBAAEgkKBU1BS0VSEAESCQoFVEFLRVIQAjKCBwoPQXJib3J0ZXJTZXJ2aWNlEmIKCVNlbmRPcmRlchIoLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuU2VuZE9yZGVyUmVxdWVzdBopLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuU2VuZE9yZGVyUmVzcG9uc2UiABJoCgtDYW5jZWxPcmRlchIqLnh5ei5hc3BlbnMuYXJib3J0ZXIudjEuQ2FuY2VsT3JkZXJSZXF1ZXN0GisueHl6LmFzcGVucy5hcmJvcnRlci52MS5DYW5jZWxPcmRlclJlc3BvbnNlIgASUQoGVHJhZGVzEiQueHl6LmFzcGVucy5hcmJvcnRlci52MS5UcmFkZVJlcXVlc3QaHS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlRyYWRlIgAwARJhCglPcmRlcmJvb2sSKC54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyYm9va1JlcXVlc3QaJi54eXouYXNwZW5zLmFyYm9ydGVyLnYxLk9yZGVyYm9va0VudHJ5IgAwARJrCgxBZGRPcmRlcmJvb2sSKy54eXouYXNwZW5zLmFyYm9ydGVyLnYxLkFkZE9yZGVyYm9va1JlcXVlc3QaLC54eXouYXNwZW5zLmFyYm9ydGVyLnYxLkFkZE9yZGVyYm9va1Jlc3BvbnNlIgASdAoPUmVtb3ZlT3JkZXJib29rEi4ueHl6LmFzcGVucy5hcmJvcnRlci52MS5SZW1vdmVPcmRlcmJvb2tSZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlci52MS5SZW1vdmVPcmRlcmJvb2tSZXNwb25zZSIAEn4KE1VuTm9ybWFsaXplRGVjaW1hbHMSMi54eXouYXNwZW5zLmFyYm9ydGVyLnYxLlVuTm9ybWFsaXplRGVjaW1hbHNSZXF1ZXN0GjMueHl6LmFzcGVucy5hcmJvcnRlci52MS5Vbk5vcm1hbGl6ZURlY2ltYWxzUmVzcG9uc2UShwEKFkdldFN0cm9uZ2hvbGRQdWJsaWNLZXkSNS54eXouYXNwZW5zLmFyYm9ydGVyLnYxLkdldFN0cm9uZ2hvbGRQdWJsaWNLZXlSZXF1ZXN0GjYueHl6LmFzcGVucy5hcmJvcnRlci52MS5HZXRTdHJvbmdob2xkUHVibGljS2V5UmVzcG9uc2VCAkgBYgZwcm90bzM");
 
 /**
  * @generated from message xyz.aspens.arborter.v1.Empty
  */
-export type Empty = Message<"xyz.aspens.arborter.v1.Empty"> & {};
+export type Empty = Message<"xyz.aspens.arborter.v1.Empty"> & {
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.Empty.
  * Use `create(EmptySchema)` to create a new message.
  */
-export const EmptySchema: GenMessage<Empty> =
-  /*@__PURE__*/
+export const EmptySchema: GenMessage<Empty> = /*@__PURE__*/
   messageDesc(file_arborter, 0);
 
 /**
  * @generated from message xyz.aspens.arborter.v1.CancelOrderRequest
  */
-export type CancelOrderRequest =
-  Message<"xyz.aspens.arborter.v1.CancelOrderRequest"> & {
-    /**
-     * @generated from field: xyz.aspens.arborter.v1.OrderToCancel order = 1;
-     */
-    order?: OrderToCancel;
+export type CancelOrderRequest = Message<"xyz.aspens.arborter.v1.CancelOrderRequest"> & {
+  /**
+   * @generated from field: xyz.aspens.arborter.v1.OrderToCancel order = 1;
+   */
+  order?: OrderToCancel;
 
-    /**
-     * @generated from field: bytes signature_hash = 2;
-     */
-    signatureHash: Uint8Array;
-  };
+  /**
+   * @generated from field: bytes signature_hash = 2;
+   */
+  signatureHash: Uint8Array;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.CancelOrderRequest.
  * Use `create(CancelOrderRequestSchema)` to create a new message.
  */
-export const CancelOrderRequestSchema: GenMessage<CancelOrderRequest> =
-  /*@__PURE__*/
+export const CancelOrderRequestSchema: GenMessage<CancelOrderRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 1);
 
 /**
  * @generated from message xyz.aspens.arborter.v1.CancelOrderResponse
  */
-export type CancelOrderResponse =
-  Message<"xyz.aspens.arborter.v1.CancelOrderResponse"> & {
-    /**
-     * Whether the order was found and canceled
-     *
-     * @generated from field: bool order_canceled = 1;
-     */
-    orderCanceled: boolean;
+export type CancelOrderResponse = Message<"xyz.aspens.arborter.v1.CancelOrderResponse"> & {
+  /**
+   * Whether the order was found and canceled
+   *
+   * @generated from field: bool order_canceled = 1;
+   */
+  orderCanceled: boolean;
 
-    /**
-     * Transaction hashes associated with this cancellation
-     *
-     * @generated from field: repeated xyz.aspens.arborter.v1.TransactionHash transaction_hashes = 2;
-     */
-    transactionHashes: TransactionHash[];
-  };
+  /**
+   * Transaction hashes associated with this cancellation
+   *
+   * @generated from field: repeated xyz.aspens.arborter.v1.TransactionHash transaction_hashes = 2;
+   */
+  transactionHashes: TransactionHash[];
+
+  /**
+   * Current state of the orderbook after this operation
+   *
+   * @generated from field: repeated xyz.aspens.arborter.v1.OrderbookEntry current_orderbook = 3;
+   */
+  currentOrderbook: OrderbookEntry[];
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.CancelOrderResponse.
  * Use `create(CancelOrderResponseSchema)` to create a new message.
  */
-export const CancelOrderResponseSchema: GenMessage<CancelOrderResponse> =
-  /*@__PURE__*/
+export const CancelOrderResponseSchema: GenMessage<CancelOrderResponse> = /*@__PURE__*/
   messageDesc(file_arborter, 2);
 
 /**
  * @generated from message xyz.aspens.arborter.v1.OrderbookRequest
  */
-export type OrderbookRequest =
-  Message<"xyz.aspens.arborter.v1.OrderbookRequest"> & {
-    /**
-     * Used to keep the client alive
-     *
-     * @generated from field: bool continue_stream = 1;
-     */
-    continueStream: boolean;
+export type OrderbookRequest = Message<"xyz.aspens.arborter.v1.OrderbookRequest"> & {
+  /**
+   * Used to keep the client alive
+   *
+   * @generated from field: bool continue_stream = 1;
+   */
+  continueStream: boolean;
 
-    /**
-     * The market id to stream orders for
-     *
-     * @generated from field: string market_id = 2;
-     */
-    marketId: string;
+  /**
+   * The market id to stream orders for
+   *
+   * @generated from field: string market_id = 2;
+   */
+  marketId: string;
 
-    /**
-     * If true, returns existing open orders when stream starts, then continues streaming
-     *
-     * @generated from field: optional bool historical_open_orders = 3;
-     */
-    historicalOpenOrders?: boolean;
+  /**
+   * If true, returns existing open orders when stream starts, then continues streaming
+   *
+   * @generated from field: optional bool historical_open_orders = 3;
+   */
+  historicalOpenOrders?: boolean;
 
-    /**
-     * If this is sent too, then we filter by a specific trader
-     *
-     * @generated from field: optional string filter_by_trader = 4;
-     */
-    filterByTrader?: string;
-  };
+  /**
+   * If this is sent too, then we filter by a specific trader
+   *
+   * @generated from field: optional string filter_by_trader = 4;
+   */
+  filterByTrader?: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.OrderbookRequest.
  * Use `create(OrderbookRequestSchema)` to create a new message.
  */
-export const OrderbookRequestSchema: GenMessage<OrderbookRequest> =
-  /*@__PURE__*/
+export const OrderbookRequestSchema: GenMessage<OrderbookRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 3);
 
 /**
@@ -169,36 +157,33 @@ export type TradeRequest = Message<"xyz.aspens.arborter.v1.TradeRequest"> & {
  * Describes the message xyz.aspens.arborter.v1.TradeRequest.
  * Use `create(TradeRequestSchema)` to create a new message.
  */
-export const TradeRequestSchema: GenMessage<TradeRequest> =
-  /*@__PURE__*/
+export const TradeRequestSchema: GenMessage<TradeRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 4);
 
 /**
  * @generated from message xyz.aspens.arborter.v1.SendOrderRequest
  */
-export type SendOrderRequest =
-  Message<"xyz.aspens.arborter.v1.SendOrderRequest"> & {
-    /**
-     * The order to send
-     *
-     * @generated from field: xyz.aspens.arborter.v1.Order order = 1;
-     */
-    order?: Order;
+export type SendOrderRequest = Message<"xyz.aspens.arborter.v1.SendOrderRequest"> & {
+  /**
+   * The order to send
+   *
+   * @generated from field: xyz.aspens.arborter.v1.Order order = 1;
+   */
+  order?: Order;
 
-    /**
-     * Valid EIP-712 signature hash of this order
-     *
-     * @generated from field: bytes signature_hash = 2;
-     */
-    signatureHash: Uint8Array;
-  };
+  /**
+   * Valid EIP-712 signature hash of this order
+   *
+   * @generated from field: bytes signature_hash = 2;
+   */
+  signatureHash: Uint8Array;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.SendOrderRequest.
  * Use `create(SendOrderRequestSchema)` to create a new message.
  */
-export const SendOrderRequestSchema: GenMessage<SendOrderRequest> =
-  /*@__PURE__*/
+export const SendOrderRequestSchema: GenMessage<SendOrderRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 5);
 
 /**
@@ -266,8 +251,7 @@ export type Order = Message<"xyz.aspens.arborter.v1.Order"> & {
  * Describes the message xyz.aspens.arborter.v1.Order.
  * Use `create(OrderSchema)` to create a new message.
  */
-export const OrderSchema: GenMessage<Order> =
-  /*@__PURE__*/
+export const OrderSchema: GenMessage<Order> = /*@__PURE__*/
   messageDesc(file_arborter, 6);
 
 /**
@@ -363,86 +347,88 @@ export type Trade = Message<"xyz.aspens.arborter.v1.Trade"> & {
  * Describes the message xyz.aspens.arborter.v1.Trade.
  * Use `create(TradeSchema)` to create a new message.
  */
-export const TradeSchema: GenMessage<Trade> =
-  /*@__PURE__*/
+export const TradeSchema: GenMessage<Trade> = /*@__PURE__*/
   messageDesc(file_arborter, 7);
 
 /**
- * Transaction hash information
+ * Transaction hash information 
  *
  * @generated from message xyz.aspens.arborter.v1.TransactionHash
  */
-export type TransactionHash =
-  Message<"xyz.aspens.arborter.v1.TransactionHash"> & {
-    /**
-     * Type of transaction hash
-     *
-     * @generated from field: string hash_type = 1;
-     */
-    hashType: string;
+export type TransactionHash = Message<"xyz.aspens.arborter.v1.TransactionHash"> & {
+  /**
+   * Type of transaction hash
+   *
+   * @generated from field: string hash_type = 1;
+   */
+  hashType: string;
 
-    /**
-     * The transaction hash value
-     *
-     * @generated from field: string hash_value = 2;
-     */
-    hashValue: string;
-  };
+  /**
+   * The transaction hash value
+   *
+   * @generated from field: string hash_value = 2;
+   */
+  hashValue: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.TransactionHash.
  * Use `create(TransactionHashSchema)` to create a new message.
  */
-export const TransactionHashSchema: GenMessage<TransactionHash> =
-  /*@__PURE__*/
+export const TransactionHashSchema: GenMessage<TransactionHash> = /*@__PURE__*/
   messageDesc(file_arborter, 8);
 
 /**
- * rpc: SendOrder
+ * rpc: SendOrder 
  *
  * @generated from message xyz.aspens.arborter.v1.SendOrderResponse
  */
-export type SendOrderResponse =
-  Message<"xyz.aspens.arborter.v1.SendOrderResponse"> & {
-    /**
-     * Whether the order has unmatched volume and has been added to the book.
-     *
-     * @generated from field: bool order_in_book = 1;
-     */
-    orderInBook: boolean;
+export type SendOrderResponse = Message<"xyz.aspens.arborter.v1.SendOrderResponse"> & {
+  /**
+   * Whether the order has unmatched volume and has been added to the book.
+   *
+   * @generated from field: bool order_in_book = 1;
+   */
+  orderInBook: boolean;
 
-    /**
-     * If the order lands in the book, what remains unfilled from the order.
-     *
-     * @generated from field: optional xyz.aspens.arborter.v1.Order order = 2;
-     */
-    order?: Order;
+  /**
+   * If the order lands in the book, what remains unfilled from the order.
+   *
+   * @generated from field: optional xyz.aspens.arborter.v1.Order order = 2;
+   */
+  order?: Order;
 
-    /**
-     * Which other orders, if any, this order was matched with.
-     *
-     * @generated from field: repeated xyz.aspens.arborter.v1.Trade trades = 3;
-     */
-    trades: Trade[];
+  /**
+   * Which other orders, if any, this order was matched with.
+   *
+   * @generated from field: repeated xyz.aspens.arborter.v1.Trade trades = 3;
+   */
+  trades: Trade[];
 
-    /**
-     * Transaction hashes associated with this order
-     *
-     * @generated from field: repeated xyz.aspens.arborter.v1.TransactionHash transaction_hashes = 4;
-     */
-    transactionHashes: TransactionHash[];
-  };
+  /**
+   * Transaction hashes associated with this order
+   *
+   * @generated from field: repeated xyz.aspens.arborter.v1.TransactionHash transaction_hashes = 4;
+   */
+  transactionHashes: TransactionHash[];
+
+  /**
+   * Current state of the orderbook after this operation
+   *
+   * @generated from field: repeated xyz.aspens.arborter.v1.OrderbookEntry current_orderbook = 5;
+   */
+  currentOrderbook: OrderbookEntry[];
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.SendOrderResponse.
  * Use `create(SendOrderResponseSchema)` to create a new message.
  */
-export const SendOrderResponseSchema: GenMessage<SendOrderResponse> =
-  /*@__PURE__*/
+export const SendOrderResponseSchema: GenMessage<SendOrderResponse> = /*@__PURE__*/
   messageDesc(file_arborter, 9);
 
 /**
- * rpc: CancelOrder
+ * rpc: CancelOrder 
  *
  * @generated from message xyz.aspens.arborter.v1.OrderToCancel
  */
@@ -480,87 +466,84 @@ export type OrderToCancel = Message<"xyz.aspens.arborter.v1.OrderToCancel"> & {
  * Describes the message xyz.aspens.arborter.v1.OrderToCancel.
  * Use `create(OrderToCancelSchema)` to create a new message.
  */
-export const OrderToCancelSchema: GenMessage<OrderToCancel> =
-  /*@__PURE__*/
+export const OrderToCancelSchema: GenMessage<OrderToCancel> = /*@__PURE__*/
   messageDesc(file_arborter, 10);
 
 /**
- * rpc: Orderbook
+ * rpc: Orderbook 
  *
  * @generated from message xyz.aspens.arborter.v1.OrderbookEntry
  */
-export type OrderbookEntry =
-  Message<"xyz.aspens.arborter.v1.OrderbookEntry"> & {
-    /**
-     * when the order first landed in The Orderbook
-     *
-     * @generated from field: uint64 timestamp = 1;
-     */
-    timestamp: bigint;
+export type OrderbookEntry = Message<"xyz.aspens.arborter.v1.OrderbookEntry"> & {
+  /**
+   * when the order first landed in The Orderbook
+   *
+   * @generated from field: uint64 timestamp = 1;
+   */
+  timestamp: bigint;
 
-    /**
-     * internal id of the order
-     *
-     * @generated from field: uint64 order_id = 2;
-     */
-    orderId: bigint;
+  /**
+   * internal id of the order
+   *
+   * @generated from field: uint64 order_id = 2;
+   */
+  orderId: bigint;
 
-    /**
-     * price of the order - in non-decimal form
-     *
-     * @generated from field: string price = 3;
-     */
-    price: string;
+  /**
+   * price of the order - in non-decimal form
+   *
+   * @generated from field: string price = 3;
+   */
+  price: string;
 
-    /**
-     * quantity of the order - in non-decimal form
-     *
-     * @generated from field: string quantity = 4;
-     */
-    quantity: string;
+  /**
+   * quantity of the order - in non-decimal form
+   *
+   * @generated from field: string quantity = 4;
+   */
+  quantity: string;
 
-    /**
-     * 'BID = 1' or 'ASK = 2'
-     *
-     * @generated from field: xyz.aspens.arborter.v1.Side side = 5;
-     */
-    side: Side;
+  /**
+   * 'BID = 1' or 'ASK = 2'
+   *
+   * @generated from field: xyz.aspens.arborter.v1.Side side = 5;
+   */
+  side: Side;
 
-    /**
-     * The maker's base chain wallet address
-     *
-     * @generated from field: string maker_base_address = 6;
-     */
-    makerBaseAddress: string;
+  /**
+   * The maker's base chain wallet address
+   *
+   * @generated from field: string maker_base_address = 6;
+   */
+  makerBaseAddress: string;
 
-    /**
-     * The maker's quote chain wallet address
-     *
-     * @generated from field: string maker_quote_address = 7;
-     */
-    makerQuoteAddress: string;
+  /**
+   * The maker's quote chain wallet address
+   *
+   * @generated from field: string maker_quote_address = 7;
+   */
+  makerQuoteAddress: string;
 
-    /**
-     * 'ADDED = 1', 'UPDATED = 2', 'REMOVED = 3'
-     *
-     * @generated from field: xyz.aspens.arborter.v1.OrderStatus status = 8;
-     */
-    status: OrderStatus;
+  /**
+   * 'ADDED = 1', 'UPDATED = 2', 'REMOVED = 3'
+   *
+   * @generated from field: xyz.aspens.arborter.v1.OrderStatus status = 8;
+   */
+  status: OrderStatus;
 
-    /**
-     * The market ID this order belongs to
-     *
-     * @generated from field: string market_id = 9;
-     */
-    marketId: string;
-  };
+  /**
+   * The market ID this order belongs to
+   *
+   * @generated from field: string market_id = 9;
+   */
+  marketId: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.OrderbookEntry.
  * Use `create(OrderbookEntrySchema)` to create a new message.
  */
-export const OrderbookEntrySchema: GenMessage<OrderbookEntry> =
-  /*@__PURE__*/
+export const OrderbookEntrySchema: GenMessage<OrderbookEntry> = /*@__PURE__*/
   messageDesc(file_arborter, 11);
 
 /**
@@ -568,29 +551,27 @@ export const OrderbookEntrySchema: GenMessage<OrderbookEntry> =
  *
  * @generated from message xyz.aspens.arborter.v1.AddOrderbookRequest
  */
-export type AddOrderbookRequest =
-  Message<"xyz.aspens.arborter.v1.AddOrderbookRequest"> & {
-    /**
-     * The market ID to add the orderbook for
-     *
-     * @generated from field: string market_id = 1;
-     */
-    marketId: string;
+export type AddOrderbookRequest = Message<"xyz.aspens.arborter.v1.AddOrderbookRequest"> & {
+  /**
+   * The market ID to add the orderbook for
+   *
+   * @generated from field: string market_id = 1;
+   */
+  marketId: string;
 
-    /**
-     * The number of decimal places for the orderbook
-     *
-     * @generated from field: int32 decimal_places = 2;
-     */
-    decimalPlaces: number;
-  };
+  /**
+   * The number of decimal places for the orderbook
+   *
+   * @generated from field: int32 decimal_places = 2;
+   */
+  decimalPlaces: number;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.AddOrderbookRequest.
  * Use `create(AddOrderbookRequestSchema)` to create a new message.
  */
-export const AddOrderbookRequestSchema: GenMessage<AddOrderbookRequest> =
-  /*@__PURE__*/
+export const AddOrderbookRequestSchema: GenMessage<AddOrderbookRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 12);
 
 /**
@@ -598,29 +579,27 @@ export const AddOrderbookRequestSchema: GenMessage<AddOrderbookRequest> =
  *
  * @generated from message xyz.aspens.arborter.v1.AddOrderbookResponse
  */
-export type AddOrderbookResponse =
-  Message<"xyz.aspens.arborter.v1.AddOrderbookResponse"> & {
-    /**
-     * Whether the orderbook was added successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type AddOrderbookResponse = Message<"xyz.aspens.arborter.v1.AddOrderbookResponse"> & {
+  /**
+   * Whether the orderbook was added successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The market ID of the created orderbook
-     *
-     * @generated from field: string market_id = 2;
-     */
-    marketId: string;
-  };
+  /**
+   * The market ID of the created orderbook
+   *
+   * @generated from field: string market_id = 2;
+   */
+  marketId: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.AddOrderbookResponse.
  * Use `create(AddOrderbookResponseSchema)` to create a new message.
  */
-export const AddOrderbookResponseSchema: GenMessage<AddOrderbookResponse> =
-  /*@__PURE__*/
+export const AddOrderbookResponseSchema: GenMessage<AddOrderbookResponse> = /*@__PURE__*/
   messageDesc(file_arborter, 13);
 
 /**
@@ -628,22 +607,20 @@ export const AddOrderbookResponseSchema: GenMessage<AddOrderbookResponse> =
  *
  * @generated from message xyz.aspens.arborter.v1.RemoveOrderbookRequest
  */
-export type RemoveOrderbookRequest =
-  Message<"xyz.aspens.arborter.v1.RemoveOrderbookRequest"> & {
-    /**
-     * The market ID to remove the orderbook for
-     *
-     * @generated from field: string market_id = 1;
-     */
-    marketId: string;
-  };
+export type RemoveOrderbookRequest = Message<"xyz.aspens.arborter.v1.RemoveOrderbookRequest"> & {
+  /**
+   * The market ID to remove the orderbook for
+   *
+   * @generated from field: string market_id = 1;
+   */
+  marketId: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.RemoveOrderbookRequest.
  * Use `create(RemoveOrderbookRequestSchema)` to create a new message.
  */
-export const RemoveOrderbookRequestSchema: GenMessage<RemoveOrderbookRequest> =
-  /*@__PURE__*/
+export const RemoveOrderbookRequestSchema: GenMessage<RemoveOrderbookRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 14);
 
 /**
@@ -651,29 +628,27 @@ export const RemoveOrderbookRequestSchema: GenMessage<RemoveOrderbookRequest> =
  *
  * @generated from message xyz.aspens.arborter.v1.RemoveOrderbookResponse
  */
-export type RemoveOrderbookResponse =
-  Message<"xyz.aspens.arborter.v1.RemoveOrderbookResponse"> & {
-    /**
-     * Whether the orderbook was removed successfully
-     *
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type RemoveOrderbookResponse = Message<"xyz.aspens.arborter.v1.RemoveOrderbookResponse"> & {
+  /**
+   * Whether the orderbook was removed successfully
+   *
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * The market ID of the removed orderbook
-     *
-     * @generated from field: string market_id = 2;
-     */
-    marketId: string;
-  };
+  /**
+   * The market ID of the removed orderbook
+   *
+   * @generated from field: string market_id = 2;
+   */
+  marketId: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.RemoveOrderbookResponse.
  * Use `create(RemoveOrderbookResponseSchema)` to create a new message.
  */
-export const RemoveOrderbookResponseSchema: GenMessage<RemoveOrderbookResponse> =
-  /*@__PURE__*/
+export const RemoveOrderbookResponseSchema: GenMessage<RemoveOrderbookResponse> = /*@__PURE__*/
   messageDesc(file_arborter, 15);
 
 /**
@@ -681,85 +656,126 @@ export const RemoveOrderbookResponseSchema: GenMessage<RemoveOrderbookResponse> 
  *
  * @generated from message xyz.aspens.arborter.v1.UnNormalizeDecimalsRequest
  */
-export type UnNormalizeDecimalsRequest =
-  Message<"xyz.aspens.arborter.v1.UnNormalizeDecimalsRequest"> & {
-    /**
-     * @generated from field: string market_id = 1;
-     */
-    marketId: string;
+export type UnNormalizeDecimalsRequest = Message<"xyz.aspens.arborter.v1.UnNormalizeDecimalsRequest"> & {
+  /**
+   * @generated from field: string market_id = 1;
+   */
+  marketId: string;
 
-    /**
-     * "buy" or "sell"
-     *
-     * @generated from field: string side = 2;
-     */
-    side: string;
+  /**
+   * "buy" or "sell"
+   *
+   * @generated from field: string side = 2;
+   */
+  side: string;
 
-    /**
-     * in pair decimals
-     *
-     * @generated from field: string quantity = 3;
-     */
-    quantity: string;
+  /**
+   * in pair decimals
+   *
+   * @generated from field: string quantity = 3;
+   */
+  quantity: string;
 
-    /**
-     * in pair decimals
-     *
-     * @generated from field: string price = 4;
-     */
-    price: string;
-  };
+  /**
+   * in pair decimals
+   *
+   * @generated from field: string price = 4;
+   */
+  price: string;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.UnNormalizeDecimalsRequest.
  * Use `create(UnNormalizeDecimalsRequestSchema)` to create a new message.
  */
-export const UnNormalizeDecimalsRequestSchema: GenMessage<UnNormalizeDecimalsRequest> =
-  /*@__PURE__*/
+export const UnNormalizeDecimalsRequestSchema: GenMessage<UnNormalizeDecimalsRequest> = /*@__PURE__*/
   messageDesc(file_arborter, 16);
 
 /**
  * @generated from message xyz.aspens.arborter.v1.UnNormalizeDecimalsResponse
  */
-export type UnNormalizeDecimalsResponse =
-  Message<"xyz.aspens.arborter.v1.UnNormalizeDecimalsResponse"> & {
-    /**
-     * in base token decimals
-     *
-     * @generated from field: string base_token_quantity = 1;
-     */
-    baseTokenQuantity: string;
+export type UnNormalizeDecimalsResponse = Message<"xyz.aspens.arborter.v1.UnNormalizeDecimalsResponse"> & {
+  /**
+   * in base token decimals
+   *
+   * @generated from field: string base_token_quantity = 1;
+   */
+  baseTokenQuantity: string;
 
-    /**
-     * in quote token decimals
-     *
-     * @generated from field: string quote_token_quantity = 2;
-     */
-    quoteTokenQuantity: string;
+  /**
+   * in quote token decimals
+   *
+   * @generated from field: string quote_token_quantity = 2;
+   */
+  quoteTokenQuantity: string;
 
-    /**
-     * @generated from field: uint32 base_token_decimals = 3;
-     */
-    baseTokenDecimals: number;
+  /**
+   * @generated from field: uint32 base_token_decimals = 3;
+   */
+  baseTokenDecimals: number;
 
-    /**
-     * @generated from field: uint32 quote_token_decimals = 4;
-     */
-    quoteTokenDecimals: number;
+  /**
+   * @generated from field: uint32 quote_token_decimals = 4;
+   */
+  quoteTokenDecimals: number;
 
-    /**
-     * @generated from field: uint32 pair_decimals = 5;
-     */
-    pairDecimals: number;
-  };
+  /**
+   * @generated from field: uint32 pair_decimals = 5;
+   */
+  pairDecimals: number;
+};
 
 /**
  * Describes the message xyz.aspens.arborter.v1.UnNormalizeDecimalsResponse.
  * Use `create(UnNormalizeDecimalsResponseSchema)` to create a new message.
  */
-export const UnNormalizeDecimalsResponseSchema: GenMessage<UnNormalizeDecimalsResponse> =
-  /*@__PURE__*/
+export const UnNormalizeDecimalsResponseSchema: GenMessage<UnNormalizeDecimalsResponse> = /*@__PURE__*/
   messageDesc(file_arborter, 17);
+
+/**
+ * Request to get the stronghold signer public key
+ *
+ * Empty request - no parameters needed
+ *
+ * @generated from message xyz.aspens.arborter.v1.GetStrongholdPublicKeyRequest
+ */
+export type GetStrongholdPublicKeyRequest = Message<"xyz.aspens.arborter.v1.GetStrongholdPublicKeyRequest"> & {
+};
+
+/**
+ * Describes the message xyz.aspens.arborter.v1.GetStrongholdPublicKeyRequest.
+ * Use `create(GetStrongholdPublicKeyRequestSchema)` to create a new message.
+ */
+export const GetStrongholdPublicKeyRequestSchema: GenMessage<GetStrongholdPublicKeyRequest> = /*@__PURE__*/
+  messageDesc(file_arborter, 18);
+
+/**
+ * Response containing the stronghold signer public key
+ *
+ * @generated from message xyz.aspens.arborter.v1.GetStrongholdPublicKeyResponse
+ */
+export type GetStrongholdPublicKeyResponse = Message<"xyz.aspens.arborter.v1.GetStrongholdPublicKeyResponse"> & {
+  /**
+   * The base chain public key (address)
+   *
+   * @generated from field: string base_chain_public_key = 1;
+   */
+  baseChainPublicKey: string;
+
+  /**
+   * The quote chain public key (address)
+   *
+   * @generated from field: string quote_chain_public_key = 2;
+   */
+  quoteChainPublicKey: string;
+};
+
+/**
+ * Describes the message xyz.aspens.arborter.v1.GetStrongholdPublicKeyResponse.
+ * Use `create(GetStrongholdPublicKeyResponseSchema)` to create a new message.
+ */
+export const GetStrongholdPublicKeyResponseSchema: GenMessage<GetStrongholdPublicKeyResponse> = /*@__PURE__*/
+  messageDesc(file_arborter, 19);
 
 /**
  * @generated from enum xyz.aspens.arborter.v1.Side
@@ -784,8 +800,7 @@ export enum Side {
 /**
  * Describes the enum xyz.aspens.arborter.v1.Side.
  */
-export const SideSchema: GenEnum<Side> =
-  /*@__PURE__*/
+export const SideSchema: GenEnum<Side> = /*@__PURE__*/
   enumDesc(file_arborter, 0);
 
 /**
@@ -810,8 +825,7 @@ export enum ExecutionType {
 /**
  * Describes the enum xyz.aspens.arborter.v1.ExecutionType.
  */
-export const ExecutionTypeSchema: GenEnum<ExecutionType> =
-  /*@__PURE__*/
+export const ExecutionTypeSchema: GenEnum<ExecutionType> = /*@__PURE__*/
   enumDesc(file_arborter, 1);
 
 /**
@@ -848,8 +862,7 @@ export enum OrderStatus {
 /**
  * Describes the enum xyz.aspens.arborter.v1.OrderStatus.
  */
-export const OrderStatusSchema: GenEnum<OrderStatus> =
-  /*@__PURE__*/
+export const OrderStatusSchema: GenEnum<OrderStatus> = /*@__PURE__*/
   enumDesc(file_arborter, 2);
 
 /**
@@ -875,8 +888,7 @@ export enum TradeRole {
 /**
  * Describes the enum xyz.aspens.arborter.v1.TradeRole.
  */
-export const TradeRoleSchema: GenEnum<TradeRole> =
-  /*@__PURE__*/
+export const TradeRoleSchema: GenEnum<TradeRole> = /*@__PURE__*/
   enumDesc(file_arborter, 3);
 
 /**
@@ -890,7 +902,7 @@ export const ArborterService: GenService<{
     methodKind: "unary";
     input: typeof SendOrderRequestSchema;
     output: typeof SendOrderResponseSchema;
-  };
+  },
   /**
    * @generated from rpc xyz.aspens.arborter.v1.ArborterService.CancelOrder
    */
@@ -898,7 +910,7 @@ export const ArborterService: GenService<{
     methodKind: "unary";
     input: typeof CancelOrderRequestSchema;
     output: typeof CancelOrderResponseSchema;
-  };
+  },
   /**
    * @generated from rpc xyz.aspens.arborter.v1.ArborterService.Trades
    */
@@ -906,7 +918,7 @@ export const ArborterService: GenService<{
     methodKind: "server_streaming";
     input: typeof TradeRequestSchema;
     output: typeof TradeSchema;
-  };
+  },
   /**
    * @generated from rpc xyz.aspens.arborter.v1.ArborterService.Orderbook
    */
@@ -914,7 +926,7 @@ export const ArborterService: GenService<{
     methodKind: "server_streaming";
     input: typeof OrderbookRequestSchema;
     output: typeof OrderbookEntrySchema;
-  };
+  },
   /**
    * @generated from rpc xyz.aspens.arborter.v1.ArborterService.AddOrderbook
    */
@@ -922,7 +934,7 @@ export const ArborterService: GenService<{
     methodKind: "unary";
     input: typeof AddOrderbookRequestSchema;
     output: typeof AddOrderbookResponseSchema;
-  };
+  },
   /**
    * @generated from rpc xyz.aspens.arborter.v1.ArborterService.RemoveOrderbook
    */
@@ -930,7 +942,7 @@ export const ArborterService: GenService<{
     methodKind: "unary";
     input: typeof RemoveOrderbookRequestSchema;
     output: typeof RemoveOrderbookResponseSchema;
-  };
+  },
   /**
    * @generated from rpc xyz.aspens.arborter.v1.ArborterService.UnNormalizeDecimals
    */
@@ -938,5 +950,15 @@ export const ArborterService: GenService<{
     methodKind: "unary";
     input: typeof UnNormalizeDecimalsRequestSchema;
     output: typeof UnNormalizeDecimalsResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_arborter, 0);
+  },
+  /**
+   * @generated from rpc xyz.aspens.arborter.v1.ArborterService.GetStrongholdPublicKey
+   */
+  getStrongholdPublicKey: {
+    methodKind: "unary";
+    input: typeof GetStrongholdPublicKeyRequestSchema;
+    output: typeof GetStrongholdPublicKeyResponseSchema;
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_arborter, 0);
+

@@ -103,9 +103,26 @@ import {
 // Create a logger for gRPC operations
 const logger = createLogger("gRPC");
 
-// Create the gRPC-Web transport for unary calls
+// Create the gRPC-Web transport for unary calls with enhanced timeout settings
 const transport = createGrpcWebTransport({
   baseUrl: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
+  // Add connection pooling and retry settings
+  interceptors: [
+    (next: any) => async (options: any) => {
+      // Add retry logic for failed requests
+      try {
+        return await next(options);
+      } catch (error: any) {
+        if (error.code === 'unavailable' || error.code === 'deadline_exceeded') {
+          logger.warn(`gRPC request failed, retrying: ${error.message}`);
+          // Retry once after a short delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return await next(options);
+        }
+        throw error;
+      }
+    },
+  ],
 });
 
 logger.info(
@@ -355,11 +372,11 @@ export const arborterService = {
         signatureHashLength: request.signatureHash?.length,
       });
 
-      // Add timeout wrapper for SendOrder specifically
+      // Add timeout wrapper for SendOrder specifically with longer timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-          reject(new Error("SendOrder request timed out after 30 seconds"));
-        }, 30000);
+          reject(new Error("SendOrder request timed out after 60 seconds"));
+        }, 60000);
       });
 
       const response: SendOrderResponse = await Promise.race([
@@ -378,6 +395,18 @@ export const arborterService = {
         errorMessage: error instanceof Error ? error.message : "No message",
         errorStack: error instanceof Error ? error.stack : "No stack",
       });
+      
+      // Check for specific SendOrder backend issues
+      if (error instanceof Error) {
+        if (error.message.includes("503") || error.message.includes("Service Unavailable")) {
+          throw new Error("Trading service is temporarily unavailable. Please try again in a few moments.");
+        } else if (error.message.includes("upstream connect error") || error.message.includes("reset before headers")) {
+          throw new Error("Connection to trading service was reset. This may be due to high load. Please try again.");
+        } else if (error.message.includes("unavailable")) {
+          throw new Error("Trading service is currently unavailable. Please check back later.");
+        }
+      }
+      
       throw error;
     }
   },
@@ -417,11 +446,11 @@ export const arborterService = {
         filterByTrader,
       });
 
-      // Create a timeout promise to handle connection issues
+      // Create a timeout promise to handle connection issues with longer timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-          reject(new Error("Orderbook request timed out after 15 seconds"));
-        }, 15000);
+          reject(new Error("Orderbook request timed out after 30 seconds"));
+        }, 30000);
       });
 
       // Race the actual request against the timeout
@@ -432,30 +461,55 @@ export const arborterService = {
 
       const entries: OrderbookEntry[] = [];
 
-      // Proper streaming with error handling
+      // Proper streaming with enhanced error handling
       try {
         let entryCount = 0;
+        let streamError = null;
 
         for await (const entry of response) {
-          // Only log every 10th entry to reduce console spam
-          if (entryCount % 10 === 0) {
-            // Logging disabled for performance
-          }
+          try {
+            // Only log every 10th entry to reduce console spam
+            if (entryCount % 10 === 0) {
+              // Logging disabled for performance
+            }
 
-          entries.push(entry);
-          entryCount++;
+            entries.push(entry);
+            entryCount++;
 
-          if (entryCount % 50 === 0) {
-            // Batch processing complete
+            if (entryCount % 50 === 0) {
+              // Batch processing complete
+            }
+          } catch (entryError) {
+            logger.warn("Error processing orderbook entry:", entryError);
+            streamError = entryError;
+            // Continue processing other entries
+            continue;
           }
+        }
+
+        // If we got some entries but had stream errors, return what we have
+        if (streamError && entries.length > 0) {
+          logger.warn(`Stream had errors but collected ${entries.length} entries`);
+          return entries;
         }
 
         return entries;
-      } catch {
-        // Silently handle stream errors - empty orderbook is normal
+      } catch (streamError) {
+        logger.warn("Stream error occurred:", streamError);
+        
+        // Check if this is a chunked encoding error
+        if (streamError instanceof Error && 
+            (streamError.message.includes('ERR_INCOMPLETE_CHUNKED_ENCODING') ||
+             streamError.message.includes('incomplete chunked encoding'))) {
+          logger.warn("Incomplete chunked encoding error - this is often a network issue");
+        }
+        
+        // If we collected some entries before the error, return them
         if (entries.length > 0) {
+          logger.info(`Returning ${entries.length} entries collected before stream error`);
           return entries;
         }
+        
         // No data collected, return empty array
         return [];
       }

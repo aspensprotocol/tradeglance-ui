@@ -117,18 +117,31 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
           explicit_http_config:
             http2_protocol_options:
-              max_concurrent_streams: 100
-              initial_stream_window_size: 65536
-              initial_connection_window_size: 1048576
+              max_concurrent_streams: 200
+              initial_stream_window_size: 131072
+              initial_connection_window_size: 2097152
               stream_error_on_invalid_http_messaging: false
+              # Add connection keep-alive settings
+              connection_keepalive:
+                time: 30s
+                interval: 5s
+                timeout: 10s
             # Add buffer limits for streaming
       buffer_limits:
         - name: "http2.max_concurrent_streams"
-          value: "100"
+          value: "200"
         - name: "http2.initial_stream_window_size"
-          value: "65536"
+          value: "131072"
         - name: "http2.initial_connection_window_size"
-          value: "1048576"
+          value: "2097152"
+      # Add circuit breaker settings
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 1000
+            max_pending_requests: 1000
+            max_requests: 1000
+            max_retries: 3
       load_assignment:
         cluster_name: arborter
         endpoints:
