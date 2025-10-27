@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { TokenImage } from "@/components/ui/token-image";
 import { useFormLogic } from "@/hooks/useFormLogic";
 import { useConfig } from "@/hooks/useConfig";
-import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "@/lib/shared-types";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradeFormProps } from "@/lib/shared-types";
 

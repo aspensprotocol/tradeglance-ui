@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useTradingPairs } from "./useTradingPairs";
 import type { TradingPair } from "@/lib/shared-types";
-import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "@/lib/shared-types";
 import { arborterService } from "@/lib/grpc-client";
 import type { OrderCreationData } from "@/lib/shared-types";
 import { Side } from "@/protos/gen/arborter_pb";
@@ -12,7 +12,6 @@ import {
   type Order,
 } from "@/protos/gen/arborter_pb";
 import { create } from "@bufbuild/protobuf";
-import { configUtils } from "@/lib/config-utils";
 import { useBalanceManager } from "@/hooks/useBalanceManager";
 import { triggerBalanceRefresh, triggerOrderbookRefresh } from "@/lib/utils";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
@@ -82,14 +81,14 @@ export const useTradingLogic = ({
 
   // Helper function to determine the correct side based on current chain
   const getCorrectSideForChain = (chainId: number): TradingSide => {
-    const chainConfig = configUtils.getChainByChainId(chainId);
-    if (!chainConfig) return BaseOrQuote.BASE; // Default to BASE (sell) if no config
+    if (!tradingPair) return BaseOrQuote.BASE; // Default to BASE (sell) if no trading pair
 
-    // Base chain = Sell (ASK), Quote chain = Buy (BID)
-    // Enum 1 (BASE) = SELL, Enum 2 (QUOTE) = BUY
-    return chainConfig.baseOrQuote === BaseOrQuote.BASE
-      ? BaseOrQuote.BASE
-      : BaseOrQuote.QUOTE;
+    // In the new format, determine if this chain is the base or quote chain
+    // by comparing with the trading pair's chain IDs
+    const isBaseChain: boolean = chainId === tradingPair.baseChainId;
+    
+    // Base chain = Sell (BASE), Quote chain = Buy (QUOTE)
+    return isBaseChain ? BaseOrQuote.BASE : BaseOrQuote.QUOTE;
   };
 
   // Get trading balances for the current trading pair
@@ -108,25 +107,29 @@ export const useTradingLogic = ({
 
   // Helper function to get the target chain for a given side
   const getTargetChainForSide = (side: TradingSide): number | null => {
-    const allChains = configUtils.getAllChains();
-    // Sell orders (ASK) go on base chain, Buy orders (BID) go on quote chain
-    const targetBaseOrQuote: BaseOrQuote =
-      side === BaseOrQuote.BASE ? BaseOrQuote.BASE : BaseOrQuote.QUOTE;
+    if (!tradingPair) {
+      return null;
+    }
 
-    const targetChain = allChains.find(
-      (chain) => chain.baseOrQuote === targetBaseOrQuote,
-    );
-    return targetChain
-      ? typeof targetChain.chainId === "string"
-        ? parseInt(targetChain.chainId, 10)
-        : targetChain.chainId
-      : null;
+    // In the new format, the market determines which chain is base vs quote
+    // Sell orders (ASK) go on base chain, Buy orders (BID) go on quote chain
+    if (side === BaseOrQuote.BASE) {
+      // BASE side (SELL) - use the base chain from the trading pair
+      return tradingPair.baseChainId;
+    }
+    // QUOTE side (BUY) - use the quote chain from the trading pair
+    return tradingPair.quoteChainId;
   };
 
   // Helper function to determine order side based on chain
   const getOrderSideForChain = (chainId: number): Side => {
-    const chainConfig = configUtils.getChainByChainId(chainId);
-    const isBaseChain: boolean = chainConfig?.baseOrQuote === BaseOrQuote.BASE;
+    if (!tradingPair) {
+      return Side.ASK; // Default to ASK if no trading pair
+    }
+
+    // In the new format, determine if this chain is the base or quote chain
+    // by comparing with the trading pair's chain IDs
+    const isBaseChain: boolean = chainId === tradingPair.baseChainId;
     // Base chain = ASK (sell), Quote chain = BID (buy)
     return isBaseChain ? Side.ASK : Side.BID;
   };
@@ -280,7 +283,7 @@ export const useTradingLogic = ({
 
     const orderSide: Side = getOrderSideForChain(targetChainId);
 
-    return {
+    const orderData = {
       side: orderSide,
       quantity: orderQuantity,
       price: orderPrice,
@@ -290,18 +293,35 @@ export const useTradingLogic = ({
       executionType: ExecutionType.UNSPECIFIED,
       matchingOrderIds: [],
     };
+
+    console.log("🔍 useTradingLogic: Order data created:", {
+      ...orderData,
+      tradingPair: {
+        id: tradingPair.id,
+        baseChainId: tradingPair.baseChainId,
+        quoteChainId: tradingPair.quoteChainId,
+        baseChainNetwork: tradingPair.baseChainNetwork,
+        quoteChainNetwork: tradingPair.quoteChainNetwork,
+      },
+      targetChainId,
+      side: side === BaseOrQuote.BASE ? "BASE" : "QUOTE",
+    });
+
+    return orderData;
   };
 
   const submitOrder = async (
     side: TradingSide,
     orderType: "limit" | "market" = "limit",
     customAvailableBalance?: string,
+    retryCount: number = 0,
   ): Promise<void> => {
     console.log("🔍 useTradingLogic: About to validate order:", {
       side,
       customAvailableBalance,
       availableBalance,
       currentSide,
+      retryCount,
     });
 
     const validation: { isValid: boolean; errorMessage?: string } =
@@ -420,13 +440,46 @@ export const useTradingLogic = ({
     } catch (error: unknown) {
       console.error("Error submitting order:", error);
 
-      // Enhanced error handling with more specific error messages
-      let errorMessage: string;
-
       // Convert error to string for analysis
       const errorString =
         error instanceof Error ? error.message : String(error);
       const errorStringLower = errorString.toLowerCase();
+
+      // Check if this is a retryable error
+      const isRetryable = 
+        errorStringLower.includes("trading service is temporarily overloaded") ||
+        errorStringLower.includes("connection to trading service was reset") ||
+        errorStringLower.includes("request timed out") ||
+        errorStringLower.includes("network error occurred") ||
+        errorStringLower.includes("network connection was interrupted") ||
+        errorStringLower.includes("backend communication error") ||
+        errorStringLower.includes("request was cancelled") ||
+        errorStringLower.includes("503") ||
+        errorStringLower.includes("service unavailable") ||
+        errorStringLower.includes("upstream connect error") ||
+        errorStringLower.includes("reset before headers") ||
+        errorStringLower.includes("incomplete chunked encoding");
+
+      // If it's retryable and we haven't exceeded max retries, retry
+      const maxRetries = 2;
+      if (isRetryable && retryCount < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 3000); // Exponential backoff, max 3s
+        console.log(`🔄 Retrying order submission in ${delay}ms (attempt ${retryCount + 1}/${maxRetries + 1})`);
+        
+        toast({
+          title: "Retrying order submission",
+          description: `Attempt ${retryCount + 2} of ${maxRetries + 1}. Please wait...`,
+        });
+
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Retry the order submission
+        return submitOrder(side, orderType, customAvailableBalance, retryCount + 1);
+      }
+
+      // Enhanced error handling with more specific error messages
+      let errorMessage: string;
 
       // Check for specific error types
       if (
@@ -467,6 +520,11 @@ export const useTradingLogic = ({
           error instanceof Error
             ? `Order submission failed: ${error.message}`
             : `Order submission failed: ${String(error)}`;
+      }
+
+      // Add retry information to error message if we've exhausted retries
+      if (isRetryable && retryCount >= maxRetries) {
+        errorMessage += " (All retry attempts exhausted)";
       }
 
       toast({

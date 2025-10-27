@@ -203,7 +203,11 @@ export const ConfigTest = (): JSX.Element => {
                 </p>
                 <p className="break-words text-neutral-900">
                   <strong>⚖️ Base or Quote:</strong>{" "}
-                  {chain.baseOrQuote || "Not set"}
+                  <span className="text-amber-600">
+                    {chain.baseOrQuote ? `Legacy: ${chain.baseOrQuote}` : "Not set"} 
+                    <br />
+                    <span className="text-xs">(Now determined by market configuration)</span>
+                  </span>
                 </p>
               </section>
 

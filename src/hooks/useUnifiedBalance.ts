@@ -3,7 +3,7 @@ import { useBalanceManager } from "./useBalanceManager";
 import { useAllBalances } from "./useAllBalances";
 import { useBalanceCache } from "./useBalanceCache";
 import type { TradingPair } from "@/lib/shared-types";
-import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import type { BaseOrQuote } from "@/lib/shared-types";
 
 interface UnifiedBalanceData {
   availableBalance: string;
