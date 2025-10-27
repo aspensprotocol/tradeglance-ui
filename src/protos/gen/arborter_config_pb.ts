@@ -2,15 +2,15 @@
 // @generated from file arborter_config.proto (package xyz.aspens.arborter_config.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file arborter_config.proto.
  */
 export const file_arborter_config: GenFile = /*@__PURE__*/
-  fileDesc("ChVhcmJvcnRlcl9jb25maWcucHJvdG8SHXh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxIkUKFURlcGxveUNvbnRyYWN0UmVxdWVzdBIVCg1jaGFpbl9uZXR3b3JrGAEgASgJEhUKDWJhc2Vfb3JfcXVvdGUYAiABKAkiRQoWRGVwbG95Q29udHJhY3RSZXNwb25zZRIUCgxiYXNlX2FkZHJlc3MYASABKAkSFQoNcXVvdGVfYWRkcmVzcxgCIAEoCSJGCg9BZGRDaGFpblJlcXVlc3QSMwoFY2hhaW4YASABKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbiJhChBBZGRDaGFpblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiJdCg9BZGRUb2tlblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCRIzCgV0b2tlbhgCIAEoCzIkLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRva2VuImEKEEFkZFRva2VuUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIrECChBBZGRNYXJrZXRSZXF1ZXN0EhoKEmJhc2VfY2hhaW5fbmV0d29yaxgBIAEoCRIbChNxdW90ZV9jaGFpbl9uZXR3b3JrGAIgASgJEh8KF2Jhc2VfY2hhaW5fdG9rZW5fc3ltYm9sGAMgASgJEiAKGHF1b3RlX2NoYWluX3Rva2VuX3N5bWJvbBgEIAEoCRIgChhiYXNlX2NoYWluX3Rva2VuX2FkZHJlc3MYBSABKAkSIQoZcXVvdGVfY2hhaW5fdG9rZW5fYWRkcmVzcxgGIAEoCRIhChliYXNlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAcgASgFEiIKGnF1b3RlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAggASgFEhUKDXBhaXJfZGVjaW1hbHMYCSABKAUiYgoRQWRkTWFya2V0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIjwKF0FkZFRyYWRlQ29udHJhY3RSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSEAoIY2hhaW5faWQYAiABKAUiYAoYQWRkVHJhZGVDb250cmFjdFJlc3BvbnNlEkQKDnRyYWRlX2NvbnRyYWN0GAEgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuVHJhZGVDb250cmFjdCISChBHZXRDb25maWdSZXF1ZXN0IlEKEUdldENvbmZpZ1Jlc3BvbnNlEjwKBmNvbmZpZxgBIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24ifQoNQ29uZmlndXJhdGlvbhI0CgZjaGFpbnMYASADKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbhI2CgdtYXJrZXRzGAIgAygLMiUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuTWFya2V0IkoKDVRyYWRlQ29udHJhY3QSGAoLY29udHJhY3RfaWQYASABKAlIAIgBARIPCgdhZGRyZXNzGAIgASgJQg4KDF9jb250cmFjdF9pZCKHBAoFQ2hhaW4SFAoMYXJjaGl0ZWN0dXJlGAEgASgJEhYKDmNhbm9uaWNhbF9uYW1lGAIgASgJEg8KB25ldHdvcmsYAyABKAkSEAoIY2hhaW5faWQYBCABKAUSHgoWY29udHJhY3Rfb3duZXJfYWRkcmVzcxgFIAEoCRIZCgxleHBsb3Jlcl91cmwYBiABKAlIAIgBARIPCgdycGNfdXJsGAcgASgJEhcKD3NlcnZpY2VfYWRkcmVzcxgIIAEoCRIXCg9wZXJtaXQyX2FkZHJlc3MYCSABKAkSRAoOdHJhZGVfY29udHJhY3QYCiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5UcmFkZUNvbnRyYWN0EkAKBnRva2VucxgLIAMoCzIwLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNoYWluLlRva2Vuc0VudHJ5EkEKDWJhc2Vfb3JfcXVvdGUYDCABKA4yKi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5CYXNlT3JRdW90ZRpTCgtUb2tlbnNFbnRyeRILCgNrZXkYASABKAkSMwoFdmFsdWUYAiABKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Ub2tlbjoCOAFCDwoNX2V4cGxvcmVyX3VybCKkAgoGTWFya2V0EgwKBHNsdWcYASABKAkSDAoEbmFtZRgCIAEoCRIaChJiYXNlX2NoYWluX25ldHdvcmsYAyABKAkSGwoTcXVvdGVfY2hhaW5fbmV0d29yaxgEIAEoCRIfChdiYXNlX2NoYWluX3Rva2VuX3N5bWJvbBgFIAEoCRIgChhxdW90ZV9jaGFpbl90b2tlbl9zeW1ib2wYBiABKAkSIQoZYmFzZV9jaGFpbl90b2tlbl9kZWNpbWFscxgHIAEoBRIiChpxdW90ZV9jaGFpbl90b2tlbl9kZWNpbWFscxgIIAEoBRIVCg1wYWlyX2RlY2ltYWxzGAkgASgFEhYKCW1hcmtldF9pZBgKIAEoCUgAiAEBQgwKCl9tYXJrZXRfaWQihQEKBVRva2VuEgwKBG5hbWUYASABKAkSDgoGc3ltYm9sGAIgASgJEg8KB2FkZHJlc3MYAyABKAkSFQoIdG9rZW5faWQYBCABKAlIAIgBARIQCghkZWNpbWFscxgFIAEoBRIXCg90cmFkZV9wcmVjaXNpb24YBiABKAVCCwoJX3Rva2VuX2lkIigKE0RlbGV0ZU1hcmtldFJlcXVlc3QSEQoJbWFya2V0X2lkGAEgASgJImUKFERlbGV0ZU1hcmtldFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiJBChJEZWxldGVUb2tlblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCRIUCgx0b2tlbl9zeW1ib2wYAiABKAkiZAoTRGVsZXRlVG9rZW5SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEjwKBmNvbmZpZxgCIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24iKwoSRGVsZXRlQ2hhaW5SZXF1ZXN0EhUKDWNoYWluX25ldHdvcmsYASABKAkiZAoTRGVsZXRlQ2hhaW5SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEjwKBmNvbmZpZxgCIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24iLgoaRGVsZXRlVHJhZGVDb250cmFjdFJlcXVlc3QSEAoIY2hhaW5faWQYASABKAUibAobRGVsZXRlVHJhZGVDb250cmFjdFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiIHCgVFbXB0eSLDAQoLVmVyc2lvbkluZm8SDwoHdmVyc2lvbhgBIAEoCRIXCg9naXRfY29tbWl0X2hhc2gYAiABKAkSFwoPZ2l0X2NvbW1pdF9kYXRlGAMgASgJEhIKCmdpdF9icmFuY2gYBCABKAkSFwoPYnVpbGRfdGltZXN0YW1wGAUgASgJEhUKDXRhcmdldF90cmlwbGUYBiABKAkSFQoNcnVzdGNfdmVyc2lvbhgHIAEoCRIWCg5jYXJnb19mZWF0dXJlcxgIIAMoCSpdCgtCYXNlT3JRdW90ZRIdChlCQVNFX09SX1FVT1RFX1VOU1BFQ0lGSUVEEAASFgoSQkFTRV9PUl9RVU9URV9CQVNFEAESFwoTQkFTRV9PUl9RVU9URV9RVU9URRACMrgKCg1Db25maWdTZXJ2aWNlEn8KDkRlcGxveUNvbnRyYWN0EjQueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVwbG95Q29udHJhY3RSZXF1ZXN0GjUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVwbG95Q29udHJhY3RSZXNwb25zZSIAEm0KCEFkZENoYWluEi4ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkQ2hhaW5SZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkQ2hhaW5SZXNwb25zZSIAEm0KCEFkZFRva2VuEi4ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVG9rZW5SZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVG9rZW5SZXNwb25zZSIAEnAKCUFkZE1hcmtldBIvLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkFkZE1hcmtldFJlcXVlc3QaMC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRNYXJrZXRSZXNwb25zZSIAEoUBChBBZGRUcmFkZUNvbnRyYWN0EjYueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVHJhZGVDb250cmFjdFJlcXVlc3QaNy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRUcmFkZUNvbnRyYWN0UmVzcG9uc2UiABJwCglHZXRDb25maWcSLy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5HZXRDb25maWdSZXF1ZXN0GjAueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuR2V0Q29uZmlnUmVzcG9uc2UiABJgCgpHZXRWZXJzaW9uEiQueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRW1wdHkaKi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5WZXJzaW9uSW5mbyIAEnkKDERlbGV0ZU1hcmtldBIyLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkRlbGV0ZU1hcmtldFJlcXVlc3QaMy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVNYXJrZXRSZXNwb25zZSIAEnYKC0RlbGV0ZVRva2VuEjEueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVG9rZW5SZXF1ZXN0GjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVG9rZW5SZXNwb25zZSIAEnYKC0RlbGV0ZUNoYWluEjEueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlQ2hhaW5SZXF1ZXN0GjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlQ2hhaW5SZXNwb25zZSIAEo4BChNEZWxldGVUcmFkZUNvbnRyYWN0EjkueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVHJhZGVDb250cmFjdFJlcXVlc3QaOi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVUcmFkZUNvbnRyYWN0UmVzcG9uc2UiAEICSAFiBnByb3RvMw");
+  fileDesc("ChVhcmJvcnRlcl9jb25maWcucHJvdG8SHXh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxIi4KFURlcGxveUNvbnRyYWN0UmVxdWVzdBIVCg1jaGFpbl9uZXR3b3JrGAEgASgJIjIKFkRlcGxveUNvbnRyYWN0UmVzcG9uc2USGAoQY29udHJhY3RfYWRkcmVzcxgBIAEoCSJGCg9BZGRDaGFpblJlcXVlc3QSMwoFY2hhaW4YASABKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbiJhChBBZGRDaGFpblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiJdCg9BZGRUb2tlblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCRIzCgV0b2tlbhgCIAEoCzIkLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRva2VuImEKEEFkZFRva2VuUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIrECChBBZGRNYXJrZXRSZXF1ZXN0EhoKEmJhc2VfY2hhaW5fbmV0d29yaxgBIAEoCRIbChNxdW90ZV9jaGFpbl9uZXR3b3JrGAIgASgJEh8KF2Jhc2VfY2hhaW5fdG9rZW5fc3ltYm9sGAMgASgJEiAKGHF1b3RlX2NoYWluX3Rva2VuX3N5bWJvbBgEIAEoCRIgChhiYXNlX2NoYWluX3Rva2VuX2FkZHJlc3MYBSABKAkSIQoZcXVvdGVfY2hhaW5fdG9rZW5fYWRkcmVzcxgGIAEoCRIhChliYXNlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAcgASgFEiIKGnF1b3RlX2NoYWluX3Rva2VuX2RlY2ltYWxzGAggASgFEhUKDXBhaXJfZGVjaW1hbHMYCSABKAUiYgoRQWRkTWFya2V0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIjwKF0FkZFRyYWRlQ29udHJhY3RSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSEAoIY2hhaW5faWQYAiABKAUiYAoYQWRkVHJhZGVDb250cmFjdFJlc3BvbnNlEkQKDnRyYWRlX2NvbnRyYWN0GAEgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuVHJhZGVDb250cmFjdCISChBHZXRDb25maWdSZXF1ZXN0IlEKEUdldENvbmZpZ1Jlc3BvbnNlEjwKBmNvbmZpZxgBIAEoCzIsLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNvbmZpZ3VyYXRpb24ifQoNQ29uZmlndXJhdGlvbhI0CgZjaGFpbnMYASADKAsyJC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5DaGFpbhI2CgdtYXJrZXRzGAIgAygLMiUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuTWFya2V0IkoKDVRyYWRlQ29udHJhY3QSGAoLY29udHJhY3RfaWQYASABKAlIAIgBARIPCgdhZGRyZXNzGAIgASgJQg4KDF9jb250cmFjdF9pZCLEAwoFQ2hhaW4SFAoMYXJjaGl0ZWN0dXJlGAEgASgJEhYKDmNhbm9uaWNhbF9uYW1lGAIgASgJEg8KB25ldHdvcmsYAyABKAkSEAoIY2hhaW5faWQYBCABKAUSHgoWY29udHJhY3Rfb3duZXJfYWRkcmVzcxgFIAEoCRIZCgxleHBsb3Jlcl91cmwYBiABKAlIAIgBARIPCgdycGNfdXJsGAcgASgJEhcKD3NlcnZpY2VfYWRkcmVzcxgIIAEoCRIXCg9wZXJtaXQyX2FkZHJlc3MYCSABKAkSRAoOdHJhZGVfY29udHJhY3QYCiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5UcmFkZUNvbnRyYWN0EkAKBnRva2VucxgLIAMoCzIwLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkNoYWluLlRva2Vuc0VudHJ5GlMKC1Rva2Vuc0VudHJ5EgsKA2tleRgBIAEoCRIzCgV2YWx1ZRgCIAEoCzIkLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLlRva2VuOgI4AUIPCg1fZXhwbG9yZXJfdXJsIoMCCgZNYXJrZXQSDAoEbmFtZRgBIAEoCRIaChJiYXNlX2NoYWluX25ldHdvcmsYAiABKAkSGwoTcXVvdGVfY2hhaW5fbmV0d29yaxgDIAEoCRIfChdiYXNlX2NoYWluX3Rva2VuX3N5bWJvbBgEIAEoCRIgChhxdW90ZV9jaGFpbl90b2tlbl9zeW1ib2wYBSABKAkSIQoZYmFzZV9jaGFpbl90b2tlbl9kZWNpbWFscxgGIAEoBRIiChpxdW90ZV9jaGFpbl90b2tlbl9kZWNpbWFscxgHIAEoBRIVCg1wYWlyX2RlY2ltYWxzGAggASgFEhEKCW1hcmtldF9pZBgJIAEoCSKFAQoFVG9rZW4SDAoEbmFtZRgBIAEoCRIOCgZzeW1ib2wYAiABKAkSDwoHYWRkcmVzcxgDIAEoCRIVCgh0b2tlbl9pZBgEIAEoCUgAiAEBEhAKCGRlY2ltYWxzGAUgASgFEhcKD3RyYWRlX3ByZWNpc2lvbhgGIAEoBUILCglfdG9rZW5faWQiKAoTRGVsZXRlTWFya2V0UmVxdWVzdBIRCgltYXJrZXRfaWQYASABKAkiZQoURGVsZXRlTWFya2V0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIkEKEkRlbGV0ZVRva2VuUmVxdWVzdBIVCg1jaGFpbl9uZXR3b3JrGAEgASgJEhQKDHRva2VuX3N5bWJvbBgCIAEoCSJkChNEZWxldGVUb2tlblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiIrChJEZWxldGVDaGFpblJlcXVlc3QSFQoNY2hhaW5fbmV0d29yaxgBIAEoCSJkChNEZWxldGVDaGFpblJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSPAoGY29uZmlnGAIgASgLMiwueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQ29uZmlndXJhdGlvbiIuChpEZWxldGVUcmFkZUNvbnRyYWN0UmVxdWVzdBIQCghjaGFpbl9pZBgBIAEoBSJsChtEZWxldGVUcmFkZUNvbnRyYWN0UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBI8CgZjb25maWcYAiABKAsyLC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5Db25maWd1cmF0aW9uIgcKBUVtcHR5IsMBCgtWZXJzaW9uSW5mbxIPCgd2ZXJzaW9uGAEgASgJEhcKD2dpdF9jb21taXRfaGFzaBgCIAEoCRIXCg9naXRfY29tbWl0X2RhdGUYAyABKAkSEgoKZ2l0X2JyYW5jaBgEIAEoCRIXCg9idWlsZF90aW1lc3RhbXAYBSABKAkSFQoNdGFyZ2V0X3RyaXBsZRgGIAEoCRIVCg1ydXN0Y192ZXJzaW9uGAcgASgJEhYKDmNhcmdvX2ZlYXR1cmVzGAggAygJMrgKCg1Db25maWdTZXJ2aWNlEn8KDkRlcGxveUNvbnRyYWN0EjQueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVwbG95Q29udHJhY3RSZXF1ZXN0GjUueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVwbG95Q29udHJhY3RSZXNwb25zZSIAEm0KCEFkZENoYWluEi4ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkQ2hhaW5SZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkQ2hhaW5SZXNwb25zZSIAEm0KCEFkZFRva2VuEi4ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVG9rZW5SZXF1ZXN0Gi8ueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVG9rZW5SZXNwb25zZSIAEnAKCUFkZE1hcmtldBIvLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkFkZE1hcmtldFJlcXVlc3QaMC54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRNYXJrZXRSZXNwb25zZSIAEoUBChBBZGRUcmFkZUNvbnRyYWN0EjYueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuQWRkVHJhZGVDb250cmFjdFJlcXVlc3QaNy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5BZGRUcmFkZUNvbnRyYWN0UmVzcG9uc2UiABJwCglHZXRDb25maWcSLy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5HZXRDb25maWdSZXF1ZXN0GjAueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuR2V0Q29uZmlnUmVzcG9uc2UiABJgCgpHZXRWZXJzaW9uEiQueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRW1wdHkaKi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5WZXJzaW9uSW5mbyIAEnkKDERlbGV0ZU1hcmtldBIyLnh5ei5hc3BlbnMuYXJib3J0ZXJfY29uZmlnLnYxLkRlbGV0ZU1hcmtldFJlcXVlc3QaMy54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVNYXJrZXRSZXNwb25zZSIAEnYKC0RlbGV0ZVRva2VuEjEueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVG9rZW5SZXF1ZXN0GjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVG9rZW5SZXNwb25zZSIAEnYKC0RlbGV0ZUNoYWluEjEueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlQ2hhaW5SZXF1ZXN0GjIueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlQ2hhaW5SZXNwb25zZSIAEo4BChNEZWxldGVUcmFkZUNvbnRyYWN0EjkueHl6LmFzcGVucy5hcmJvcnRlcl9jb25maWcudjEuRGVsZXRlVHJhZGVDb250cmFjdFJlcXVlc3QaOi54eXouYXNwZW5zLmFyYm9ydGVyX2NvbmZpZy52MS5EZWxldGVUcmFkZUNvbnRyYWN0UmVzcG9uc2UiAEICSAFiBnByb3RvMw");
 
 /**
  * @generated from message xyz.aspens.arborter_config.v1.DeployContractRequest
@@ -22,13 +22,6 @@ export type DeployContractRequest = Message<"xyz.aspens.arborter_config.v1.Deplo
    * @generated from field: string chain_network = 1;
    */
   chainNetwork: string;
-
-  /**
-   * designate whether to deploy the contract on the base or quote chain
-   *
-   * @generated from field: string base_or_quote = 2;
-   */
-  baseOrQuote: string;
 };
 
 /**
@@ -43,18 +36,11 @@ export const DeployContractRequestSchema: GenMessage<DeployContractRequest> = /*
  */
 export type DeployContractResponse = Message<"xyz.aspens.arborter_config.v1.DeployContractResponse"> & {
   /**
-   * The address that the contract is deployed to on the base chain.
+   * The address that the contract is deployed to on the specified chain
    *
-   * @generated from field: string base_address = 1;
+   * @generated from field: string contract_address = 1;
    */
-  baseAddress: string;
-
-  /**
-   * The address that the contract is deployed to on the quote chain.
-   *
-   * @generated from field: string quote_address = 2;
-   */
-  quoteAddress: string;
+  contractAddress: string;
 };
 
 /**
@@ -481,13 +467,6 @@ export type Chain = Message<"xyz.aspens.arborter_config.v1.Chain"> & {
    * @generated from field: map<string, xyz.aspens.arborter_config.v1.Token> tokens = 11;
    */
   tokens: { [key: string]: Token };
-
-  /**
-   * Declare whether this chain should act as the base or quote side of the trading pairs
-   *
-   * @generated from field: xyz.aspens.arborter_config.v1.BaseOrQuote base_or_quote = 12;
-   */
-  baseOrQuote: BaseOrQuote;
 };
 
 /**
@@ -504,74 +483,67 @@ export const ChainSchema: GenMessage<Chain> = /*@__PURE__*/
  */
 export type Market = Message<"xyz.aspens.arborter_config.v1.Market"> & {
   /**
-   * The market slug, e.g. 'base-sepolia-usdc--op-sepolia-usdc'
-   *
-   * @generated from field: string slug = 1;
-   */
-  slug: string;
-
-  /**
    * The market name, e.g. 'Base Sepolia USDC - OP Sepolia USDC'
    *
-   * @generated from field: string name = 2;
+   * @generated from field: string name = 1;
    */
   name: string;
 
   /**
    * The base chain, e.g. 'base-sepolia'
    *
-   * @generated from field: string base_chain_network = 3;
+   * @generated from field: string base_chain_network = 2;
    */
   baseChainNetwork: string;
 
   /**
    * The quote chain, e.g. 'op-sepolia'
    *
-   * @generated from field: string quote_chain_network = 4;
+   * @generated from field: string quote_chain_network = 3;
    */
   quoteChainNetwork: string;
 
   /**
    * / The token symbol for the base chain
    *
-   * @generated from field: string base_chain_token_symbol = 5;
+   * @generated from field: string base_chain_token_symbol = 4;
    */
   baseChainTokenSymbol: string;
 
   /**
    * / The token symbol for the quote chain
    *
-   * @generated from field: string quote_chain_token_symbol = 6;
+   * @generated from field: string quote_chain_token_symbol = 5;
    */
   quoteChainTokenSymbol: string;
 
   /**
    * The base chain token decimals
    *
-   * @generated from field: int32 base_chain_token_decimals = 7;
+   * @generated from field: int32 base_chain_token_decimals = 6;
    */
   baseChainTokenDecimals: number;
 
   /**
    * The quote chain token decimals
    *
-   * @generated from field: int32 quote_chain_token_decimals = 8;
+   * @generated from field: int32 quote_chain_token_decimals = 7;
    */
   quoteChainTokenDecimals: number;
 
   /**
    * The pair decimals (this is chosen by the stack admin)
    *
-   * @generated from field: int32 pair_decimals = 9;
+   * @generated from field: int32 pair_decimals = 8;
    */
   pairDecimals: number;
 
   /**
    * Identity the market: concat(base_chain_id "::" token_address "::" quote_chain_id "::" token_address)
    *
-   * @generated from field: optional string market_id = 10;
+   * @generated from field: string market_id = 9;
    */
-  marketId?: string;
+  marketId: string;
 };
 
 /**
@@ -924,32 +896,6 @@ export const VersionInfoSchema: GenMessage<VersionInfo> = /*@__PURE__*/
   messageDesc(file_arborter_config, 26);
 
 /**
- * @generated from enum xyz.aspens.arborter_config.v1.BaseOrQuote
- */
-export enum BaseOrQuote {
-  /**
-   * @generated from enum value: BASE_OR_QUOTE_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * @generated from enum value: BASE_OR_QUOTE_BASE = 1;
-   */
-  BASE = 1,
-
-  /**
-   * @generated from enum value: BASE_OR_QUOTE_QUOTE = 2;
-   */
-  QUOTE = 2,
-}
-
-/**
- * Describes the enum xyz.aspens.arborter_config.v1.BaseOrQuote.
- */
-export const BaseOrQuoteSchema: GenEnum<BaseOrQuote> = /*@__PURE__*/
-  enumDesc(file_arborter_config, 0);
-
-/**
  * The Configuration service definition
  *
  * @generated from service xyz.aspens.arborter_config.v1.ConfigService
@@ -1067,4 +1013,3 @@ export const ConfigService: GenService<{
   },
 }> = /*@__PURE__*/
   serviceDesc(file_arborter_config, 0);
-

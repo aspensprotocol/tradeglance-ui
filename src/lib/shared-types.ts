@@ -9,8 +9,11 @@ import type {
   Order,
   Side,
   OrderStatus,
+  OrderState,
   ExecutionType,
   TradeRole,
+  TransactionHash,
+  OrderToCancel,
 } from "../protos/gen/arborter_pb";
 
 import type {
@@ -18,8 +21,14 @@ import type {
   Market,
   Token,
   Configuration,
-  BaseOrQuote,
 } from "../protos/gen/arborter_config_pb";
+
+// Define BaseOrQuote enum locally since it was removed from protobuf
+export enum BaseOrQuote {
+  UNSPECIFIED = 0,
+  BASE = 1,
+  QUOTE = 2,
+}
 
 // Re-export proto types for convenience
 export type {
@@ -28,13 +37,15 @@ export type {
   Order,
   Side,
   OrderStatus,
+  OrderState,
   ExecutionType,
   TradeRole,
+  TransactionHash,
+  OrderToCancel,
   Chain,
   Market,
   Token,
   Configuration,
-  BaseOrQuote,
 };
 
 // Consolidated orderbook data interface using proto types

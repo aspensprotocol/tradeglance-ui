@@ -4,7 +4,7 @@ import { createPublicClient, http } from "viem";
 import type { TradingPair } from "@/lib/shared-types";
 import { useConfig } from "./useConfig";
 import { configUtils } from "../lib/config-utils";
-import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "../lib/shared-types";
 
 // MidribV2 Contract ABI for trading balances
 const MIDRIB_V2_ABI = [

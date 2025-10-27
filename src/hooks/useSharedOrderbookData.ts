@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { arborterService } from "../lib/grpc-client";
-import { Side } from "../protos/gen/arborter_pb";
+import { Side, OrderState } from "../protos/gen/arborter_pb";
 import type { OrderbookEntry } from "../protos/gen/arborter_pb";
 import { useTradingPairs } from "./useTradingPairs";
 import { formatDecimalConsistent } from "../lib/number-utils";
