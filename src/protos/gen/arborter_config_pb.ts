@@ -49,7 +49,7 @@ export type UpdateManagerResponse = Message<"xyz.aspens.arborter_config.v1.Updat
  */
 export const UpdateManagerResponseSchema: GenMessage<UpdateManagerResponse> = /*@__PURE__*/
   messageDesc(file_arborter_config, 1);
-=
+
 /**
  * @generated from message xyz.aspens.arborter_config.v1.DeployContractRequest
  */
@@ -1061,3 +1061,4 @@ export const ConfigService: GenService<{
   },
 }> = /*@__PURE__*/
   serviceDesc(file_arborter_config, 0);
+
