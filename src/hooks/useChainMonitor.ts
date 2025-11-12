@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useConfig } from "./useConfig";
 import { configUtils } from "../lib/config-utils";
-import type { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../lib/shared-types";
 
 // MetaMask Network Management Update (August 2025):
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated

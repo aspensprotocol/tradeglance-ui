@@ -18,8 +18,16 @@ import type {
   Market,
   Token,
   Configuration,
-  BaseOrQuote,
 } from "../protos/gen/arborter_config_pb";
+
+/**
+ * Local enum to represent trading side (base or quote chain)
+ * This replaces the removed BaseOrQuote enum from the proto file
+ */
+export enum BaseOrQuote {
+  BASE = 0,
+  QUOTE = 1,
+}
 
 // Re-export proto types for convenience
 export type {
@@ -34,7 +42,6 @@ export type {
   Market,
   Token,
   Configuration,
-  BaseOrQuote,
 };
 
 // Consolidated orderbook data interface using proto types

@@ -7,7 +7,7 @@ import { configUtils } from "@/lib/config-utils";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { Layout } from "@/components/Layout";
 import { getEtherscanLink } from "@/lib/utils";
-import type { Chain } from "@/protos/gen/arborter_config_pb";
+import type { Chain } from "@/lib/shared-types";
 
 const Mint = (): JSX.Element => {
   const [isMinting, setIsMinting] = useState(false);

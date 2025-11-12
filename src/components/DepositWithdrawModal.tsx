@@ -24,7 +24,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useAllBalances } from "@/hooks/useAllBalances";
 import { getEtherscanLink, shortenTxHash } from "@/lib/utils";
 import { formatDecimalConsistent } from "@/lib/number-utils";
-import type { Chain } from "@/protos/gen/arborter_config_pb";
+import type { Chain } from "@/lib/shared-types";
 
 interface DepositWithdrawModalProps {
   isOpen: boolean;

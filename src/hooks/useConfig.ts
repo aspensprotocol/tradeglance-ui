@@ -6,7 +6,7 @@ import type {
   Chain,
   Market,
   Token,
-} from "../protos/gen/arborter_config_pb";
+} from "../lib/shared-types";
 
 export interface UseConfigReturn {
   config: Configuration | null;

@@ -4,7 +4,7 @@ import type {
   Market,
   Token,
   TradeContract,
-} from "../protos/gen/arborter_config_pb";
+} from "../lib/shared-types";
 
 // Use proto-generated types instead of custom interfaces
 // ChainConfig is eliminated - use Chain directly from proto

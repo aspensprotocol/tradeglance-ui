@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { configUtils } from "@/lib/config-utils";
 import { useToast } from "@/hooks/use-toast";
-import type { Chain } from "@/protos/gen/arborter_config_pb";
+import type { Chain } from "@/lib/shared-types";
 
 // MetaMask Network Management Update (August 2025):
 // - wallet_switchEthereumChain and wallet_addEthereumChain are deprecated

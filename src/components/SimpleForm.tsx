@@ -12,7 +12,7 @@ import {
 import { TokenImage } from "@/components/ui/token-image";
 import type { TradingPair } from "@/lib/shared-types";
 import { useFormLogic } from "@/hooks/useFormLogic";
-import { BaseOrQuote } from "../protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "../lib/shared-types";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import { useAccount } from "wagmi";
 import { useState, useMemo, useEffect } from "react";

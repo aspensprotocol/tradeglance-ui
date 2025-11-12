@@ -1,5 +1,5 @@
 import { useConfig } from "./useConfig";
-import type { Chain, Market, Token } from "../protos/gen/arborter_config_pb";
+import type { Chain, Market, Token } from "../lib/shared-types";
 import type { TradingPair } from "../lib/shared-types";
 
 export const useTradingPairs = (): {

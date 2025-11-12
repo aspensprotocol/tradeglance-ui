@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import DepositWithdrawModal from "./DepositWithdrawModal";
 import type { OrderbookEntry } from "@/protos/gen/arborter_pb";
 import { Side } from "@/protos/gen/arborter_pb";
-import type { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import type { BaseOrQuote } from "@/lib/shared-types";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface ActivityPanelProps {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useTradingPairs } from "./useTradingPairs";
 import type { TradingPair } from "@/lib/shared-types";
-import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "@/lib/shared-types";
 import { arborterService } from "@/lib/grpc-client";
 import type { OrderCreationData } from "@/lib/shared-types";
 import { Side } from "@/protos/gen/arborter_pb";

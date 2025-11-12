@@ -4,7 +4,7 @@ import ActivityPanel from "@/components/ActivityPanel";
 import VerticalOrderBook from "@/components/VerticalOrderBook";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import type { TradingPair } from "@/lib/shared-types";
-import { BaseOrQuote } from "@/protos/gen/arborter_config_pb";
+import { BaseOrQuote } from "@/lib/shared-types";
 
 interface IndexProps {
   selectedPair: string;
