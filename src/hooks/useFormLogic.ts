@@ -254,21 +254,21 @@ export const useFormLogic = ({
           return;
         }
 
-        // Determine the side based on current chain
+        // Determine the side based on current chain and trading pair
         const currentChain: Chain | null = getCurrentChainConfig();
 
-        if (
-          !currentChain ||
-          !currentChain.baseOrQuote ||
-          (currentChain.baseOrQuote !== BaseOrQuote.BASE &&
-            currentChain.baseOrQuote !== BaseOrQuote.QUOTE)
-        ) {
-          console.error("Invalid chain configuration for simple order");
+        if (!currentChain || !tradingPair) {
+          console.error("Invalid chain configuration or trading pair for simple order");
           return;
         }
 
+        // In the new format, determine if current chain is base or quote
+        // by comparing with the trading pair's chain IDs
+        const isBaseChain: boolean = currentChain.chainId === tradingPair.baseChainId;
+        const orderSide: BaseOrQuote = isBaseChain ? BaseOrQuote.BASE : BaseOrQuote.QUOTE;
+
         // Submit the order using shared logic
-        await submitOrder(currentChain.baseOrQuote, "limit", depositedBalance);
+        await submitOrder(orderSide, "limit", depositedBalance);
       } else {
         // For trade form, submit directly with the provided side
         await submitOrder(side, "limit", depositedBalance);
@@ -280,6 +280,7 @@ export const useFormLogic = ({
       getCurrentChainConfig,
       submitOrder,
       depositedBalance,
+      tradingPair,
     ],
   );
 
@@ -363,12 +364,13 @@ export const useFormLogic = ({
 
       // With MetaMask's new network management system, we don't automatically switch networks
       // Instead, we provide guidance to the user about which network they should be on
-      if (allChains.length > 0) {
+      if (allChains.length > 0 && tradingPair) {
+        // In the new format, find chains by comparing with trading pair chain IDs
         const baseChain = allChains.find(
-          (chain) => chain.baseOrQuote === BaseOrQuote.BASE,
+          (chain) => chain.chainId === tradingPair.baseChainId,
         );
         const quoteChain = allChains.find(
-          (chain) => chain.baseOrQuote === BaseOrQuote.QUOTE,
+          (chain) => chain.chainId === tradingPair.quoteChainId,
         );
 
         if (baseChain && quoteChain) {
@@ -385,6 +387,7 @@ export const useFormLogic = ({
               allChains,
               baseChain,
               quoteChain,
+              tradingPair,
             },
           );
         }

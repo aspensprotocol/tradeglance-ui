@@ -882,6 +882,59 @@ export const OrderStateSchema: GenEnum<OrderState> = /*@__PURE__*/
   enumDesc(file_arborter, 2);
 
 /**
+ * The actual state of an order in the matching engine
+ *
+ * @generated from enum xyz.aspens.arborter.v1.OrderState
+ */
+export enum OrderState {
+  /**
+   * @generated from enum value: ORDER_STATE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Order submitted, funds locked on-chain, shows in orderbook but NOT matchable
+   *
+   * @generated from enum value: ORDER_STATE_PENDING = 1;
+   */
+  PENDING = 1,
+
+  /**
+   * OrderOpen blockchain event received, order is now matchable
+   *
+   * @generated from enum value: ORDER_STATE_CONFIRMED = 2;
+   */
+  CONFIRMED = 2,
+
+  /**
+   * Order matched by matching engine, trade recorded
+   *
+   * @generated from enum value: ORDER_STATE_MATCHED = 3;
+   */
+  MATCHED = 3,
+
+  /**
+   * Order canceled
+   *
+   * @generated from enum value: ORDER_STATE_CANCELED = 4;
+   */
+  CANCELED = 4,
+
+  /**
+   * On-chain settlement completed successfully
+   *
+   * @generated from enum value: ORDER_STATE_SETTLED = 5;
+   */
+  SETTLED = 5,
+}
+
+/**
+ * Describes the enum xyz.aspens.arborter.v1.OrderState.
+ */
+export const OrderStateSchema: GenEnum<OrderState> = /*@__PURE__*/
+  enumDesc(file_arborter, 3);
+
+/**
  * @generated from enum xyz.aspens.arborter.v1.TradeRole
  */
 export enum TradeRole {
@@ -905,7 +958,7 @@ export enum TradeRole {
  * Describes the enum xyz.aspens.arborter.v1.TradeRole.
  */
 export const TradeRoleSchema: GenEnum<TradeRole> = /*@__PURE__*/
-  enumDesc(file_arborter, 3);
+  enumDesc(file_arborter, 4);
 
 /**
  * @generated from service xyz.aspens.arborter.v1.ArborterService

@@ -61,8 +61,11 @@ import {
 import type {
   ExecutionType,
   OrderStatus,
+  OrderState,
   Side,
   TradeRole,
+  TransactionHash,
+  OrderToCancel,
 } from "../protos/gen/arborter_pb";
 import {
   type AddOrderbookRequest,
@@ -76,7 +79,6 @@ import {
   CancelOrderResponseSchema,
   type Order,
   OrderSchema,
-  type OrderToCancel,
   OrderToCancelSchema,
   type OrderbookEntry,
   OrderbookEntrySchema,
@@ -108,19 +110,45 @@ const transport = createGrpcWebTransport({
   baseUrl: import.meta.env.VITE_GRPC_WEB_PROXY_URL || "/api",
   // Add connection pooling and retry settings
   interceptors: [
-    (next: any) => async (options: any) => {
-      // Add retry logic for failed requests
-      try {
-        return await next(options);
-      } catch (error: any) {
-        if (error.code === 'unavailable' || error.code === 'deadline_exceeded') {
-          logger.warn(`gRPC request failed, retrying: ${error.message}`);
-          // Retry once after a short delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
+    (next: (options: unknown) => Promise<unknown>) => async (options: unknown) => {
+      // Enhanced retry logic for failed requests
+      const maxRetries = 3;
+      let lastError: unknown;
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
           return await next(options);
+        } catch (error: unknown) {
+          lastError = error;
+          
+          // Check if this is a retryable error
+          const isRetryable = error && typeof error === 'object' && 'code' in error && 'message' in error && 
+            (() => {
+              const grpcError = error as { code: string; message: string };
+              const message = grpcError.message.toLowerCase();
+              return grpcError.code === 'unavailable' || 
+                     grpcError.code === 'deadline_exceeded' ||
+                     message.includes('503') ||
+                     message.includes('service unavailable') ||
+                     message.includes('upstream connect error') ||
+                     message.includes('reset before headers') ||
+                     message.includes('network error') ||
+                     message.includes('incomplete chunked encoding');
+            })();
+          
+          if (isRetryable && attempt < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, attempt), 5000); // Exponential backoff, max 5s
+            logger.warn(`gRPC request failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms:`, error);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          
+          // Not retryable or max retries reached
+          break;
         }
-        throw error;
       }
+      
+      throw lastError;
     },
   ],
 });
@@ -351,6 +379,8 @@ export const arborterService = {
           marketId: order.marketId,
           baseAccountAddress: order.baseAccountAddress,
           quoteAccountAddress: order.quoteAccountAddress,
+          executionType: order.executionType,
+          matchingOrderIds: order.matchingOrderIds,
         },
         signatureHashLength: signatureHash.length,
         signatureHashHex: Array.from(signatureHash)
@@ -396,14 +426,26 @@ export const arborterService = {
         errorStack: error instanceof Error ? error.stack : "No stack",
       });
       
-      // Check for specific SendOrder backend issues
+      // Check for specific SendOrder backend issues and provide user-friendly messages
       if (error instanceof Error) {
-        if (error.message.includes("503") || error.message.includes("Service Unavailable")) {
-          throw new Error("Trading service is temporarily unavailable. Please try again in a few moments.");
-        } else if (error.message.includes("upstream connect error") || error.message.includes("reset before headers")) {
+        const message = error.message.toLowerCase();
+        
+        if (message.includes("503") || message.includes("service unavailable")) {
+          throw new Error("Trading service is temporarily overloaded. Please wait a moment and try again.");
+        } else if (message.includes("upstream connect error") || message.includes("reset before headers")) {
           throw new Error("Connection to trading service was reset. This may be due to high load. Please try again.");
-        } else if (error.message.includes("unavailable")) {
+        } else if (message.includes("unavailable")) {
           throw new Error("Trading service is currently unavailable. Please check back later.");
+        } else if (message.includes("timeout") || message.includes("deadline_exceeded")) {
+          throw new Error("Request timed out. The trading service may be slow. Please try again.");
+        } else if (message.includes("network error") || message.includes("fetch")) {
+          throw new Error("Network error occurred. Please check your connection and try again.");
+        } else if (message.includes("incomplete chunked encoding")) {
+          throw new Error("Network connection was interrupted. Please try again.");
+        } else if (message.includes("cors")) {
+          throw new Error("Connection blocked. Please check your network settings.");
+        } else if (message.includes("aborted") || message.includes("cancelled")) {
+          throw new Error("Request was cancelled. Please try again.");
         }
       }
       
@@ -795,7 +837,10 @@ export type {
   Side,
   ExecutionType,
   OrderStatus,
+  OrderState,
   TradeRole,
+  TransactionHash,
+  OrderToCancel,
 };
 
 // Export the schemas for creating instances

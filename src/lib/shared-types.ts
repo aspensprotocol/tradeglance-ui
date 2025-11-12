@@ -9,8 +9,11 @@ import type {
   Order,
   Side,
   OrderStatus,
+  OrderState,
   ExecutionType,
   TradeRole,
+  TransactionHash,
+  OrderToCancel,
 } from "../protos/gen/arborter_pb";
 
 import type {
@@ -20,13 +23,11 @@ import type {
   Configuration,
 } from "../protos/gen/arborter_config_pb";
 
-/**
- * Local enum to represent trading side (base or quote chain)
- * This replaces the removed BaseOrQuote enum from the proto file
- */
+// Define BaseOrQuote enum locally since it was removed from protobuf
 export enum BaseOrQuote {
-  BASE = 0,
-  QUOTE = 1,
+  UNSPECIFIED = 0,
+  BASE = 1,
+  QUOTE = 2,
 }
 
 // Re-export proto types for convenience
@@ -36,8 +37,11 @@ export type {
   Order,
   Side,
   OrderStatus,
+  OrderState,
   ExecutionType,
   TradeRole,
+  TransactionHash,
+  OrderToCancel,
   Chain,
   Market,
   Token,
