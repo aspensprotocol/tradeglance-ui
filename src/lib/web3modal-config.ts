@@ -2,7 +2,7 @@ import { type Config, createConfig, http } from "wagmi";
 import { base, baseSepolia, mainnet, polygon, sepolia } from "wagmi/chains";
 import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 import { type Chain as ViemChain, defineChain } from "viem";
-import type { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../lib/shared-types";
 
 // Your WalletConnect project ID
 const projectId = "c3690594c774dccbd4a0272ae38f1953";
@@ -32,7 +32,7 @@ const createWagmiConfig = (
     transports,
     connectors: [
       // Injected wallets (MetaMask, Rabby, etc.) - FIRST
-      injected({ shimDisconnect: true }),
+      injected(),
       // WalletConnect - SECOND
       walletConnect({
         projectId,

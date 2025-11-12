@@ -1,5 +1,5 @@
 import { configUtils } from "../lib/config-utils";
-import type { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../lib/shared-types";
 import type { TradingPair } from "../lib/shared-types";
 
 export const useTradeContracts = (): {

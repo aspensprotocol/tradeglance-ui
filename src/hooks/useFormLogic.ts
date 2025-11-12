@@ -3,7 +3,7 @@ import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
 import { useUnifiedBalance } from "./useUnifiedBalance";
 import type { TradingPair } from "@/lib/shared-types";
-import type { Chain } from "../protos/gen/arborter_config_pb";
+import type { Chain } from "../lib/shared-types";
 import { BaseOrQuote } from "../lib/shared-types";
 
 // MetaMask Network Management Update (August 2025):
