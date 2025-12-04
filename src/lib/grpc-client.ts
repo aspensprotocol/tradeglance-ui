@@ -6,18 +6,18 @@ import { createLogger } from "./logger";
 
 // Import ALL protobuf types from arborter_config_pb.ts
 import {
-  type AddChainRequest,
-  AddChainRequestSchema,
-  type AddChainResponse,
-  AddChainResponseSchema,
-  type AddMarketRequest,
-  AddMarketRequestSchema,
-  type AddMarketResponse,
-  AddMarketResponseSchema,
-  type AddTokenRequest,
-  AddTokenRequestSchema,
-  type AddTokenResponse,
-  AddTokenResponseSchema,
+  type SetChainRequest,
+  SetChainRequestSchema,
+  type SetChainResponse,
+  SetChainResponseSchema,
+  type SetMarketRequest,
+  SetMarketRequestSchema,
+  type SetMarketResponse,
+  SetMarketResponseSchema,
+  type SetTokenRequest,
+  SetTokenRequestSchema,
+  type SetTokenResponse,
+  SetTokenResponseSchema,
   type Chain,
   ChainSchema,
   ConfigService,
@@ -60,7 +60,6 @@ import {
 // Import ALL protobuf types from arborter_pb.ts
 import type {
   ExecutionType,
-  OrderStatus,
   OrderState,
   Side,
   TradeRole,
@@ -68,10 +67,10 @@ import type {
   OrderToCancel,
 } from "../protos/gen/arborter_pb";
 import {
-  type AddOrderbookRequest,
-  AddOrderbookRequestSchema,
-  type AddOrderbookResponse,
-  AddOrderbookResponseSchema,
+  type SetOrderbookRequest,
+  SetOrderbookRequestSchema,
+  type SetOrderbookResponse,
+  SetOrderbookResponseSchema,
   ArborterService,
   type CancelOrderRequest,
   CancelOrderRequestSchema,
@@ -234,10 +233,10 @@ export const configService = {
   },
 
   // Add chain
-  async addChain(chain: Chain): Promise<AddChainResponse> {
+  async addChain(chain: Chain): Promise<SetChainResponse> {
     try {
-      const request: AddChainRequest = create(AddChainRequestSchema, { chain });
-      const response: AddChainResponse = await configClient.addChain(request);
+      const request: SetChainRequest = create(SetChainRequestSchema, { chain });
+      const response: SetChainResponse = await configClient.setChain(request);
       return response;
     } catch (error) {
       console.error("Failed to add chain:", error);
@@ -249,13 +248,13 @@ export const configService = {
   async addToken(
     chainNetwork: string,
     token: Token,
-  ): Promise<AddTokenResponse> {
+  ): Promise<SetTokenResponse> {
     try {
-      const request: AddTokenRequest = create(AddTokenRequestSchema, {
+      const request: SetTokenRequest = create(SetTokenRequestSchema, {
         chainNetwork,
         token,
       });
-      const response: AddTokenResponse = await configClient.addToken(request);
+      const response: SetTokenResponse = await configClient.setToken(request);
       return response;
     } catch (error) {
       console.error("Failed to add token:", error);
@@ -274,9 +273,9 @@ export const configService = {
     baseChainTokenDecimals: number;
     quoteChainTokenDecimals: number;
     pairDecimals: number;
-  }): Promise<AddMarketResponse> {
+  }): Promise<SetMarketResponse> {
     try {
-      const request: AddMarketRequest = create(AddMarketRequestSchema, {
+      const request: SetMarketRequest = create(SetMarketRequestSchema, {
         baseChainNetwork: marketData.baseChainNetwork,
         quoteChainNetwork: marketData.quoteChainNetwork,
         baseChainTokenSymbol: marketData.baseChainTokenSymbol,
@@ -287,7 +286,7 @@ export const configService = {
         quoteChainTokenDecimals: marketData.quoteChainTokenDecimals,
         pairDecimals: marketData.pairDecimals,
       });
-      const response: AddMarketResponse = await configClient.addMarket(request);
+      const response: SetMarketResponse = await configClient.setMarket(request);
       return response;
     } catch (error) {
       console.error("Failed to add market:", error);
@@ -622,15 +621,15 @@ export const arborterService = {
   async addOrderbook(
     marketId: string,
     decimalPlaces: number,
-  ): Promise<AddOrderbookResponse> {
+  ): Promise<SetOrderbookResponse> {
     try {
-      const request: AddOrderbookRequest = create(AddOrderbookRequestSchema, {
+      const request: SetOrderbookRequest = create(SetOrderbookRequestSchema, {
         marketId,
         decimalPlaces,
       });
 
-      const response: AddOrderbookResponse =
-        await arborterClient.addOrderbook(request);
+      const response: SetOrderbookResponse =
+        await arborterClient.setOrderbook(request);
       return response;
     } catch (error) {
       console.error("Error adding orderbook:", error);
@@ -796,12 +795,12 @@ export type {
   Token,
   DeployContractRequest,
   DeployContractResponse,
-  AddChainRequest,
-  AddChainResponse,
-  AddTokenRequest,
-  AddTokenResponse,
-  AddMarketRequest,
-  AddMarketResponse,
+  SetChainRequest,
+  SetChainResponse,
+  SetTokenRequest,
+  SetTokenResponse,
+  SetMarketRequest,
+  SetMarketResponse,
   DeleteMarketRequest,
   DeleteMarketResponse,
   DeleteTokenRequest,
@@ -823,8 +822,8 @@ export type {
   SendOrderResponse,
   CancelOrderRequest,
   CancelOrderResponse,
-  AddOrderbookRequest,
-  AddOrderbookResponse,
+  SetOrderbookRequest,
+  SetOrderbookResponse,
   RemoveOrderbookRequest,
   RemoveOrderbookResponse,
   UnNormalizeDecimalsRequest,
@@ -836,7 +835,6 @@ export type {
   // Enums
   Side,
   ExecutionType,
-  OrderStatus,
   OrderState,
   TradeRole,
   TransactionHash,
@@ -852,12 +850,12 @@ export {
   TokenSchema,
   DeployContractRequestSchema,
   DeployContractResponseSchema,
-  AddChainRequestSchema,
-  AddChainResponseSchema,
-  AddTokenRequestSchema,
-  AddTokenResponseSchema,
-  AddMarketRequestSchema,
-  AddMarketResponseSchema,
+  SetChainRequestSchema,
+  SetChainResponseSchema,
+  SetTokenRequestSchema,
+  SetTokenResponseSchema,
+  SetMarketRequestSchema,
+  SetMarketResponseSchema,
   DeleteMarketRequestSchema,
   DeleteMarketResponseSchema,
   DeleteTokenRequestSchema,
@@ -879,8 +877,8 @@ export {
   SendOrderResponseSchema,
   CancelOrderRequestSchema,
   CancelOrderResponseSchema,
-  AddOrderbookRequestSchema,
-  AddOrderbookResponseSchema,
+  SetOrderbookRequestSchema,
+  SetOrderbookResponseSchema,
   RemoveOrderbookRequestSchema,
   RemoveOrderbookResponseSchema,
   UnNormalizeDecimalsRequestSchema,

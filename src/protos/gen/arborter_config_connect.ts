@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddChainRequest, AddChainResponse, AddMarketRequest, AddMarketResponse, AddTokenRequest, AddTokenResponse, AddTradeContractRequest, AddTradeContractResponse, DeleteChainRequest, DeleteChainResponse, DeleteMarketRequest, DeleteMarketResponse, DeleteTokenRequest, DeleteTokenResponse, DeleteTradeContractRequest, DeleteTradeContractResponse, DeployContractRequest, DeployContractResponse, Empty, GetConfigRequest, GetConfigResponse, UpdateManagerRequest, UpdateManagerResponse, VersionInfo } from "./arborter_config_pb.js";
+import { DeleteChainRequest, DeleteChainResponse, DeleteMarketRequest, DeleteMarketResponse, DeleteTokenRequest, DeleteTokenResponse, DeleteTradeContractRequest, DeleteTradeContractResponse, DeployContractRequest, DeployContractResponse, Empty, GetConfigRequest, GetConfigResponse, SetChainRequest, SetChainResponse, SetMarketRequest, SetMarketResponse, SetTokenRequest, SetTokenResponse, SetTradeContractRequest, SetTradeContractResponse, UpdateAdminRequest, UpdateAdminResponse, VersionInfo } from "./arborter_config_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -15,18 +15,18 @@ export const ConfigService = {
   typeName: "xyz.aspens.arborter_config.v1.ConfigService",
   methods: {
     /**
-     * rpc service to set the manager address
+     * rpc service to set the admin address
      *
-     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.UpdateManager
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.UpdateAdmin
      */
-    updateManager: {
-      name: "UpdateManager",
-      I: UpdateManagerRequest,
-      O: UpdateManagerResponse,
+    updateAdmin: {
+      name: "UpdateAdmin",
+      I: UpdateAdminRequest,
+      O: UpdateAdminResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * rpc service to deploy a contract on the base and quote chains
+     * rpc service to deploy a trading instance on the base and quote chains
      *
      * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.DeployContract
      */
@@ -37,47 +37,47 @@ export const ConfigService = {
       kind: MethodKind.Unary,
     },
     /**
-     * rpc service to add a chain to the configuration
+     * rpc service to set a chain in the configuration
      *
-     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.AddChain
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.SetChain
      */
-    addChain: {
-      name: "AddChain",
-      I: AddChainRequest,
-      O: AddChainResponse,
+    setChain: {
+      name: "SetChain",
+      I: SetChainRequest,
+      O: SetChainResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * rpc service to add a new token to trade
+     * rpc service to set a new token to trade
      *
-     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.AddToken
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.SetToken
      */
-    addToken: {
-      name: "AddToken",
-      I: AddTokenRequest,
-      O: AddTokenResponse,
+    setToken: {
+      name: "SetToken",
+      I: SetTokenRequest,
+      O: SetTokenResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * rpc service to add a new market to trade
+     * rpc service to set a new market to trade
      *
-     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.AddMarket
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.SetMarket
      */
-    addMarket: {
-      name: "AddMarket",
-      I: AddMarketRequest,
-      O: AddMarketResponse,
+    setMarket: {
+      name: "SetMarket",
+      I: SetMarketRequest,
+      O: SetMarketResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * rpc service to add a new trade contract
+     * rpc service to set a new trading instance
      *
-     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.AddTradeContract
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.SetTradeContract
      */
-    addTradeContract: {
-      name: "AddTradeContract",
-      I: AddTradeContractRequest,
-      O: AddTradeContractResponse,
+    setTradeContract: {
+      name: "SetTradeContract",
+      I: SetTradeContractRequest,
+      O: SetTradeContractResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -136,7 +136,7 @@ export const ConfigService = {
       kind: MethodKind.Unary,
     },
     /**
-     * rpc service to delete a trade contract
+     * rpc service to delete a trading instance
      *
      * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.DeleteTradeContract
      */

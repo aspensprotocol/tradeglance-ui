@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AuthRequest, AuthResponse, InitializeManagerRequest, InitializeManagerResponse } from "./arborter_auth_pb.js";
+import { AuthRequest, AuthResponse, InitializeAdminRequest, InitializeAdminResponse } from "./arborter_auth_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -16,20 +16,20 @@ export const AuthService = {
   typeName: "xyz.aspens.arborter_auth.v1.AuthService",
   methods: {
     /**
-     * Initialize the first manager (only works when no manager exists)
-     * Returns a JWT token for the newly created manager
+     * Initialize the first admin (only works when no admin exists)
+     * Returns a JWT token for the newly created admin
      *
-     * @generated from rpc xyz.aspens.arborter_auth.v1.AuthService.InitializeManager
+     * @generated from rpc xyz.aspens.arborter_auth.v1.AuthService.InitializeAdmin
      */
-    initializeManager: {
-      name: "InitializeManager",
-      I: InitializeManagerRequest,
-      O: InitializeManagerResponse,
+    initializeAdmin: {
+      name: "InitializeAdmin",
+      I: InitializeAdminRequest,
+      O: InitializeAdminResponse,
       kind: MethodKind.Unary,
     },
     /**
      * Authenticate with EIP-712 signature to obtain a JWT token
-     * Only works if the address is already a manager
+     * Only works if the address is already an admin
      *
      * @generated from rpc xyz.aspens.arborter_auth.v1.AuthService.AuthenticateWithSignature
      */
