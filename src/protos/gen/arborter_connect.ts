@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddOrderbookRequest, AddOrderbookResponse, CancelOrderRequest, CancelOrderResponse, GetSignerPublicKeyRequest, GetSignerPublicKeyResponse, OrderbookEntry, OrderbookRequest, RemoveOrderbookRequest, RemoveOrderbookResponse, SendOrderRequest, SendOrderResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
+import { CancelOrderRequest, CancelOrderResponse, GetSignerPublicKeyRequest, GetSignerPublicKeyResponse, OrderbookEntry, OrderbookRequest, RemoveOrderbookRequest, RemoveOrderbookResponse, SendOrderRequest, SendOrderResponse, SetOrderbookRequest, SetOrderbookResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -49,12 +49,12 @@ export const ArborterService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * @generated from rpc xyz.aspens.arborter.v1.ArborterService.AddOrderbook
+     * @generated from rpc xyz.aspens.arborter.v1.ArborterService.SetOrderbook
      */
-    addOrderbook: {
-      name: "AddOrderbook",
-      I: AddOrderbookRequest,
-      O: AddOrderbookResponse,
+    setOrderbook: {
+      name: "SetOrderbook",
+      I: SetOrderbookRequest,
+      O: SetOrderbookResponse,
       kind: MethodKind.Unary,
     },
     /**
