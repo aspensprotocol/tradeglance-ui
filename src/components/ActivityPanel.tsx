@@ -4,7 +4,7 @@ import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
 
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTabOptimization } from "@/hooks/useTabOptimization";
-import { triggerBalanceRefresh, getAddressExplorerLink } from "../lib/utils";
+import { triggerBalanceRefresh, getAddressExplorerLink, formatAddress, toChecksum } from "../lib/utils";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradingPair, RecentTrade } from "@/lib/shared-types";
 import { cn } from "@/lib/utils";
@@ -479,7 +479,7 @@ const ActivityPanel = ({
                             ? "text-green-600 hover:text-green-700" // Maker is buyer in buy trades
                             : "text-red-600 hover:text-red-700", // Maker is seller in sell trades
                         )}
-                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}\nClick to view on ${
+                        title={`Maker: ${trade.makerAddress || trade.trader ? toChecksum(trade.makerAddress || trade.trader || "") : "Unknown"}\nTaker: ${trade.takerAddress ? toChecksum(trade.takerAddress) : "Unknown"}\nClick to view on ${
                           getAddressChainId(
                             trade.makerAddress || trade.trader || "",
                             true,
@@ -511,7 +511,7 @@ const ActivityPanel = ({
                         }`}
                       >
                         {trade.makerAddress || trade.trader
-                          ? `${(trade.makerAddress || trade.trader || "").slice(0, 6)}...${(trade.makerAddress || trade.trader || "").slice(-4)}`
+                          ? formatAddress(trade.makerAddress || trade.trader || "")
                           : "Unknown"}
                       </a>
                       <a
@@ -535,7 +535,7 @@ const ActivityPanel = ({
                             ? "text-red-600 hover:text-red-700" // Taker is seller in buy trades
                             : "text-green-600 hover:text-green-700", // Taker is buyer in sell trades
                         )}
-                        title={`Maker: ${trade.makerAddress || trade.trader}\nTaker: ${trade.takerAddress || "Unknown"}\nClick to view on ${
+                        title={`Maker: ${trade.makerAddress || trade.trader ? toChecksum(trade.makerAddress || trade.trader || "") : "Unknown"}\nTaker: ${trade.takerAddress ? toChecksum(trade.takerAddress) : "Unknown"}\nClick to view on ${
                           getAddressChainId(
                             trade.takerAddress || "",
                             false,
@@ -567,7 +567,7 @@ const ActivityPanel = ({
                         }`}
                       >
                         {trade.takerAddress
-                          ? `${trade.takerAddress.slice(0, 6)}...${trade.takerAddress.slice(-4)}`
+                          ? formatAddress(trade.takerAddress)
                           : "Unknown"}
                       </a>
                       <span className="text-right truncate text-gray-600 font-medium relative z-10">

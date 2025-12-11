@@ -1,9 +1,39 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { getAddress } from "viem";
 import { configUtils } from "./config-utils";
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Convert an EVM address to its ERC-55 checksummed format
+ * @param address - The address to checksum (with or without 0x prefix)
+ * @returns The checksummed address with 0x prefix
+ */
+export function toChecksum(address: string): string {
+  try {
+    return getAddress(address);
+  } catch {
+    // If invalid address, return as-is
+    return address;
+  }
+}
+
+/**
+ * Format an address for display (truncated with checksum)
+ * @param address - The address to format
+ * @param startChars - Number of characters to show at the start (default 6)
+ * @param endChars - Number of characters to show at the end (default 4)
+ * @returns Formatted address string like "0x1234...5678"
+ */
+export function formatAddress(address: string, startChars = 6, endChars = 4): string {
+  const checksummed = toChecksum(address);
+  if (checksummed.length <= startChars + endChars) {
+    return checksummed;
+  }
+  return `${checksummed.slice(0, startChars)}...${checksummed.slice(-endChars)}`;
 }
 
 /**
@@ -41,8 +71,8 @@ export function getAddressExplorerLink(
   address: string,
   chainId: number,
 ): string {
-  // Ensure we have the 0x prefix for the address
-  const cleanAddress = address.startsWith("0x") ? address : `0x${address}`;
+  // Convert to checksummed address
+  const checksummedAddress = toChecksum(address);
 
   // Get explorer URL from gRPC configuration
   const chainConfig = configUtils.getChainByChainId(chainId);
@@ -51,11 +81,11 @@ export function getAddressExplorerLink(
     // Remove trailing slash from explorer URL if present
     const baseUrl = chainConfig.explorerUrl.replace(/\/$/, "");
 
-    return `${baseUrl}/address/${cleanAddress}`;
+    return `${baseUrl}/address/${checksummedAddress}`;
   }
 
   // If no explorer URL is configured, return just the address
-  return cleanAddress;
+  return checksummedAddress;
 }
 
 /**

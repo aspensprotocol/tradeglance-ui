@@ -2,16 +2,13 @@ import { useState } from "react";
 import { useAccount, useDisconnect, useConnect } from "wagmi";
 import { Button } from "./ui/button";
 import DepositWithdrawModal from "./DepositWithdrawModal";
+import { formatAddress } from "@/lib/utils";
 
 export default function WalletButton(): JSX.Element {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { connect, connectors } = useConnect();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-
-  const formatAddress = (addr: string): string => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
 
   const handleAddressClick = (): void => {
     setModalOpen(true);
