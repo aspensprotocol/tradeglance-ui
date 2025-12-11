@@ -15,7 +15,6 @@ import Trading from "./pages/Trading";
 import Docs from "./pages/Docs";
 import Mint from "./pages/Mint";
 import NotFound from "./pages/NotFound";
-import { ConfigTest } from "./components/ConfigTest";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({
@@ -42,7 +41,6 @@ const App = (): JSX.Element => (
                   <Route path="/trading" element={<Trading />} />
                   <Route path="/docs" element={<Docs />} />
                   <Route path="/mint" element={<Mint />} />
-                  <Route path="/config" element={<ConfigTest />} />
 
                   {/* Catch-all route for any other paths - this ensures React Router handles all routes */}
                   <Route path="*" element={<NotFound />} />
