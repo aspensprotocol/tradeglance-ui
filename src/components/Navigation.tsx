@@ -198,13 +198,6 @@ export const Navigation = ({
               </Button>
             </Link>
           </li>
-          <li>
-            <Link to="/config" onClick={closeMobileMenu}>
-              <Button variant="materializeFlat" fullWidth>
-                Config
-              </Button>
-            </Link>
-          </li>
         </ul>
       </>
     );
@@ -311,15 +304,6 @@ export const Navigation = ({
                 <span className="font-medium">Documentation</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              asChild
-              className="rounded-lg hover:bg-gradient-to-r hover:from-blue-100 hover:to-cyan-100 transition-all duration-200 cursor-pointer group"
-            >
-              <Link to="/config" className="flex items-center gap-3 p-2 w-full">
-                <Settings className="h-5 w-5 text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
-                <span className="font-medium">Configuration</span>
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-gradient-to-r from-indigo-200 to-blue-200" />
             <DropdownMenuItem
               asChild
@@ -410,18 +394,6 @@ export const Navigation = ({
                       variant="outline"
                     >
                       Mint Test Tokens
-                    </Button>
-                  </Link>
-                  <Link
-                    to="/config"
-                    className="block"
-                    onClick={closeMobileMenu}
-                  >
-                    <Button
-                      className="w-full py-2.5 sm:py-3 text-xs sm:text-sm"
-                      variant="outline"
-                    >
-                      Config
                     </Button>
                   </Link>
                 </CardContent>
