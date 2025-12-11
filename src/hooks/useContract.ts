@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { parseUnits } from "viem";
+import { parseUnits, getAddress } from "viem";
 import { configUtils } from "../lib/config-utils";
 import MidribV2ABI from "../lib/abi/MidribV2.json";
 import { createPublicClient, http } from "viem";
@@ -228,8 +228,7 @@ export const useContract = (): {
       const chainConfig = configUtils.getChainByChainId(targetChainId);
       const tokenSymbol = Object.keys(chainConfig?.tokens || {}).find(
         (symbol) =>
-          chainConfig?.tokens[symbol].address.toLowerCase() ===
-          token.toLowerCase(),
+          getAddress(chainConfig?.tokens[symbol].address) === getAddress(token),
       );
       const decimals = tokenSymbol
         ? chainConfig?.tokens[tokenSymbol].decimals
@@ -402,8 +401,7 @@ export const useContract = (): {
       const chainConfig = configUtils.getChainByChainId(targetChainId);
       const tokenSymbol = Object.keys(chainConfig?.tokens || {}).find(
         (symbol) =>
-          chainConfig?.tokens[symbol].address.toLowerCase() ===
-          token.toLowerCase(),
+          getAddress(chainConfig?.tokens[symbol].address) === getAddress(token),
       );
       const decimals = tokenSymbol
         ? chainConfig?.tokens[tokenSymbol].decimals

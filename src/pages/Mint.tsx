@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { configUtils } from "@/lib/config-utils";
 import { useChainMonitor } from "@/hooks/useChainMonitor";
 import { Layout } from "@/components/Layout";
-import { getEtherscanLink } from "@/lib/utils";
+import { getEtherscanLink, formatAddress } from "@/lib/utils";
 import type { Chain } from "@/lib/shared-types";
 
 const Mint = (): JSX.Element => {
@@ -364,8 +364,7 @@ const Mint = (): JSX.Element => {
                             Address:
                           </span>
                           <span className="text-xs font-mono text-neutral-600">
-                            {tokenConfig.address.slice(0, 8)}...
-                            {tokenConfig.address.slice(-6)}
+                            {formatAddress(tokenConfig.address, 8, 6)}
                           </span>
                         </header>
                         <section className="flex justify-between">

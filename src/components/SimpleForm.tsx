@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, formatAddress } from "@/lib/utils";
 import { Settings, History, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -437,7 +437,7 @@ const SimpleForm = ({
             <span className="text-xs text-gray-600 relative z-10">
               To:{" "}
               {address
-                ? `${address.slice(0, 6)}...${address.slice(-4)}`
+                ? formatAddress(address)
                 : "Not connected"}
             </span>
 
