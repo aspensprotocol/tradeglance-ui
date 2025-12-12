@@ -20,7 +20,6 @@ import {
   ExternalLink,
   MessageCircle,
   BookOpen,
-  Settings,
 } from "lucide-react";
 import { getShortGitCommitHash } from "@/lib/version";
 import { Link } from "react-router-dom";
@@ -252,13 +251,6 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           >
             <BookOpen className="h-3 w-3 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
             Docs
-          </a>
-          <a
-            href="/config"
-            className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-600 hover:via-red-600 hover:to-pink-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
-          >
-            <Settings className="h-3 w-3 text-orange-500 group-hover:text-orange-600 transition-colors duration-300" />
-            Config
           </a>
         </nav>
       </section>

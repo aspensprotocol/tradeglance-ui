@@ -4,7 +4,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  Settings,
   BookOpen,
   Coins,
   BarChart3,

@@ -43,14 +43,21 @@ export const useChainMonitor = (): {
 
   const checkChainSupport = useCallback(
     (chainId: number): void => {
-      if (!config || !chainId || chainId <= 0) return;
+      if (!chainId || chainId <= 0) return;
 
-      const tradeContractAddress: string | null =
-        configUtils.getTradeContractAddress(chainId);
-      const supported = !!tradeContractAddress;
-
+      // Always set the current chain ID, even if config isn't loaded yet
       setCurrentChainId(chainId);
-      setIsSupported(supported);
+
+      // Only check support if config is loaded
+      if (config) {
+        const tradeContractAddress: string | null =
+          configUtils.getTradeContractAddress(chainId);
+        const supported = !!tradeContractAddress;
+        setIsSupported(supported);
+      } else {
+        // Config not loaded yet, mark as not supported for now
+        setIsSupported(false);
+      }
     },
     [config],
   );
