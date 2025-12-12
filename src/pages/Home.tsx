@@ -97,21 +97,6 @@ const Home = (): JSX.Element => {
                   🪙 Mint Test Tokens
                 </span>
               </Button>
-              <Button
-                className="w-full bg-gradient-to-r from-slate-50 via-indigo-50 to-blue-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform hover:scale-105 hover:scale-110 transition-all duration-300 relative overflow-hidden group"
-                onClick={() => navigate("/config")}
-              >
-                {/* Subtle floating sparkles */}
-                <span className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-indigo-200 rounded-full animate-ping opacity-60"></span>
-                <span className="absolute -top-1 -right-1 w-1 h-1 bg-blue-200 rounded-full animate-ping opacity-60 delay-300"></span>
-
-                {/* Subtle glowing effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-indigo-100 via-blue-100 to-cyan-100 rounded opacity-0 group-hover:opacity-30 blur-sm transition-opacity duration-300"></span>
-
-                <span className="relative z-10 font-bold tracking-wide">
-                  ⚙️ Config
-                </span>
-              </Button>
             </CardContent>
           </Card>
         </section>

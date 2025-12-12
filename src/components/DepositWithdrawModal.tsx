@@ -366,10 +366,10 @@ const DepositWithdrawModal = ({
               Please connect your wallet to continue
             </p>
           </section>
-        ) : !currentChainId ? (
+        ) : chains.length === 0 ? (
           <section className="text-center py-4">
             <p className="text-neutral-700 mb-4 text-sm">
-              Please connect to a supported network
+              Loading configuration...
             </p>
           </section>
         ) : (

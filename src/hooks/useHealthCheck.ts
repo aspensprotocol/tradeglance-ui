@@ -64,17 +64,10 @@ export const useHealthCheck = (): HealthCheckResult => {
             signal: AbortSignal.timeout(3000),
           });
 
-          console.log(
-            `Health check response: ${response.status} ${response.statusText}`,
-          );
-
           if (response.ok) {
             // Try to parse the response to ensure it's actually a gRPC reflection response
             try {
               const responseText = await response.text();
-              console.log(
-                `Health check response body: ${responseText.substring(0, 200)}...`,
-              );
 
               // More flexible check - look for various gRPC reflection response patterns
               const isGrpcReflectionResponse =
@@ -100,32 +93,9 @@ export const useHealthCheck = (): HealthCheckResult => {
                 // gRPC reflection endpoint responded correctly
                 break;
               } else {
-                // Fallback: if we get a 200 response but not gRPC format,
-                // the server might be running but with different response format
-                // Got 200 response but not gRPC format, checking if server is reachable
-
-                // Try a simple ping test to see if the server is at least responding
-                try {
-                  const pingResponse = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({}),
-                    signal: AbortSignal.timeout(2000),
-                  });
-
-                  if (pingResponse.ok) {
-                    success = true;
-                    // Server is responding (fallback ping test succeeded)
-                    break;
-                  }
-                } catch {
-                  // Fallback ping test failed
-                }
-
-                lastError = "Response doesn't look like valid gRPC reflection";
-                console.log("Full response for debugging:", responseText);
+                // If we get a 200 response, consider the server online even if format differs
+                success = true;
+                break;
               }
             } catch {
               lastError = "Failed to parse response";
@@ -165,9 +135,9 @@ export const useHealthCheck = (): HealthCheckResult => {
     performHealthCheck();
   }, [performHealthCheck]);
 
-  // Set up periodic health checks every 10 seconds (more frequent for better responsiveness)
+  // Set up periodic health checks every 30 seconds (reduced frequency to minimize network spam)
   useEffect(() => {
-    const interval = setInterval(performHealthCheck, 10000);
+    const interval = setInterval(performHealthCheck, 30000);
     return () => clearInterval(interval);
   }, [performHealthCheck]);
 
