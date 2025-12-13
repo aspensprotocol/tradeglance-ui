@@ -44,7 +44,7 @@ const DepositWithdrawModal = ({
   const [activeType, setActiveType] = useState<"deposit" | "withdraw">(
     initialType,
   );
-  const { deposit, withdraw, isLoading, isConfirming, error } = useContract();
+  const { deposit, withdraw, isLoading, isConfirming, error, isWalletClientReady } = useContract();
   const { getAllChains } = useTradeContracts();
   const { currentChainId } = useChainMonitor();
   const { isConnected } = useAccount();
@@ -493,11 +493,16 @@ const DepositWithdrawModal = ({
               <Button
                 type="submit"
                 disabled={
-                  isLoading || isConfirming || !selectedToken || !amount
+                  isLoading || isConfirming || !selectedToken || !amount || !isWalletClientReady
                 }
-                className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 animate-pulse-glow"
+                className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading || isConfirming ? (
+                {!isWalletClientReady ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    Connecting wallet...
+                  </span>
+                ) : isLoading || isConfirming ? (
                   <span className="flex items-center gap-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                     {isConfirming ? "Confirming..." : "Processing..."}

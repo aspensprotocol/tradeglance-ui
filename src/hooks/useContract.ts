@@ -22,6 +22,7 @@ export const useContract = (): {
   isLoading: boolean;
   isConfirming: boolean;
   error: string | null;
+  isWalletClientReady: boolean;
 } => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -518,5 +519,6 @@ export const useContract = (): {
     isLoading,
     isConfirming,
     error,
+    isWalletClientReady: !!walletClient,
   };
 };
