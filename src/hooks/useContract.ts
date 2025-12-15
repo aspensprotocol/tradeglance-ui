@@ -32,15 +32,9 @@ export const useContract = (): {
   const { data: walletClient } = useWalletClient();
   const { toast } = useToast();
 
-  // Debug wallet client state
-  useEffect(() => {
-    console.log('🔍 useContract wallet state:', {
-      isConnected,
-      address,
-      hasWalletClient: !!walletClient,
-      walletClient: walletClient ? 'present' : 'null',
-    });
-  }, [isConnected, address, walletClient]);
+  // Fallback: if wagmi's walletClient isn't ready but we're connected,
+  // consider it ready anyway (we'll use window.ethereum directly if needed)
+  const isWalletClientReady = isConnected && address && (!!walletClient || typeof window.ethereum !== 'undefined');
 
   // Helper function to create a custom public client with the correct RPC URL
   const createCustomPublicClient = (
@@ -223,8 +217,23 @@ export const useContract = (): {
     setError(null);
 
     try {
-      if (!isConnected || !address || !walletClient) {
-        throw new Error("Wallet not connected or wallet client not available");
+      if (!isConnected || !address) {
+        throw new Error("Wallet not connected");
+      }
+
+      // Use wagmi's walletClient if available, otherwise create one from window.ethereum
+      let activeWalletClient = walletClient;
+      if (!activeWalletClient && typeof window.ethereum !== 'undefined') {
+        // Create wallet client from window.ethereum as fallback
+        const { createWalletClient, custom } = await import('viem');
+        activeWalletClient = createWalletClient({
+          account: address as `0x${string}`,
+          transport: custom(window.ethereum),
+        });
+      }
+
+      if (!activeWalletClient) {
+        throw new Error("Wallet client not available");
       }
 
       const tradeContractAddress =
@@ -310,7 +319,7 @@ export const useContract = (): {
           ],
         };
 
-        await walletClient.writeContract({
+        await activeWalletClient.writeContract({
           address: token as `0x${string}`,
           abi: tokenContract.abi,
           functionName: "approve",
@@ -324,7 +333,7 @@ export const useContract = (): {
       }
 
       // Now attempt the deposit
-      const hash = await walletClient.writeContract({
+      const hash = await activeWalletClient.writeContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MidribV2ABI.abi,
         functionName: "deposit",
@@ -396,8 +405,23 @@ export const useContract = (): {
     setError(null);
 
     try {
-      if (!isConnected || !address || !walletClient) {
-        throw new Error("Wallet not connected or wallet client not available");
+      if (!isConnected || !address) {
+        throw new Error("Wallet not connected");
+      }
+
+      // Use wagmi's walletClient if available, otherwise create one from window.ethereum
+      let activeWalletClient = walletClient;
+      if (!activeWalletClient && typeof window.ethereum !== 'undefined') {
+        // Create wallet client from window.ethereum as fallback
+        const { createWalletClient, custom } = await import('viem');
+        activeWalletClient = createWalletClient({
+          account: address as `0x${string}`,
+          transport: custom(window.ethereum),
+        });
+      }
+
+      if (!activeWalletClient) {
+        throw new Error("Wallet client not available");
       }
 
       const tradeContractAddress =
@@ -460,7 +484,7 @@ export const useContract = (): {
       }
 
       // Attempt the withdrawal
-      const hash = await walletClient.writeContract({
+      const hash = await activeWalletClient.writeContract({
         address: tradeContractAddress as `0x${string}`,
         abi: MidribV2ABI.abi,
         functionName: "withdraw",
@@ -529,6 +553,6 @@ export const useContract = (): {
     isLoading,
     isConfirming,
     error,
-    isWalletClientReady: !!walletClient,
+    isWalletClientReady,
   };
 };
