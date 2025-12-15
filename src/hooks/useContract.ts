@@ -32,6 +32,16 @@ export const useContract = (): {
   const { data: walletClient } = useWalletClient();
   const { toast } = useToast();
 
+  // Debug wallet client state
+  useEffect(() => {
+    console.log('🔍 useContract wallet state:', {
+      isConnected,
+      address,
+      hasWalletClient: !!walletClient,
+      walletClient: walletClient ? 'present' : 'null',
+    });
+  }, [isConnected, address, walletClient]);
+
   // Helper function to create a custom public client with the correct RPC URL
   const createCustomPublicClient = (
     rpcUrl: string,
