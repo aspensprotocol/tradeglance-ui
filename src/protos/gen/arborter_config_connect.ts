@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { DeleteChainRequest, DeleteChainResponse, DeleteMarketRequest, DeleteMarketResponse, DeleteTokenRequest, DeleteTokenResponse, DeleteTradeContractRequest, DeleteTradeContractResponse, DeployContractRequest, DeployContractResponse, Empty, GetConfigRequest, GetConfigResponse, SetChainRequest, SetChainResponse, SetMarketRequest, SetMarketResponse, SetTokenRequest, SetTokenResponse, SetTradeContractRequest, SetTradeContractResponse, UpdateAdminRequest, UpdateAdminResponse, VersionInfo } from "./arborter_config_pb.js";
+import { DeleteChainRequest, DeleteChainResponse, DeleteMarketRequest, DeleteMarketResponse, DeleteTokenRequest, DeleteTokenResponse, DeleteTradeContractRequest, DeleteTradeContractResponse, DeployContractRequest, DeployContractResponse, Empty, GetConfigRequest, GetConfigResponse, GetDeployCalldataRequest, GetDeployCalldataResponse, SetChainRequest, SetChainResponse, SetMarketRequest, SetMarketResponse, SetTokenRequest, SetTokenResponse, SetTradeContractRequest, SetTradeContractResponse, UpdateAdminRequest, UpdateAdminResponse, VersionInfo } from "./arborter_config_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -23,6 +23,17 @@ export const ConfigService = {
       name: "UpdateAdmin",
       I: UpdateAdminRequest,
       O: UpdateAdminResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * rpc service to get pre-encoded calldata for deploying a trading instance
+     *
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.GetDeployCalldata
+     */
+    getDeployCalldata: {
+      name: "GetDeployCalldata",
+      I: GetDeployCalldataRequest,
+      O: GetDeployCalldataResponse,
       kind: MethodKind.Unary,
     },
     /**
