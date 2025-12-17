@@ -43,9 +43,9 @@ const TradeForm = ({
   };
 
   return (
-    <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-visible relative shadow-visible">
+    <section className="bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-visible relative shadow-visible">
 
-      <main className="p-4 sm:p-5 md:p-6 lg:p-6 h-full flex flex-col relative z-10">
+      <main className="p-4 sm:p-5 md:p-6 lg:p-6 flex flex-col relative z-10">
         {/* Group 1: Buy/Sell Tabs and Order Type Toggle */}
         <section className="space-y-3 mb-4">
           {/* Configuration Loading Indicator */}
@@ -292,8 +292,8 @@ const TradeForm = ({
         </section>
 
         {/* Trade Form */}
-        <section className="flex-1 flex flex-col justify-between">
-          <fieldset className="flex-1 flex flex-col space-y-2 sm:space-y-3">
+        <section className="flex flex-col">
+          <fieldset className="flex flex-col space-y-2 sm:space-y-3">
             {/* Group 3: Price and input field - Fixed height container */}
             <section className="h-[88px] mb-1">
               {tradingState.activeOrderType === "limit" ? (
