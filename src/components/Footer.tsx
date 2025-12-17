@@ -136,7 +136,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
             </span>
           )}
           <span className="text-neutral-800 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
-            🚀 version {getShortGitCommitHash()}
+            version {getShortGitCommitHash()}
           </span>
 
           {/* Enhanced Info Menu */}
