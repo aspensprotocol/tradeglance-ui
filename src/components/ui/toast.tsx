@@ -165,8 +165,9 @@ const ErrorToast = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & {
     errorMessage: string;
     title?: string;
+    showCopy?: boolean;
   }
->(({ className, errorMessage, title = "Error", ...props }, ref) => {
+>(({ className, errorMessage, title = "Error", showCopy = true, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
@@ -184,7 +185,7 @@ const ErrorToast = React.forwardRef<
           </span>
         </ToastDescription>
       </section>
-      <CopyButton text={errorMessage} className="ml-2 shrink-0" />
+      {showCopy && <CopyButton text={errorMessage} className="ml-2 shrink-0" />}
       <ToastClose />
     </ToastPrimitives.Root>
   );
