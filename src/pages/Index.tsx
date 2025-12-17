@@ -102,13 +102,12 @@ const Index = ({
               sm:col-span-1
               lg:col-span-1
               order-2 sm:order-1 lg:order-3
-              h-full
               min-h-0
               mb-2
               relative z-10
             "
             >
-              <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 relative overflow-visible">
+              <section className="bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 relative overflow-visible">
                 {/* Subtle gradient overlay */}
                 <section className="absolute inset-0 bg-gradient-to-br from-emerald-400/2 to-teal-400/2 pointer-events-none"></section>
                 <TradeForm

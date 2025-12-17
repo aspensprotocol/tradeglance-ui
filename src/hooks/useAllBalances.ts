@@ -258,6 +258,22 @@ export const useAllBalances = (): {
     fetchAllBalances();
   }, [fetchAllBalances]); // Include fetchAllBalances but it's memoized with stable dependencies
 
+  // Listen for balance-refresh events (triggered after deposits/withdrawals)
+  useEffect(() => {
+    const handleBalanceRefresh = (): void => {
+      // Add a small delay to allow blockchain state to update
+      setTimeout(() => {
+        fetchAllBalances();
+      }, 500);
+    };
+
+    window.addEventListener("balance-refresh", handleBalanceRefresh);
+
+    return () => {
+      window.removeEventListener("balance-refresh", handleBalanceRefresh);
+    };
+  }, [fetchAllBalances]);
+
   const refreshBalances = (): void => {
     fetchAllBalances();
   };

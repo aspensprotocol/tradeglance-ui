@@ -149,6 +149,7 @@ export const useNetworkManagement = (): {
       title: "Networks swapped",
       description: `Please switch to ${oldReceiverNetwork} in MetaMask using the globe icon to complete the swap`,
       variant: "default",
+      showCopy: false,
     });
   };
 

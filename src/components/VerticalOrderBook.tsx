@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, TrendingUp, Coins } from "lucide-react";
+import { Coins } from "lucide-react";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(
@@ -64,9 +64,10 @@ const OrderbookRow = React.memo(
         <section className="absolute inset-0 bg-gradient-to-r from-purple-400/2 to-pink-400/2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></section>
 
         <span
-          className={`font-mono text-xs font-semibold relative z-10 ${isAsk ? "text-red-500" : "text-emerald-500"}`}
+          className={`font-mono text-xs font-semibold relative z-10 whitespace-nowrap ${isAsk ? "text-red-500" : "text-emerald-500"}`}
         >
           {formatDecimalConsistent(entry.price)}
+          <span className="opacity-60 ml-1">({volumePercentage.toFixed(1)}%)</span>
         </span>
         <span className="text-right text-neutral-800 text-xs font-medium relative z-10">
           {formatDecimalConsistent(entry.quantity)}
@@ -75,15 +76,6 @@ const OrderbookRow = React.memo(
           {formatDecimalConsistent(
             Number(entry.price) * Number(entry.quantity),
           )}
-        </span>
-
-        {/* Volume percentage indicator */}
-        <span
-          className={`ml-2 text-xs opacity-60 ${
-            isAsk ? "text-red-400" : "text-emerald-400"
-          }`}
-        >
-          {volumePercentage.toFixed(1)}%
         </span>
       </article>
     );
@@ -190,7 +182,6 @@ const VerticalOrderBook = React.memo(
                 <Coins className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
                 <SelectValue placeholder="Select trading pair" />
               </div>
-              <ChevronDown className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-transform duration-300 group-data-[state=open]:rotate-180" />
             </SelectTrigger>
             <SelectContent className="bg-gradient-to-br from-white via-purple-50 to-pink-50 border-2 border-purple-200 shadow-2xl rounded-xl">
               {tradingPairs.map((pair: TradingPair) => (
@@ -199,10 +190,7 @@ const VerticalOrderBook = React.memo(
                   value={pair.id}
                   className="hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 cursor-pointer transition-all duration-200"
                 >
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-purple-500" />
-                    {pair.displayName}
-                  </div>
+                  {pair.displayName}
                 </SelectItem>
               ))}
             </SelectContent>

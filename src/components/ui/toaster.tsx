@@ -15,7 +15,7 @@ export function Toaster(): JSX.Element {
 
   return (
     <ToastProvider>
-      {toasts.map(({ id, title, description, action, variant, ...props }) => {
+      {toasts.map(({ id, title, description, action, variant, showCopy = true, ...props }) => {
         // Use ErrorToast for destructive toasts with copy functionality
         if (variant === "destructive" && description) {
           const errorMessage =
@@ -25,6 +25,7 @@ export function Toaster(): JSX.Element {
               key={id}
               errorMessage={errorMessage}
               title={title || "Error"}
+              showCopy={showCopy}
               {...props}
             />
           );
@@ -45,7 +46,7 @@ export function Toaster(): JSX.Element {
               )}
             </section>
             {action}
-            {messageText && (
+            {showCopy && messageText && (
               <CopyButton text={messageText} className="ml-2 shrink-0" />
             )}
             <ToastClose />

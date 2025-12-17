@@ -145,8 +145,9 @@ export const useTradingLogic = ({
           : tradingPair?.baseSymbol;
       toast({
         title: "No available balance",
-        description: `Please deposit ${tokenSymbol || "funds"} to ${isSimpleForm ? "simple" : "trade"}`,
+        description: `Please deposit ${tokenSymbol || "funds"} to ${isSimpleForm ? "swap" : "trade"}`,
         variant: "destructive",
+        showCopy: false,
       });
       return;
     }
@@ -169,8 +170,9 @@ export const useTradingLogic = ({
           : tradingPair?.baseSymbol;
       toast({
         title: "No available balance",
-        description: `Please deposit ${tokenSymbol || "funds"} to ${isSimpleForm ? "simple" : "trade"}`,
+        description: `Please deposit ${tokenSymbol || "funds"} to ${isSimpleForm ? "swap" : "trade"}`,
         variant: "destructive",
+        showCopy: false,
       });
       return;
     }

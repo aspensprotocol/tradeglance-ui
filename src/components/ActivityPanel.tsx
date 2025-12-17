@@ -37,7 +37,7 @@ const ActivityPanel = ({
   const { activeTab, switchTab } = useTabOptimization<
     "trades" | "orders" | "balances"
   >({
-    initialTab: "trades",
+    initialTab: "orders",
     dataFetchingEnabled: true,
     cacheTimeout: 30000, // 30 seconds
   });
@@ -232,30 +232,9 @@ const ActivityPanel = ({
         <header className="flex items-center justify-between mb-4 min-w-0">
           <nav className="flex bg-gradient-to-r from-slate-100/10 to-blue-100/10 rounded-xl p-1 border border-blue-200/30 shadow-lg flex-1 max-w-md min-w-0">
             <button
-              onClick={() => switchTab("trades")}
-              className={cn(
-                "flex-1 py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
-                activeTab === "trades"
-                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 "
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
-              )}
-            >
-              {/* Floating sparkles for active tab */}
-              {activeTab === "trades" && (
-                <>
-                  <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-                </>
-              )}
-              <span className="hidden sm:inline">Recent </span>Trades
-              {activeTab === "trades" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl blur-sm"></span>
-              )}
-            </button>
-            <button
               onClick={() => switchTab("orders")}
               className={cn(
-                "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
+                "flex-1 py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "orders"
                   ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 "
                   : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
@@ -271,6 +250,27 @@ const ActivityPanel = ({
               <span className="hidden sm:inline">Open </span>Orders
               {activeTab === "orders" && (
                 <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-teal-400/5 to-cyan-400/5 rounded-xl blur-sm"></span>
+              )}
+            </button>
+            <button
+              onClick={() => switchTab("trades")}
+              className={cn(
+                "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
+                activeTab === "trades"
+                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 "
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
+              )}
+            >
+              {/* Floating sparkles for active tab */}
+              {activeTab === "trades" && (
+                <>
+                  <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
+                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
+                </>
+              )}
+              <span className="hidden sm:inline">Recent </span>Trades
+              {activeTab === "trades" && (
+                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl blur-sm"></span>
               )}
             </button>
             <button
