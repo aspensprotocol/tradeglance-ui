@@ -328,7 +328,7 @@ const SimpleForm = ({
                   key={percentage}
                   onClick={() => handlePercentageClick(percentage)}
                   className={cn(
-                    "flex-1 py-0.5 px-1.5 text-xs font-medium rounded-md transition-all duration-200 transform hover:scale-105 h-6",
+                    "flex-1 py-0.5 px-1.5 text-xs font-medium rounded-md transition-all duration-200 transform  h-6",
                     formState.percentageValue === percentage
                       ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md"
                       : "bg-gradient-to-r from-slate-50 to-emerald-50 text-gray-600 hover:text-gray-800 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow-md",
@@ -346,7 +346,7 @@ const SimpleForm = ({
               onClick={swapNetworks}
               variant="ghost"
               size="sm"
-              className="rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+              className="rounded-full border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 p-2 shadow-lg hover:shadow-xl transition-all duration-300 transform "
             >
               <ArrowDownUp className="h-5 w-5 text-emerald-600" />
             </Button>
@@ -478,7 +478,7 @@ const SimpleForm = ({
               !formState.amount
             }
             className={cn(
-              "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
+              "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 transform  shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
               (() => {
                 if (!currentChainId)
                   return "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 text-white";

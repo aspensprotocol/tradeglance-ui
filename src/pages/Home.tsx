@@ -38,7 +38,7 @@ const Home = (): JSX.Element => {
             <CardContent className="space-y-4">
               {/* Hide Pro button on mobile, show on tablet and desktop */}
               <Button
-                className="w-full hidden sm:block bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform hover:scale-105 hover:scale-110 transition-all duration-300 relative overflow-hidden group"
+                className="w-full hidden sm:block bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform  transition-all duration-300 relative overflow-hidden group"
                 onClick={handleProClick}
               >
                 {/* Subtle floating sparkles */}
@@ -53,7 +53,7 @@ const Home = (): JSX.Element => {
                 </span>
               </Button>
               <Button
-                className="w-full bg-gradient-to-r from-slate-50 via-emerald-50 to-teal-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform hover:scale-105 hover:scale-110 transition-all duration-300 relative overflow-hidden group"
+                className="w-full bg-gradient-to-r from-slate-50 via-emerald-50 to-teal-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform  transition-all duration-300 relative overflow-hidden group"
                 onClick={handleSimpleClick}
               >
                 {/* Subtle floating sparkles */}
@@ -68,7 +68,7 @@ const Home = (): JSX.Element => {
                 </span>
               </Button>
               <Button
-                className="w-full bg-gradient-to-r from-slate-50 via-purple-50 to-pink-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform hover:scale-105 hover:scale-110 transition-all duration-300 relative overflow-hidden group"
+                className="w-full bg-gradient-to-r from-slate-50 via-purple-50 to-pink-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform  transition-all duration-300 relative overflow-hidden group"
                 onClick={() => navigate("/docs")}
               >
                 {/* Subtle floating sparkles */}
@@ -83,7 +83,7 @@ const Home = (): JSX.Element => {
                 </span>
               </Button>
               <Button
-                className="w-full bg-gradient-to-r from-slate-50 via-orange-50 to-red-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform hover:scale-105 hover:scale-110 transition-all duration-300 relative overflow-hidden group"
+                className="w-full bg-gradient-to-r from-slate-50 via-orange-50 to-red-50 text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transform  transition-all duration-300 relative overflow-hidden group"
                 onClick={() => navigate("/mint")}
               >
                 {/* Subtle floating sparkles */}
