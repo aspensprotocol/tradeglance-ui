@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -48,17 +47,6 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
     useHealthCheck();
   const [isManualRefreshing, setIsManualRefreshing] = useState<boolean>(false);
 
-  // Determine button styling based on health status
-  const getStatusButtonClasses = (): string => {
-    if (isLoading || isManualRefreshing) {
-      return "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white hover:from-yellow-600 hover:via-orange-600 hover:to-red-600";
-    }
-    if (isOnline) {
-      return "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600";
-    }
-    return "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white hover:from-red-600 hover:via-pink-600 hover:to-rose-600";
-  };
-
   const getStatusText = (): string => {
     if (isManualRefreshing) return "🔄 refreshing...";
     if (isLoading) return "🟡 checking...";
@@ -98,22 +86,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
 
       <section className="container mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 px-4 sm:px-0 relative z-10">
         <nav className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className={`${getStatusButtonClasses()} border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform  transition-all duration-300 animate-pulse-glow relative overflow-hidden group cursor-pointer`}
+          <button
+            className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200 hover:bg-white/60 transition-all duration-200 cursor-pointer disabled:opacity-50"
             onClick={handleStatusClick}
             title={getStatusTooltip()}
             disabled={isLoading || isManualRefreshing}
           >
-            {/* Floating sparkle */}
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-
-            {/* Glowing effect */}
-            <span className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></span>
-
-            <span className="relative z-10">{getStatusText()}</span>
-          </Button>
+            {getStatusText()}
+          </button>
           {lastCheck && (
             <span className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200">
               Last: {lastCheck.toLocaleTimeString()}
