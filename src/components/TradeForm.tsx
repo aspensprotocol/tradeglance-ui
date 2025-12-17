@@ -89,7 +89,7 @@ const TradeForm = ({
               }}
               disabled={!isConfigReady}
               className={cn(
-                "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
+                "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform relative z-10",
                 tradingState.activeTab === BaseOrQuote.QUOTE
                   ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow" // Buy (green)
                   : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
@@ -112,7 +112,7 @@ const TradeForm = ({
               }}
               disabled={!isConfigReady}
               className={cn(
-                "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
+                "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform relative z-10",
                 tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white shadow-lg animate-pulse-glow" // Sell (red)
                   : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
@@ -142,7 +142,7 @@ const TradeForm = ({
                   key={type}
                   onClick={() => handleOrderTypeChange(type)}
                   className={cn(
-                    "flex-1 py-2.5 px-3 text-sm sm:text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 relative z-10",
+                    "flex-1 py-2.5 px-3 text-sm sm:text-base font-medium rounded-xl transition-all duration-300 transform relative z-10",
                     tradingState.activeOrderType === type
                       ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-md animate-pulse-glow"
                       : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
@@ -498,7 +498,7 @@ const TradeForm = ({
                 formState.isSubmitting
               }
               className={cn(
-                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
+                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
                 tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 via-pink-500 to-cyan-500 hover:from-red-600 hover:via-pink-600 hover:to-cyan-600 text-white"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white",

@@ -242,7 +242,7 @@ const ActivityPanel = ({
                 "flex-1 py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "trades"
                   ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform hover:scale-[1.02]",
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
               )}
             >
               {/* Floating sparkles for active tab */}
@@ -263,7 +263,7 @@ const ActivityPanel = ({
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "orders"
                   ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform hover:scale-[1.02]",
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
               )}
             >
               {/* Floating sparkles for active tab */}
@@ -284,7 +284,7 @@ const ActivityPanel = ({
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "balances"
                   ? "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform hover:scale-[1.02]",
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
               )}
             >
               {/* Floating sparkles for active tab */}
@@ -307,7 +307,7 @@ const ActivityPanel = ({
               <button
                 onClick={() => setShowMineOnly(false)}
                 className={cn(
-                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] group overflow-hidden relative",
+                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform group overflow-hidden relative",
                   !showMineOnly
                     ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg animate-pulse-glow"
                     : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
@@ -329,7 +329,7 @@ const ActivityPanel = ({
               <button
                 onClick={() => setShowMineOnly(true)}
                 className={cn(
-                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] group overflow-hidden relative",
+                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform group overflow-hidden relative",
                   showMineOnly
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow"
                     : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
@@ -362,14 +362,14 @@ const ActivityPanel = ({
               <header className="grid grid-cols-4 sm:grid-cols-5 text-xs text-neutral-600 py-2 border-b border-gray-200 gap-1 sm:gap-2 rounded-t-xl min-w-0">
                 <button
                   onClick={() => handleSort("price")}
-                  className="text-right truncate hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
+                  className="text-right truncate hover:text-blue-600  transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
                 >
                   💰 Price
                   {getSortIcon("price")}
                 </button>
                 <button
                   onClick={() => handleSort("quantity")}
-                  className="text-right truncate hover:text-emerald-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
+                  className="text-right truncate hover:text-emerald-600  transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
                 >
                   📊 Amount
                   {getSortIcon("quantity")}
@@ -380,7 +380,7 @@ const ActivityPanel = ({
                 <span className="text-right truncate min-w-0">👤 Taker</span>
                 <button
                   onClick={() => handleSort("time")}
-                  className="text-right truncate hover:text-purple-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
+                  className="text-right truncate hover:text-purple-600  transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
                 >
                   ⏰ Time
                   {getSortIcon("time")}
@@ -427,7 +427,7 @@ const ActivityPanel = ({
                   {sortedTrades.map((trade, index) => (
                     <article
                       key={`${trade.timestamp}-${index}`}
-                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow min-w-0"
+                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow min-w-0"
                     >
                       {/* Enhanced hover effect overlay */}
                       <span className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -588,21 +588,21 @@ const ActivityPanel = ({
                 <span className="truncate min-w-0">🎯 Type</span>
                 <button
                   onClick={() => handleSort("price")}
-                  className="text-right truncate hover:text-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
+                  className="text-right truncate hover:text-blue-600  transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
                 >
                   💰 Price
                   {getSortIcon("price")}
                 </button>
                 <button
                   onClick={() => handleSort("quantity")}
-                  className="text-right truncate hover:text-emerald-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
+                  className="text-right truncate hover:text-emerald-600  transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
                 >
                   📊 Amount
                   {getSortIcon("quantity")}
                 </button>
                 <button
                   onClick={() => handleSort("time")}
-                  className="text-right truncate hover:text-purple-600 hover:scale-105 transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
+                  className="text-right truncate hover:text-purple-600  transition-all duration-300 flex items-center justify-end gap-1 group cursor-pointer font-semibold min-w-0"
                 >
                   ⏰ Time
                   {getSortIcon("time")}
@@ -651,7 +651,7 @@ const ActivityPanel = ({
                       key={
                         order.orderId?.toString() || `order-${Math.random()}`
                       }
-                      className="grid grid-cols-4 text-sm py-3 px-3 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/10 to-teal-50/10 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
+                      className="grid grid-cols-4 text-sm py-3 px-3 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/10 to-teal-50/10 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
                       style={{ minHeight: "2.5rem" }} // Prevent height changes during updates
                     >
                       {/* Enhanced hover effect overlay */}
@@ -723,7 +723,7 @@ const ActivityPanel = ({
                   </p>
                   <button
                     onClick={handleDepositClick}
-                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
                   >
                     {/* Floating sparkles */}
                     <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -747,7 +747,7 @@ const ActivityPanel = ({
                       </span>
                       <button
                         onClick={refreshBalances}
-                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group flex-shrink-0"
+                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group flex-shrink-0"
                       >
                         {/* Floating sparkle */}
                         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -831,7 +831,7 @@ const ActivityPanel = ({
                           return (
                             <article
                               key={`${balance.chainId}-${balance.symbol}`}
-                              className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group relative overflow-hidden animate-pulse-glow h-48 flex flex-col min-w-0"
+                              className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform group relative overflow-hidden animate-pulse-glow h-48 flex flex-col min-w-0"
                             >
                               {/* Enhanced hover effect overlay */}
                               <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -916,7 +916,7 @@ const ActivityPanel = ({
                   <nav className="flex gap-3 pt-3 min-w-0">
                     <button
                       onClick={handleDepositClick}
-                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group min-w-0"
+                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group min-w-0"
                     >
                       {/* Floating sparkles */}
                       <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -929,7 +929,7 @@ const ActivityPanel = ({
                     </button>
                     <button
                       onClick={handleWithdrawClick}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 animate-pulse-glow relative overflow-hidden group min-w-0"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group min-w-0"
                     >
                       {/* Floating sparkles */}
                       <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
