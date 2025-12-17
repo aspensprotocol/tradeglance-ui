@@ -375,7 +375,7 @@ const VerticalOrderBook = React.memo(
 
     // Always return the component - no early returns to violate Rules of Hooks
     return (
-      <main className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 overflow-visible flex flex-col relative shadow-visible">
+      <main className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 overflow-hidden flex flex-col relative">
         {headerComponent}
         <section className="p-3 sm:p-4 lg:p-5 flex-1 overflow-auto relative z-10">
           {orderbookContent}

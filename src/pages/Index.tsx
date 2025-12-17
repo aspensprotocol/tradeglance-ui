@@ -72,16 +72,16 @@ const Index = ({
             {/* Activity Panel - Full width on mobile, bottom on tablet, top on desktop */}
             <section
               className="
-              col-span-1 
-              sm:col-span-2 
-              lg:col-span-2 
+              col-span-1
+              sm:col-span-2
+              lg:col-span-2
               order-1
               sm:order-3
               lg:order-1
               h-full
               min-h-0
               mb-2
-              transform transition-all duration-300 hover:scale-[1.02] relative z-10
+              relative z-10
             "
             >
               <section className="h-full card-gradient-blue card-hover relative overflow-visible">
@@ -98,14 +98,14 @@ const Index = ({
             {/* Trade Form - Full width on mobile, first column on tablet, last column on desktop */}
             <section
               className="
-              col-span-1 
-              sm:col-span-1 
-              lg:col-span-1 
+              col-span-1
+              sm:col-span-1
+              lg:col-span-1
               order-2 sm:order-1 lg:order-3
               h-full
               min-h-0
               mb-2
-              transform transition-all duration-300 hover:scale-[1.02] relative z-10
+              relative z-10
             "
             >
               <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 relative overflow-visible">
@@ -122,14 +122,16 @@ const Index = ({
             {/* Orderbook - Full width on mobile, second column on tablet, third column on desktop */}
             <aside
               className="
-              col-span-1 
-              sm:col-span-1 
-              lg:col-span-1 
+              col-span-1
+              sm:col-span-1
+              lg:col-span-1
               order-3 sm:order-2 lg:order-2
               h-full
               min-h-0
+              max-h-full
               mb-2
-              transform transition-all duration-300 hover:scale-[1.02] relative z-10
+              overflow-hidden
+              relative z-10
             "
             >
               <VerticalOrderBook
