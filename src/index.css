@@ -248,7 +248,7 @@ html,
 
   /* Button System */
   .btn-base {
-    @apply font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
 
   .btn-primary-blue {
@@ -290,7 +290,7 @@ html,
 
   /* Tab System */
   .tab-base {
-    @apply font-bold transition-all duration-300 transform hover:scale-105 relative whitespace-nowrap;
+    @apply font-bold transition-all duration-300 relative whitespace-nowrap;
   }
 
   .tab-active-blue {
@@ -352,7 +352,7 @@ html,
 
   /* Filter Toggle System */
   .filter-toggle-base {
-    @apply px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 relative z-10;
+    @apply px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 relative z-10;
   }
 
   .filter-toggle-active-purple {

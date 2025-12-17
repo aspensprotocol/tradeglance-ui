@@ -197,7 +197,7 @@ export const Navigation = ({
       <section className="hidden md:flex gap-6">
         <Link
           to="/"
-          className={`text-base font-semibold transition-all duration-300 transform hover:scale-110 flex items-center gap-2 ${
+          className={`text-base font-semibold transition-all duration-300 transform  flex items-center gap-2 ${
             location.pathname === "/"
               ? "tab-active-blue animate-pulse-glow"
               : "text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600"
@@ -212,7 +212,7 @@ export const Navigation = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="text-base font-semibold text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
+              className="text-base font-semibold text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform  group"
             >
               Trading
               <ChevronDown className="ml-1 h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
@@ -268,7 +268,7 @@ export const Navigation = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="text-base font-semibold text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:via-blue-600 hover:to-cyan-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform hover:scale-110 group"
+              className="text-base font-semibold text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:via-blue-600 hover:to-cyan-600 hover:bg-transparent p-0 h-auto transition-all duration-300 transform  group"
             >
               Resources
               <ChevronDown className="ml-1 h-4 w-4 text-indigo-500 group-hover:text-indigo-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />

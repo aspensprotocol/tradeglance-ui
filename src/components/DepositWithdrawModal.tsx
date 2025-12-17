@@ -343,7 +343,7 @@ const DepositWithdrawModal = ({
                 variant={activeType === "deposit" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveType("deposit")}
-                className={`flex-1 sm:flex-none text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
+                className={`flex-1 sm:flex-none text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform  ${
                   activeType === "deposit"
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl animate-pulse-glow"
                     : "bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
@@ -355,7 +355,7 @@ const DepositWithdrawModal = ({
                 variant={activeType === "withdraw" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveType("withdraw")}
-                className={`flex-1 sm:flex-none text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
+                className={`flex-1 sm:flex-none text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all duration-300 transform  ${
                   activeType === "withdraw"
                     ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white border-0 shadow-lg hover:shadow-xl animate-pulse-glow"
                     : "bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg"
@@ -493,7 +493,7 @@ const DepositWithdrawModal = ({
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+                className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-neutral-800 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 hover:border-gray-300 shadow-md hover:shadow-lg rounded-xl font-semibold transition-all duration-300 transform "
               >
                 Cancel
               </Button>
@@ -502,7 +502,7 @@ const DepositWithdrawModal = ({
                 disabled={
                   isLoading || isConfirming || !selectedToken || !amount || !isWalletClientReady
                 }
-                className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl rounded-xl font-semibold transition-all duration-300 transform  animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {!isWalletClientReady ? (
                   <span className="flex items-center gap-2">

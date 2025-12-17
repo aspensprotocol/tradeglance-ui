@@ -338,7 +338,7 @@ const Mint = (): JSX.Element => {
                 return (
                   <Card
                     key={`${chain.chainId}-${tokenSymbol}`}
-                    className="border-2 border-gray-200 bg-gradient-to-br from-white via-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    className="border-2 border-gray-200 bg-gradient-to-br from-white via-blue-50 to-indigo-50 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
@@ -395,7 +395,7 @@ const Mint = (): JSX.Element => {
                           )
                         }
                         disabled={isMinting}
-                        className="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                        className="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {isMinting ? (
                           <span className="flex items-center gap-2">

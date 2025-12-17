@@ -113,7 +113,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
           <Button
             variant="outline"
             size="sm"
-            className={`${getStatusButtonClasses()} border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse-glow relative overflow-hidden group cursor-pointer`}
+            className={`${getStatusButtonClasses()} border-none text-xs px-4 py-2 h-auto font-bold shadow-lg hover:shadow-xl transform  transition-all duration-300 animate-pulse-glow relative overflow-hidden group cursor-pointer`}
             onClick={handleStatusClick}
             title={getStatusTooltip()}
             disabled={isLoading || isManualRefreshing}
@@ -141,7 +141,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
+                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform  group"
               >
                 <Info className="h-3 w-3 mr-1 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
                 Info

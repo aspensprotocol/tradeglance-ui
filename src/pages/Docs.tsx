@@ -31,14 +31,14 @@ const Docs = (): JSX.Element => {
             <nav className="flex gap-4 justify-center">
               <Button
                 onClick={() => navigate("/trading")}
-                className="px-8 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="px-8 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Start Trading
               </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate("/mint")}
-                className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Mint Test Tokens
               </Button>
