@@ -17,12 +17,8 @@ import {
 import {
   ChevronDown,
   Info,
-  ExternalLink,
-  MessageCircle,
-  BookOpen,
 } from "lucide-react";
 import { getShortGitCommitHash } from "@/lib/version";
-import { Link } from "react-router-dom";
 import { useHealthCheck } from "@/hooks/useHealthCheck";
 import { useState } from "react";
 
@@ -185,74 +181,10 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
                   </DialogContent>
                 </Dialog>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled
-                className="text-xs text-neutral-600 rounded-lg bg-gray-100/50"
-              >
-                🚀 Version: {getShortGitCommitHash()}
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </nav>
 
-        <nav className="flex flex-wrap gap-2 sm:gap-3 text-neutral-800 text-xs">
-          {/* Enhanced Support Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
-              >
-                <MessageCircle className="h-3 w-3 mr-1 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-300" />
-                Support
-                <ChevronDown className="ml-1 h-3 w-3 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-56 card-gradient-emerald border-2 border-emerald-200 shadow-2xl rounded-xl p-2"
-            >
-              <DropdownMenuLabel className="text-emerald-800 font-semibold text-center py-2 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg">
-                🆘 Get Help
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gradient-to-r from-emerald-200 to-teal-200" />
-              <DropdownMenuItem
-                asChild
-                className="rounded-lg hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 transition-all duration-200 cursor-pointer group"
-              >
-                <a
-                  href="https://t.me/aspens_xyz"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2 w-full"
-                >
-                  <MessageCircle className="h-4 w-4 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
-                  💬 Telegram Support
-                  <ExternalLink className="h-3 w-3 ml-auto text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                className="rounded-lg hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 transition-all duration-200 cursor-pointer group"
-              >
-                <Link to="/docs" className="flex items-center gap-2 p-2 w-full">
-                  <BookOpen className="h-4 w-4 text-emerald-500 group-hover:text-emerald-600 transition-colors duration-200" />
-                  📚 Documentation
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Quick Links */}
-          <a
-            href="/docs"
-            className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 flex items-center gap-2 p-2 font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 group"
-          >
-            <BookOpen className="h-3 w-3 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
-            Docs
-          </a>
-        </nav>
       </section>
     </footer>
   );
