@@ -67,10 +67,6 @@ import type {
   OrderToCancel,
 } from "../protos/gen/arborter_pb";
 import {
-  type SetOrderbookRequest,
-  SetOrderbookRequestSchema,
-  type SetOrderbookResponse,
-  SetOrderbookResponseSchema,
   ArborterService,
   type CancelOrderRequest,
   CancelOrderRequestSchema,
@@ -83,10 +79,6 @@ import {
   OrderbookEntrySchema,
   type OrderbookRequest,
   OrderbookRequestSchema,
-  type RemoveOrderbookRequest,
-  RemoveOrderbookRequestSchema,
-  type RemoveOrderbookResponse,
-  RemoveOrderbookResponseSchema,
   type SendOrderRequest,
   SendOrderRequestSchema,
   type SendOrderResponse,
@@ -466,45 +458,6 @@ export const arborterService = {
     }
   },
 
-  // Add orderbook
-  async addOrderbook(
-    marketId: string,
-    decimalPlaces: number,
-  ): Promise<SetOrderbookResponse> {
-    try {
-      const request: SetOrderbookRequest = create(SetOrderbookRequestSchema, {
-        marketId,
-        decimalPlaces,
-      });
-
-      const response: SetOrderbookResponse =
-        await arborterClient.setOrderbook(request);
-      return response;
-    } catch (error) {
-      console.error("Error adding orderbook:", error);
-      throw error;
-    }
-  },
-
-  // Remove orderbook
-  async removeOrderbook(marketId: string): Promise<RemoveOrderbookResponse> {
-    try {
-      const request: RemoveOrderbookRequest = create(
-        RemoveOrderbookRequestSchema,
-        {
-          marketId,
-        },
-      );
-
-      const response: RemoveOrderbookResponse =
-        await arborterClient.removeOrderbook(request);
-      return response;
-    } catch (error) {
-      console.error("Error removing orderbook:", error);
-      throw error;
-    }
-  },
-
   // Unnormalize decimals
   async unnormalizeDecimals(
     marketId: string,
@@ -671,10 +624,6 @@ export type {
   SendOrderResponse,
   CancelOrderRequest,
   CancelOrderResponse,
-  SetOrderbookRequest,
-  SetOrderbookResponse,
-  RemoveOrderbookRequest,
-  RemoveOrderbookResponse,
   UnNormalizeDecimalsRequest,
   UnNormalizeDecimalsResponse,
   SendOrderRequest,
@@ -726,10 +675,6 @@ export {
   SendOrderResponseSchema,
   CancelOrderRequestSchema,
   CancelOrderResponseSchema,
-  SetOrderbookRequestSchema,
-  SetOrderbookResponseSchema,
-  RemoveOrderbookRequestSchema,
-  RemoveOrderbookResponseSchema,
   UnNormalizeDecimalsRequestSchema,
   UnNormalizeDecimalsResponseSchema,
   SendOrderRequestSchema,
