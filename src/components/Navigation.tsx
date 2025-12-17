@@ -10,8 +10,6 @@ import {
   Home,
 } from "lucide-react";
 import WalletButton from "./WalletButton";
-import { useChainMonitor } from "@/hooks/useChainMonitor";
-import { useChainNetwork } from "@/hooks/useChainNetwork";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useViewContext } from "@/hooks/useViewContext";
@@ -50,8 +48,6 @@ export const Navigation = ({
   materializeExtended = false,
 }: NavigationProps): JSX.Element => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { currentChainId, isSupported } = useChainMonitor();
-  const { getChainNetwork } = useChainNetwork();
   const { viewMode } = useViewContext();
   const location = useLocation();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
@@ -150,14 +146,6 @@ export const Navigation = ({
 
               {/* Right side items */}
               <section className="right hide-on-med-and-down">
-                {currentChainId && (
-                  <span
-                    className={`chip ${isSupported ? "green" : "red"} white-text`}
-                  >
-                    {isSupported ? "✅" : "❌"}{" "}
-                    {getChainNetwork(currentChainId) || currentChainId}
-                  </span>
-                )}
                 <WalletButton />
               </section>
             </header>
@@ -403,18 +391,6 @@ export const Navigation = ({
       )}
 
       <section className="flex gap-2 sm:gap-3 items-center">
-        {currentChainId && (
-          <span
-            className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs font-medium ${
-              isSupported
-                ? "bg-green-100 text-green-800 border border-green-200"
-                : "bg-red-100 text-red-800 border border-red-200"
-            }`}
-          >
-            {isSupported ? "✅" : "❌"}{" "}
-            {getChainNetwork(currentChainId) || currentChainId}
-          </span>
-        )}
         <WalletButton />
       </section>
     </nav>

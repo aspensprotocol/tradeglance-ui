@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
+import { Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +46,7 @@ const DepositWithdrawModal = ({
     initialType,
   );
   const { deposit, withdraw, isLoading, isConfirming, error, isWalletClientReady } = useContract();
+  const { disconnect } = useDisconnect();
   const { getAllChains } = useTradeContracts();
   const { currentChainId } = useChainMonitor();
   const { isConnected } = useAccount();
@@ -312,6 +314,11 @@ const DepositWithdrawModal = ({
     onClose();
   };
 
+  const handleDisconnect = (): void => {
+    disconnect();
+    handleClose();
+  };
+
   const triggerBalanceRefresh = (): void => {
     // Dispatch a custom event to trigger balance refresh
     window.dispatchEvent(new CustomEvent("balance-refresh"));
@@ -518,6 +525,19 @@ const DepositWithdrawModal = ({
                 <p className="text-red-700 text-sm">{error}</p>
               </section>
             )}
+
+            {/* Disconnect Section */}
+            <section className="mt-6 pt-4 border-t border-gray-200">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleDisconnect}
+                className="w-full text-neutral-500 hover:text-red-600 hover:bg-red-50 transition-all duration-300 rounded-xl font-medium text-sm flex items-center justify-center gap-2"
+              >
+                <Power className="h-4 w-4" />
+                Disconnect Wallet
+              </Button>
+            </section>
           </form>
         )}
       </DialogContent>
