@@ -5,6 +5,11 @@ import { execSync } from "child_process";
 
 // Get git commit hash at build time
 const getGitCommitHash = (): string => {
+  // First check if passed via environment variable (e.g., Docker builds)
+  if (process.env.VITE_GIT_COMMIT_HASH && process.env.VITE_GIT_COMMIT_HASH !== "unknown") {
+    return process.env.VITE_GIT_COMMIT_HASH;
+  }
+  // Otherwise try to get it from git
   try {
     return execSync("git rev-parse HEAD").toString().trim();
   } catch {
