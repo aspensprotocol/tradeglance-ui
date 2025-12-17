@@ -443,41 +443,16 @@ export function useSharedOrderbookData(
     };
   }, [handleOrderbookRefresh]);
 
-  // Re-process data when trading pair becomes available
+  // Re-fetch data when trading pair becomes available (if we don't have proper data yet)
+  // Note: We re-fetch rather than re-process because the stored data may already be
+  // processed and re-processing would cause double decimal conversion
   useEffect(() => {
-    if (currentTradingPair && data.orderbook.bids.length > 0) {
-      const currentEntries = [...data.orderbook.bids, ...data.orderbook.asks];
-
-      if (currentEntries.length > 0) {
-        const processedOrderbook = processOrderbookData(currentEntries);
-        const processedOpenOrders = processOpenOrdersData(currentEntries);
-
-        const updateDataWithCache = (prevData: SharedOrderbookData) => {
-          const newData = {
-            ...prevData,
-            orderbook: processedOrderbook,
-            openOrders: processedOpenOrders,
-            lastUpdate: new Date(),
-          };
-
-          globalCache.setCachedData(marketId, newData, filterByTrader);
-
-          return newData;
-        };
-
-        setData(updateDataWithCache);
-      }
+    if (currentTradingPair && data.orderbook.bids.length === 0 && data.orderbook.asks.length === 0) {
+      // Only trigger a refresh if we don't have data yet and trading pair is now available
+      console.log("🔄 Trading pair available, triggering refresh for:", marketId);
+      fetchOrderbookData();
     }
-  }, [
-    currentTradingPair,
-    processOrderbookData,
-    processOpenOrdersData,
-    data.orderbook.bids,
-    data.orderbook.asks,
-    marketId,
-    filterByTrader,
-    globalCache,
-  ]);
+  }, [currentTradingPair, data.orderbook.bids.length, data.orderbook.asks.length, marketId, fetchOrderbookData]);
 
   const refresh = useCallback(() => {
     setRetryCount(0);
