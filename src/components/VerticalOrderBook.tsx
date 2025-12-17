@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, TrendingUp, Coins } from "lucide-react";
+import { TrendingUp, Coins } from "lucide-react";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(
@@ -190,7 +190,6 @@ const VerticalOrderBook = React.memo(
                 <Coins className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
                 <SelectValue placeholder="Select trading pair" />
               </div>
-              <ChevronDown className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-transform duration-300 group-data-[state=open]:rotate-180" />
             </SelectTrigger>
             <SelectContent className="bg-gradient-to-br from-white via-purple-50 to-pink-50 border-2 border-purple-200 shadow-2xl rounded-xl">
               {tradingPairs.map((pair: TradingPair) => (
