@@ -33,7 +33,7 @@ const OrderbookRow = React.memo(
       maxVolume > 0 ? (cumulativeVolume / maxVolume) * 100 : 0;
 
     return (
-      <article className="grid grid-cols-3 text-xs gap-x-2 sm:gap-x-4 py-2 sm:py-1.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-lg px-2 relative group">
+      <article className="grid grid-cols-3 text-xs gap-x-2 sm:gap-x-4 py-0.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded px-2 relative group">
         {/* Volume bar background */}
         <section
           className={`absolute inset-0 rounded-lg transition-all duration-300 ${
