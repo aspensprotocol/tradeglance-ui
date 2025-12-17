@@ -131,7 +131,7 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               Last: {lastCheck.toLocaleTimeString()}
             </span>
           )}
-          <span className="text-neutral-800 text-xs font-medium bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
+          <span className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200">
             version {getShortGitCommitHash()}
           </span>
 
