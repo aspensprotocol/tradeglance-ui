@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelOrderRequest, CancelOrderResponse, GetSignerPublicKeyRequest, GetSignerPublicKeyResponse, OrderbookEntry, OrderbookRequest, RemoveOrderbookRequest, RemoveOrderbookResponse, SendOrderRequest, SendOrderResponse, SetOrderbookRequest, SetOrderbookResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
+import { CancelOrderRequest, CancelOrderResponse, GetSignerPublicKeyRequest, GetSignerPublicKeyResponse, OrderbookEntry, OrderbookRequest, SendOrderRequest, SendOrderResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -47,24 +47,6 @@ export const ArborterService = {
       I: OrderbookRequest,
       O: OrderbookEntry,
       kind: MethodKind.ServerStreaming,
-    },
-    /**
-     * @generated from rpc xyz.aspens.arborter.v1.ArborterService.SetOrderbook
-     */
-    setOrderbook: {
-      name: "SetOrderbook",
-      I: SetOrderbookRequest,
-      O: SetOrderbookResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc xyz.aspens.arborter.v1.ArborterService.RemoveOrderbook
-     */
-    removeOrderbook: {
-      name: "RemoveOrderbook",
-      I: RemoveOrderbookRequest,
-      O: RemoveOrderbookResponse,
-      kind: MethodKind.Unary,
     },
     /**
      * @generated from rpc xyz.aspens.arborter.v1.ArborterService.UnNormalizeDecimals
