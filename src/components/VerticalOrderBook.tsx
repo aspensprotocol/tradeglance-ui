@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TrendingUp, Coins } from "lucide-react";
+import { Coins } from "lucide-react";
 
 // Virtualized orderbook row component for better performance
 const OrderbookRow = React.memo(
@@ -190,10 +190,7 @@ const VerticalOrderBook = React.memo(
                   value={pair.id}
                   className="hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 cursor-pointer transition-all duration-200"
                 >
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-purple-500" />
-                    {pair.displayName}
-                  </div>
+                  {pair.displayName}
                 </SelectItem>
               ))}
             </SelectContent>
