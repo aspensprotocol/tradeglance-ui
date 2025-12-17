@@ -376,12 +376,6 @@ const VerticalOrderBook = React.memo(
     // Always return the component - no early returns to violate Rules of Hooks
     return (
       <main className="h-full bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-100 overflow-visible flex flex-col relative shadow-visible">
-        {/* Floating decorative elements */}
-        <section className="absolute inset-0 pointer-events-none overflow-hidden">
-          <section className="absolute top-4 right-4 w-6 h-6 bg-gradient-to-br from-purple-300/5 to-pink-300/5 rounded-full blur-md animate-pulse delay-500"></section>
-          <section className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-indigo-300/5 to-purple-300/5 rounded-full blur-md animate-pulse delay-1000"></section>
-        </section>
-
         {headerComponent}
         <section className="p-3 sm:p-4 lg:p-5 flex-1 overflow-auto relative z-10">
           {orderbookContent}

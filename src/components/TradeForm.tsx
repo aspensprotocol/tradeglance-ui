@@ -44,11 +44,6 @@ const TradeForm = ({
 
   return (
     <section className="h-full bg-gradient-to-br from-white via-emerald-50 to-teal-50 rounded-xl shadow-lg border border-emerald-100 animate-fade-in overflow-visible relative shadow-visible">
-      {/* Floating decorative elements */}
-      <section className="absolute inset-0 pointer-events-none overflow-hidden">
-        <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-300"></section>
-        <section className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-700"></section>
-      </section>
 
       <main className="p-4 sm:p-5 md:p-6 lg:p-6 h-full flex flex-col relative z-10">
         {/* Group 1: Buy/Sell Tabs and Order Type Toggle */}
@@ -91,14 +86,11 @@ const TradeForm = ({
               className={cn(
                 "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform relative z-10",
                 tradingState.activeTab === BaseOrQuote.QUOTE
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow" // Buy (green)
+                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg " // Buy (green)
                   : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
                 !isConfigReady && "opacity-50 cursor-not-allowed",
               )}
             >
-              {tradingState.activeTab === BaseOrQuote.QUOTE && (
-                <section className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-lg animate-pulse"></section>
-              )}
               <span className="relative z-10">Buy</span>
             </button>
             {/* Sell button - always right */}
@@ -114,14 +106,11 @@ const TradeForm = ({
               className={cn(
                 "flex-1 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 transform relative z-10",
                 tradingState.activeTab === BaseOrQuote.BASE
-                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white shadow-lg animate-pulse-glow" // Sell (red)
+                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white shadow-lg " // Sell (red)
                   : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
                 !isConfigReady && "opacity-50 cursor-not-allowed",
               )}
             >
-              {tradingState.activeTab === BaseOrQuote.BASE && (
-                <section className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-pink-400/20 rounded-lg animate-pulse"></section>
-              )}
               <span className="relative z-10">Sell</span>
             </button>
           </fieldset>
@@ -144,13 +133,10 @@ const TradeForm = ({
                   className={cn(
                     "flex-1 py-2.5 px-3 text-sm sm:text-base font-medium rounded-xl transition-all duration-300 transform relative z-10",
                     tradingState.activeOrderType === type
-                      ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-md animate-pulse-glow"
+                      ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-md "
                       : "text-gray-600 hover:text-gray-800 hover:bg-white/60",
                   )}
                 >
-                  {tradingState.activeOrderType === type && (
-                    <section className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-lg animate-pulse"></section>
-                  )}
                   <span className="relative z-10">
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </span>
@@ -177,7 +163,7 @@ const TradeForm = ({
                 <div>
                   Available:{" "}
                   {balanceLoading ? (
-                    <span className="text-blue-500 font-medium animate-pulse">
+                    <span className="text-blue-500 font-medium">
                       Loading...
                     </span>
                   ) : (
@@ -296,16 +282,9 @@ const TradeForm = ({
                   onClick={() => handlePercentageClick(percentage)}
                   variant="ghost"
                   size="sm"
-                  className="flex-1 py-0.5 px-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-emerald-100 rounded-md transition-all duration-300 font-medium hover:scale-105 transform bg-gradient-to-r from-slate-50 to-blue-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md animate-pulse-glow relative overflow-hidden group h-6"
+                  className="flex-1 py-0.5 px-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-emerald-100 rounded-md transition-all duration-300 font-medium bg-gradient-to-r from-slate-50 to-blue-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 hover:border-blue-300 shadow-sm hover:shadow-md relative overflow-hidden group h-6"
                 >
-                  {/* Floating sparkles */}
-                  <span className="absolute -top-0.5 -left-0.5 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-60"></span>
-                  <span className="absolute -top-0.5 -right-0.5 w-0.5 h-0.5 bg-indigo-400 rounded-full animate-ping opacity-60 delay-300"></span>
-
-                  {/* Glowing effect */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-lg opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
-
-                  <span className="relative z-10">{percentage}%</span>
+                  {percentage}%
                 </Button>
               ))}
             </nav>
@@ -498,33 +477,23 @@ const TradeForm = ({
                 formState.isSubmitting
               }
               className={cn(
-                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform shadow-lg hover:shadow-xl relative overflow-hidden animate-pulse-glow",
+                "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform shadow-lg hover:shadow-xl relative overflow-hidden ",
                 tradingState.activeTab === BaseOrQuote.BASE
                   ? "bg-gradient-to-r from-red-500 via-pink-500 to-cyan-500 hover:from-red-600 hover:via-pink-600 hover:to-cyan-600 text-white"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white",
               )}
             >
-              {/* Floating sparkles */}
-              <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-              <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-              <span className="absolute -bottom-1 -left-1 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-75 delay-700"></span>
-
-              {/* Glowing effect */}
-              <span className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
-
               {formState.isSubmitting ? (
-                <span className="flex items-center gap-2 sm:gap-3 relative z-10">
+                <span className="flex items-center gap-2 sm:gap-3">
                   <span className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></span>
                   <span className="text-sm sm:text-base">Processing...</span>
                 </span>
               ) : (
-                <span className="relative z-10">
-                  {`${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${
-                    tradingState.activeTab === BaseOrQuote.QUOTE
-                      ? tradingPair?.quoteSymbol || "USDC"
-                      : tradingPair?.baseSymbol || "ATOM"
-                  }`}
-                </span>
+                `${tradingState.activeTab === BaseOrQuote.BASE ? "Sell" : "Buy"} ${
+                  tradingState.activeTab === BaseOrQuote.QUOTE
+                    ? tradingPair?.quoteSymbol || "USDC"
+                    : tradingPair?.baseSymbol || "ATOM"
+                }`
               )}
             </Button>
           </footer>

@@ -227,11 +227,6 @@ const ActivityPanel = ({
 
   return (
     <main className="h-full bg-gradient-to-br from-white via-blue-50/10 to-indigo-50/10 rounded-2xl shadow-xl border-2 border-blue-200/50 animate-fade-in overflow-visible relative shadow-visible">
-      {/* Floating decorative elements */}
-      <section className="absolute inset-0 pointer-events-none overflow-hidden">
-        <section className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-md animate-pulse delay-300"></section>
-        <section className="absolute bottom-4 right-4 w-6 h-6 bg-gradient-to-br from-emerald-300/5 to-teal-300/5 rounded-full blur-md animate-pulse delay-700"></section>
-      </section>
 
       <section className="p-3 sm:p-4 lg:p-5 h-full flex flex-col min-w-0 relative z-10">
         <header className="flex items-center justify-between mb-4 min-w-0">
@@ -241,7 +236,7 @@ const ActivityPanel = ({
               className={cn(
                 "flex-1 py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "trades"
-                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
+                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 "
                   : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
               )}
             >
@@ -262,7 +257,7 @@ const ActivityPanel = ({
               className={cn(
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "orders"
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
+                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 "
                   : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
               )}
             >
@@ -283,7 +278,7 @@ const ActivityPanel = ({
               className={cn(
                 "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
                 activeTab === "balances"
-                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-xl transform scale-105 animate-pulse-glow"
+                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-xl transform scale-105 "
                   : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
               )}
             >
@@ -309,7 +304,7 @@ const ActivityPanel = ({
                 className={cn(
                   "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform group overflow-hidden relative",
                   !showMineOnly
-                    ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg animate-pulse-glow"
+                    ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg "
                     : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
                 )}
               >
@@ -331,7 +326,7 @@ const ActivityPanel = ({
                 className={cn(
                   "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform group overflow-hidden relative",
                   showMineOnly
-                    ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg animate-pulse-glow"
+                    ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg "
                     : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
                 )}
               >
@@ -427,7 +422,7 @@ const ActivityPanel = ({
                   {sortedTrades.map((trade, index) => (
                     <article
                       key={`${trade.timestamp}-${index}`}
-                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow min-w-0"
+                      className="grid grid-cols-4 sm:grid-cols-5 text-xs py-3 px-3 gap-1 sm:gap-2 bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 rounded-xl border border-blue-100 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 cursor-pointer group relative overflow-hidden  min-w-0"
                     >
                       {/* Enhanced hover effect overlay */}
                       <span className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -651,7 +646,7 @@ const ActivityPanel = ({
                       key={
                         order.orderId?.toString() || `order-${Math.random()}`
                       }
-                      className="grid grid-cols-4 text-sm py-3 px-3 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/10 to-teal-50/10 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden animate-pulse-glow"
+                      className="grid grid-cols-4 text-sm py-3 px-3 gap-2 min-w-0 bg-gradient-to-r from-white via-emerald-50/10 to-teal-50/10 rounded-xl border border-emerald-100 shadow-md hover:shadow-xl transition-all duration-300 transform hover:bg-gradient-to-r hover:from-emerald-50/50 hover:via-teal-50/50 hover:to-cyan-50/50 cursor-pointer group relative overflow-hidden "
                       style={{ minHeight: "2.5rem" }} // Prevent height changes during updates
                     >
                       {/* Enhanced hover effect overlay */}
@@ -723,7 +718,7 @@ const ActivityPanel = ({
                   </p>
                   <button
                     onClick={handleDepositClick}
-                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group"
+                    className="mt-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform transition-all duration-300  relative overflow-hidden group"
                   >
                     {/* Floating sparkles */}
                     <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -747,7 +742,7 @@ const ActivityPanel = ({
                       </span>
                       <button
                         onClick={refreshBalances}
-                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group flex-shrink-0"
+                        className="text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-lg hover:from-blue-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform transition-all duration-300  relative overflow-hidden group flex-shrink-0"
                       >
                         {/* Floating sparkle */}
                         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -831,7 +826,7 @@ const ActivityPanel = ({
                           return (
                             <article
                               key={`${balance.chainId}-${balance.symbol}`}
-                              className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform group relative overflow-hidden animate-pulse-glow h-48 flex flex-col min-w-0"
+                              className="bg-gradient-to-r from-white via-blue-50/10 to-indigo-50/10 border-2 border-blue-200/50 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 transform group relative overflow-hidden  h-48 flex flex-col min-w-0"
                             >
                               {/* Enhanced hover effect overlay */}
                               <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-indigo-400/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
@@ -916,7 +911,7 @@ const ActivityPanel = ({
                   <nav className="flex gap-3 pt-3 min-w-0">
                     <button
                       onClick={handleDepositClick}
-                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group min-w-0"
+                      className="flex-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform transition-all duration-300  relative overflow-hidden group min-w-0"
                     >
                       {/* Floating sparkles */}
                       <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
@@ -929,7 +924,7 @@ const ActivityPanel = ({
                     </button>
                     <button
                       onClick={handleWithdrawClick}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform transition-all duration-300 animate-pulse-glow relative overflow-hidden group min-w-0"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform transition-all duration-300  relative overflow-hidden group min-w-0"
                     >
                       {/* Floating sparkles */}
                       <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
