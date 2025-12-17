@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TokenImage } from "@/components/ui/token-image";
@@ -6,6 +7,7 @@ import { useConfig } from "@/hooks/useConfig";
 import { BaseOrQuote } from "@/lib/shared-types";
 import { formatDecimalConsistent } from "@/lib/number-utils";
 import type { TradeFormProps } from "@/lib/shared-types";
+import DepositWithdrawModal from "./DepositWithdrawModal";
 
 const TradeForm = ({
   tradingPair,
@@ -26,7 +28,7 @@ const TradeForm = ({
     handleOrderTypeChange,
   } = useFormLogic({ tradingPair, isSimpleForm: false });
 
-  // Debug logging removed for performance
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
 
   // Check if configuration is still loading
   const { config, loading: configLoading } = useConfig();
@@ -276,10 +278,7 @@ const TradeForm = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    // You can implement a modal or navigation to deposit page here
-                    console.log("Navigate to deposit page");
-                  }}
+                  onClick={() => setDepositModalOpen(true)}
                   className="text-orange-700 border-orange-300 hover:bg-orange-100 text-xs px-3 py-1"
                 >
                   Deposit
@@ -531,6 +530,12 @@ const TradeForm = ({
           </footer>
         </section>
       </main>
+
+      <DepositWithdrawModal
+        isOpen={depositModalOpen}
+        onClose={() => setDepositModalOpen(false)}
+        type="deposit"
+      />
     </section>
   );
 };
