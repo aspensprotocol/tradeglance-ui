@@ -197,14 +197,9 @@ export const Navigation = ({
       <section className="hidden md:flex gap-6">
         <Link
           to="/"
-          className={`text-base font-semibold transition-all duration-300 transform  flex items-center gap-2 ${
-            location.pathname === "/"
-              ? "tab-active-blue animate-pulse-glow"
-              : "text-neutral-900 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600"
-          }`}
+          className="flex items-center transition-all duration-300 hover:opacity-80"
         >
-          <Home className="h-5 w-5" />
-          Home
+          <img src="/favicon.png" alt="Aspens" className="h-8 w-8" />
         </Link>
 
         {/* Enhanced Trading Menu */}
