@@ -6,18 +6,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ChevronDown,
-  Info,
-} from "lucide-react";
 import { getShortGitCommitHash } from "@/lib/version";
 import { useHealthCheck } from "@/hooks/useHealthCheck";
 import { useState } from "react";
@@ -135,54 +123,26 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
             version {getShortGitCommitHash()}
           </span>
 
-          {/* Enhanced Info Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-neutral-800 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 p-2 h-auto text-xs font-semibold bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 transform  group"
-              >
-                <Info className="h-3 w-3 mr-1 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
-                Info
-                <ChevronDown className="ml-1 h-3 w-3 text-blue-500 group-hover:text-blue-600 transition-colors duration-300 group-data-[state=open]:rotate-180" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              className="w-64 card-gradient-blue border-2 border-blue-200 shadow-2xl rounded-xl p-2"
-            >
-              <DropdownMenuLabel className="text-blue-800 font-semibold text-center py-2 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg">
-                🔍 System Information
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gradient-to-r from-blue-200 to-indigo-200" />
-              <DropdownMenuItem
-                asChild
-                className="rounded-lg hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 cursor-pointer group"
-              >
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="flex items-center gap-2 w-full text-left p-2">
-                      <Info className="h-4 w-4 text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
-                      📊 Attestation Data
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-2xl">
-                    <DialogHeader>
-                      <DialogTitle className="text-blue-800 font-bold">
-                        🔍 Attestation Data
-                      </DialogTitle>
-                    </DialogHeader>
-                    <pre className="bg-white/80 backdrop-blur-sm p-4 rounded-xl text-sm overflow-auto border border-blue-200 shadow-inner">
-                      <code className="text-neutral-900">
-                        {JSON.stringify(attestationData, null, 2)}
-                      </code>
-                    </pre>
-                  </DialogContent>
-                </Dialog>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Attestation Data Modal */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200 hover:bg-white/60 transition-all duration-200">
+                Attestation Data
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-blue-800 font-bold">
+                  Attestation Data
+                </DialogTitle>
+              </DialogHeader>
+              <pre className="bg-white/80 backdrop-blur-sm p-4 rounded-xl text-sm overflow-auto border border-blue-200 shadow-inner">
+                <code className="text-neutral-900">
+                  {JSON.stringify(attestationData, null, 2)}
+                </code>
+              </pre>
+            </DialogContent>
+          </Dialog>
         </nav>
 
       </section>
