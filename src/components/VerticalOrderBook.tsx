@@ -33,7 +33,7 @@ const OrderbookRow = React.memo(
       maxVolume > 0 ? (cumulativeVolume / maxVolume) * 100 : 0;
 
     return (
-      <article className="grid grid-cols-3 text-xs gap-x-2 sm:gap-x-4 py-2 sm:py-1.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-lg px-2 relative group">
+      <article className="grid grid-cols-3 text-xs gap-x-2 sm:gap-x-4 py-0.5 hover:bg-gradient-to-r hover:from-gray-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded px-2 relative group">
         {/* Volume bar background */}
         <section
           className={`absolute inset-0 rounded-lg transition-all duration-300 ${
@@ -185,7 +185,7 @@ const VerticalOrderBook = React.memo(
 
         <nav className="flex items-center justify-between relative z-10">
           <Select value={selectedPair} onValueChange={onPairChange}>
-            <SelectTrigger className="w-48 px-4 py-3 rounded-xl border-2 border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-gradient-to-r from-white via-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group">
+            <SelectTrigger className="w-48 px-4 py-3 rounded-xl border-2 border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-gradient-to-r from-white via-purple-50 to-pink-50 shadow-lg hover:shadow-xl transition-all duration-300 transform  group">
               <div className="flex items-center gap-2">
                 <Coins className="h-4 w-4 text-purple-500 group-hover:text-purple-600 transition-colors duration-300" />
                 <SelectValue placeholder="Select trading pair" />
@@ -210,7 +210,7 @@ const VerticalOrderBook = React.memo(
           <nav className="flex items-center gap-3">
             <button
               onClick={() => refresh()}
-              className="p-2.5 text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 transform"
+              className="p-2.5 text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md  transform"
               title="Refresh orderbook"
             >
               <svg

@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { useAccount, useDisconnect, useConnect } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
 import { Button } from "./ui/button";
 import DepositWithdrawModal from "./DepositWithdrawModal";
 import { formatAddress } from "@/lib/utils";
 
 export default function WalletButton(): JSX.Element {
   const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
   const { connect, connectors } = useConnect();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
@@ -35,21 +34,6 @@ export default function WalletButton(): JSX.Element {
             💎 {formatAddress(address)}
           </span>
         </button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => disconnect()}
-          className="text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2 border-2 border-transparent bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white hover:from-red-600 hover:via-pink-600 hover:to-rose-600 transform hover:scale-105 hover:shadow-xl transition-all duration-300 shadow-lg animate-pulse-glow relative overflow-hidden group"
-        >
-          {/* Floating sparkles */}
-          <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-          <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-
-          {/* Glowing border effect */}
-          <span className="absolute inset-0 bg-gradient-to-r from-red-400 via-pink-400 to-rose-400 rounded-lg opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300"></span>
-
-          <span className="relative z-10 font-bold">🔌 Disconnect</span>
-        </Button>
 
         <DepositWithdrawModal
           isOpen={modalOpen}

@@ -1,6 +1,21 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { execSync } from "child_process";
+
+// Get git commit hash at build time
+const getGitCommitHash = (): string => {
+  // First check if passed via environment variable (e.g., Docker builds)
+  if (process.env.VITE_GIT_COMMIT_HASH && process.env.VITE_GIT_COMMIT_HASH !== "unknown") {
+    return process.env.VITE_GIT_COMMIT_HASH;
+  }
+  // Otherwise try to get it from git
+  try {
+    return execSync("git rev-parse HEAD").toString().trim();
+  } catch {
+    return "unknown";
+  }
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
@@ -96,6 +111,7 @@ export default defineConfig(() => ({
   },
   define: {
     global: "globalThis",
+    "import.meta.env.VITE_GIT_COMMIT_HASH": JSON.stringify(getGitCommitHash()),
   },
   optimizeDeps: {
     include: ["react", "react-dom"],

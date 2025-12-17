@@ -1,8 +1,12 @@
 # Multi-stage build for production
 FROM node:24 AS builder
 
-# Accept build argument for GRPC proxy URL
+# Accept build arguments
 ARG VITE_GRPC_WEB_PROXY_URL
+ARG VITE_GIT_COMMIT_HASH=unknown
+
+# Set environment variables for the build
+ENV VITE_GIT_COMMIT_HASH=${VITE_GIT_COMMIT_HASH}
 
 # Set working directory
 WORKDIR /app
