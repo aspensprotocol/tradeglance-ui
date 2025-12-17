@@ -64,9 +64,10 @@ const OrderbookRow = React.memo(
         <section className="absolute inset-0 bg-gradient-to-r from-purple-400/2 to-pink-400/2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></section>
 
         <span
-          className={`font-mono text-xs font-semibold relative z-10 ${isAsk ? "text-red-500" : "text-emerald-500"}`}
+          className={`font-mono text-xs font-semibold relative z-10 whitespace-nowrap ${isAsk ? "text-red-500" : "text-emerald-500"}`}
         >
           {formatDecimalConsistent(entry.price)}
+          <span className="opacity-60 ml-1">({volumePercentage.toFixed(1)}%)</span>
         </span>
         <span className="text-right text-neutral-800 text-xs font-medium relative z-10">
           {formatDecimalConsistent(entry.quantity)}
@@ -75,15 +76,6 @@ const OrderbookRow = React.memo(
           {formatDecimalConsistent(
             Number(entry.price) * Number(entry.quantity),
           )}
-        </span>
-
-        {/* Volume percentage indicator */}
-        <span
-          className={`ml-2 text-xs opacity-60 ${
-            isAsk ? "text-red-400" : "text-emerald-400"
-          }`}
-        >
-          {volumePercentage.toFixed(1)}%
         </span>
       </article>
     );
