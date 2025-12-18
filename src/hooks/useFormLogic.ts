@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTradingLogic } from "./useTradingLogic";
 import { useNetworkManagement } from "./useNetworkManagement";
 import { useUnifiedBalance } from "./useUnifiedBalance";
+import { useToast } from "./use-toast";
 import type { TradingPair } from "@/lib/shared-types";
 import type { Chain } from "../lib/shared-types";
 import { BaseOrQuote } from "../lib/shared-types";
@@ -106,6 +107,8 @@ export const useFormLogic = ({
   const [userManuallySelectedSide, setUserManuallySelectedSide] =
     useState<boolean>(false);
 
+  const { toast } = useToast();
+
   // Use shared hooks
   const {
     formState,
@@ -114,8 +117,6 @@ export const useFormLogic = ({
     isConnected,
     address,
     tradingPairs,
-    handlePercentageClick,
-    handleMaxClick,
     submitOrder,
     updateAmount: updateAmountBase,
     updateFormState: updateFormStateBase,
@@ -124,7 +125,6 @@ export const useFormLogic = ({
   } = useTradingLogic({
     tradingPair,
     isSimpleForm,
-    availableBalance: "0", // We'll update this after we calculate the correct balance
   });
 
   // Get unified balance data with caching
@@ -166,6 +166,55 @@ export const useFormLogic = ({
       depositedBalance: balanceData?.depositedBalance || "0",
     };
   }, [tradingPair, activeTab, allBalances]);
+
+  // Local implementations of percentage click handlers that use the correct depositedBalance
+  const handlePercentageClick = useCallback(
+    (percentage: number): void => {
+      const availableBalanceNum: number = parseFloat(depositedBalance);
+
+      if (isNaN(availableBalanceNum) || availableBalanceNum <= 0) {
+        const tokenSymbol =
+          activeTab === BaseOrQuote.QUOTE
+            ? tradingPair?.quoteSymbol
+            : tradingPair?.baseSymbol;
+        toast({
+          title: "No available balance",
+          description: `Please deposit ${tokenSymbol || "funds"} to ${isSimpleForm ? "swap" : "trade"}`,
+          variant: "destructive",
+          showCopy: false,
+        });
+        return;
+      }
+
+      const calculatedAmount: number = (availableBalanceNum * percentage) / 100;
+      updateFormStateBase({
+        amount: calculatedAmount.toFixed(6),
+        percentageValue: percentage,
+      });
+    },
+    [depositedBalance, activeTab, tradingPair, isSimpleForm, toast, updateFormStateBase],
+  );
+
+  const handleMaxClick = useCallback((): void => {
+    const availableBalanceNum: number = parseFloat(depositedBalance);
+    if (isNaN(availableBalanceNum) || availableBalanceNum <= 0) {
+      const tokenSymbol =
+        activeTab === BaseOrQuote.QUOTE
+          ? tradingPair?.quoteSymbol
+          : tradingPair?.baseSymbol;
+      toast({
+        title: "No available balance",
+        description: `Please deposit ${tokenSymbol || "funds"} to ${isSimpleForm ? "swap" : "trade"}`,
+        variant: "destructive",
+        showCopy: false,
+      });
+      return;
+    }
+    updateFormStateBase({
+      amount: availableBalanceNum.toFixed(6),
+      percentageValue: 100,
+    });
+  }, [depositedBalance, activeTab, tradingPair, isSimpleForm, toast, updateFormStateBase]);
 
   const {
     networkState,

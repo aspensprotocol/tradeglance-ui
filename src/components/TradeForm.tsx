@@ -243,6 +243,13 @@ const TradeForm = ({
                   : tradingPair?.baseSymbol || "ATOM"}
               </span>
             </section>
+            {/* Network indicator beneath amount input */}
+            <span className="text-xs text-gray-500 mt-1 block">
+              Network:{" "}
+              {tradingState.activeTab === BaseOrQuote.QUOTE
+                ? tradingPair?.quoteChainNetwork || "Quote Network"
+                : tradingPair?.baseChainNetwork || "Base Network"}
+            </span>
           </section>
 
           {/* Balance Information and Deposit Link */}
@@ -295,7 +302,7 @@ const TradeForm = ({
         <section className="flex flex-col">
           <fieldset className="flex flex-col space-y-2 sm:space-y-3">
             {/* Group 3: Price and input field - Fixed height container */}
-            <section className="h-[88px] mb-1">
+            <section className="h-[105px] mb-1">
               {tradingState.activeOrderType === "limit" ? (
                 <section className="space-y-1 h-full flex flex-col justify-between">
                   <header className="flex justify-between items-center mb-1">
@@ -339,6 +346,13 @@ const TradeForm = ({
                           : tradingPair?.quoteSymbol || "USDC"}
                       </span>
                     </section>
+                    {/* Network indicator beneath price input */}
+                    <span className="text-xs text-gray-500 mt-1 block">
+                      Network:{" "}
+                      {tradingState.activeTab === BaseOrQuote.QUOTE
+                        ? tradingPair?.baseChainNetwork || "Base Network"
+                        : tradingPair?.quoteChainNetwork || "Quote Network"}
+                    </span>
                   </section>
                 </section>
               ) : (
@@ -479,7 +493,7 @@ const TradeForm = ({
               className={cn(
                 "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform shadow-lg hover:shadow-xl relative overflow-hidden ",
                 tradingState.activeTab === BaseOrQuote.BASE
-                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-cyan-500 hover:from-red-600 hover:via-pink-600 hover:to-cyan-600 text-white"
+                  ? "bg-gradient-to-r from-red-500 via-red-600 to-rose-500 hover:from-red-600 hover:via-red-700 hover:to-rose-600 text-white"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white",
               )}
             >

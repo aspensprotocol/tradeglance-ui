@@ -230,7 +230,7 @@ export const Navigation = ({
                 className="flex items-center gap-3 p-2 w-full"
               >
                 <BarChart3 className="h-5 w-5 text-purple-500 group-hover:text-purple-600 transition-colors duration-200" />
-                <span className="font-medium">Pro Trading</span>
+                <span className="font-medium">Pro Trader</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
