@@ -234,65 +234,35 @@ const ActivityPanel = ({
             <button
               onClick={() => switchTab("orders")}
               className={cn(
-                "flex-1 py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
+                "flex-1 py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl",
                 activeTab === "orders"
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-xl transform scale-105 "
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
+                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl"
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
               )}
             >
-              {/* Floating sparkles for active tab */}
-              {activeTab === "orders" && (
-                <>
-                  <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-                </>
-              )}
               <span className="hidden sm:inline">Open </span>Orders
-              {activeTab === "orders" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-teal-400/5 to-cyan-400/5 rounded-xl blur-sm"></span>
-              )}
             </button>
             <button
               onClick={() => switchTab("trades")}
               className={cn(
-                "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
+                "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl",
                 activeTab === "trades"
-                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl transform scale-105 "
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
+                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl"
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
               )}
             >
-              {/* Floating sparkles for active tab */}
-              {activeTab === "trades" && (
-                <>
-                  <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-                </>
-              )}
               <span className="hidden sm:inline">Recent </span>Trades
-              {activeTab === "trades" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl blur-sm"></span>
-              )}
             </button>
             <button
               onClick={() => switchTab("balances")}
               className={cn(
-                "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl group overflow-hidden",
+                "flex-1 py-2 px-3 text-xs sm:text-sm font-semibold transition-all duration-300 relative whitespace-nowrap min-w-0 rounded-xl",
                 activeTab === "balances"
-                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-xl transform scale-105 "
-                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md transform",
+                  ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl"
+                  : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
               )}
             >
-              {/* Floating sparkles for active tab */}
-              {activeTab === "balances" && (
-                <>
-                  <span className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-                </>
-              )}
               Balances
-              {activeTab === "balances" && (
-                <span className="absolute inset-0 bg-gradient-to-r from-purple-400/5 via-pink-400/5 to-rose-400/5 rounded-xl blur-sm"></span>
-              )}
             </button>
           </nav>
 
@@ -302,46 +272,24 @@ const ActivityPanel = ({
               <button
                 onClick={() => setShowMineOnly(false)}
                 className={cn(
-                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform group overflow-hidden relative",
+                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300",
                   !showMineOnly
-                    ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg "
+                    ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg"
                     : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
                 )}
               >
-                {/* Floating sparkles for active state */}
-                {!showMineOnly && (
-                  <>
-                    <span className="absolute -top-1 -left-1 w-1 h-1 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-                    <span className="absolute -top-1 -right-1 w-1 h-1 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-                  </>
-                )}
-
-                {/* Glowing effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-indigo-400/5 to-purple-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
-
-                <span className="relative z-10">All</span>
+                All
               </button>
               <button
                 onClick={() => setShowMineOnly(true)}
                 className={cn(
-                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform group overflow-hidden relative",
+                  "px-2 sm:px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300",
                   showMineOnly
-                    ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg "
+                    ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg"
                     : "text-slate-600 hover:text-slate-800 hover:bg-white/80 hover:shadow-md",
                 )}
               >
-                {/* Floating sparkles for active state */}
-                {showMineOnly && (
-                  <>
-                    <span className="absolute -top-1 -left-1 w-1 h-1 bg-yellow-400 rounded-full animate-ping opacity-75"></span>
-                    <span className="absolute -top-1 -right-1 w-1 h-1 bg-pink-400 rounded-full animate-ping opacity-75 delay-300"></span>
-                  </>
-                )}
-
-                {/* Glowing effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-teal-400/5 to-cyan-400/5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></span>
-
-                <span className="relative z-10">Mine</span>
+                Mine
               </button>
             </nav>
           )}
