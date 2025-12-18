@@ -448,6 +448,7 @@ const DepositWithdrawModal = ({
                   type="number"
                   min="0"
                   step="any"
+                  inputMode="decimal"
                   value={amount}
                   onChange={(e) => {
                     const value = e.target.value;
