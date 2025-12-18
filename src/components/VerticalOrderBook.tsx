@@ -108,7 +108,11 @@ const VerticalOrderBook = React.memo(
       spreadPercentage: 0,
     };
 
-    // Function to limit orders based on price priority
+    // Function to limit orders based on price priority and sort for display
+    // The orderbook should form a price ladder:
+    // - Top: ASKS (sells) with highest prices at top, decreasing toward spread
+    // - Middle: Spread (best ask meets best bid)
+    // - Bottom: BIDS (buys) with highest prices at top (near spread), decreasing toward bottom
     const limitOrdersByPrice = (
       orders: OrderbookEntry[],
       isAsk: boolean,
@@ -117,19 +121,28 @@ const VerticalOrderBook = React.memo(
     ): OrderbookEntry[] => {
       if (!orders || orders.length === 0) return [];
 
-      // Sort orders by price
-      // For asks: lowest price first (best ask) - we want to show the cheapest sell orders
-      // For bids: highest price first (best bid) - we want to show the most expensive buy orders
-      const sortedOrders = [...orders].sort((a, b) => {
+      // First, sort to find the best prices (closest to spread)
+      // For asks: lowest price is best (closest to spread)
+      // For bids: highest price is best (closest to spread)
+      const sortedByBestPrice = [...orders].sort((a, b) => {
         const priceA = parseFloat(a.price || "0");
         const priceB = parseFloat(b.price || "0");
         return isAsk ? priceA - priceB : priceB - priceA;
       });
 
-      // Take only the top N orders (best prices)
-      // This ensures we only show the most competitive orders and prevents
-      // the orderbook from becoming cluttered with orders that are unlikely to execute
-      return sortedOrders.slice(0, maxEntries);
+      // Take only the top N orders (best prices closest to spread)
+      const limitedOrders = sortedByBestPrice.slice(0, maxEntries);
+
+      // Now sort for display:
+      // For asks: highest price at top, lowest (best) at bottom (near spread)
+      // For bids: highest (best) at top (near spread), lowest at bottom
+      const sortedForDisplay = [...limitedOrders].sort((a, b) => {
+        const priceA = parseFloat(a.price || "0");
+        const priceB = parseFloat(b.price || "0");
+        return isAsk ? priceB - priceA : priceB - priceA; // Both descending for price ladder
+      });
+
+      return sortedForDisplay;
     };
 
     // Limit orders to configured maximum
@@ -137,6 +150,7 @@ const VerticalOrderBook = React.memo(
     const limitedBids = limitOrdersByPrice(bids, false);
 
     // Calculate cumulative volumes for volume bars
+    // Volume accumulates from the spread outward (best prices have lowest cumulative volume)
     const calculateCumulativeVolumes = (
       orders: OrderbookEntry[],
       isAsk: boolean,
@@ -144,17 +158,26 @@ const VerticalOrderBook = React.memo(
       const volumes: number[] = [];
       let cumulative = 0;
 
-      // For asks, we go from lowest to highest price (ascending)
-      // For bids, we go from highest to lowest price (descending)
-      const sortedOrders = isAsk
-        ? [...orders].sort((a, b) => Number(a.price) - Number(b.price))
-        : [...orders].sort((a, b) => Number(b.price) - Number(a.price));
+      // Orders are already sorted for display (descending price)
+      // For asks: accumulate from bottom (best/lowest price near spread) to top (highest price)
+      // For bids: accumulate from top (best/highest price near spread) to bottom (lowest price)
 
-      sortedOrders.forEach((order) => {
-        const volume = Number(order.price) * Number(order.quantity);
-        cumulative += volume;
-        volumes.push(cumulative);
-      });
+      if (isAsk) {
+        // Asks: reverse to accumulate from best (lowest) price
+        const reversedOrders = [...orders].reverse();
+        reversedOrders.forEach((order) => {
+          const volume = Number(order.price) * Number(order.quantity);
+          cumulative += volume;
+          volumes.unshift(cumulative); // Add to front to match original order
+        });
+      } else {
+        // Bids: already in correct order (best/highest price first)
+        orders.forEach((order) => {
+          const volume = Number(order.price) * Number(order.quantity);
+          cumulative += volume;
+          volumes.push(cumulative);
+        });
+      }
 
       return volumes;
     };

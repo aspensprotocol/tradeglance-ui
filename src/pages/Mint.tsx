@@ -291,16 +291,6 @@ const Mint = (): JSX.Element => {
 
   const chains = getChains();
 
-  // Helper function to get chain prefix for trading pairs
-  const getChainPrefix = (network: string): string => {
-    if (network.includes("flare")) return "f"; // flare-coston2
-    if (network.includes("base")) return "b"; // base-sepolia
-    if (network.includes("mainnet")) return "m";
-    if (network.includes("goerli")) return "g";
-    if (network.includes("sepolia")) return "s";
-    return network.charAt(0).toLowerCase(); // fallback to first letter
-  };
-
   return (
     <Layout scrollable>
       <main className="max-w-4xl mx-auto relative">
@@ -343,11 +333,7 @@ const Mint = (): JSX.Element => {
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
                         <span className="text-lg">
-                          {(() => {
-                            const prefix = getChainPrefix(chain.network);
-                            const fullSymbol = `${prefix}${tokenSymbol}`;
-                            return fullSymbol;
-                          })()}
+                          {tokenSymbol}
                         </span>
                         <span className="text-sm text-gray-500">
                           {chain.network}

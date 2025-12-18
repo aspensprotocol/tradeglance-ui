@@ -183,73 +183,69 @@ const TradeForm = ({
               )}
             </span>
           </section>
-          <section className="relative">
-            <input
-              type="number"
-              id="amount"
-              name="amount"
-              min="0"
-              step="any"
-              value={formState.amount}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value.startsWith("-")) return; // Prevent negative numbers
-                updateAmount(value);
-              }}
-              className={cn(
-                "w-full pl-3 pr-20 sm:pr-24 md:pr-28 lg:pr-32 py-3 rounded-xl bg-white border-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 text-sm transition-all duration-300 shadow-sm hover:shadow-md relative z-10",
-                ((): string => {
-                  const quantity: number = parseFloat(
-                    formState.amount.replace(",", "."),
-                  );
-                  const availableBalanceNum: number =
-                    parseFloat(availableBalance);
-                  if (
-                    !isNaN(quantity) &&
-                    !isNaN(availableBalanceNum) &&
-                    quantity > availableBalanceNum
-                  ) {
-                    return "border-red-400 focus:border-red-500 focus:ring-red-500";
-                  }
-                  return "border-emerald-200 focus:border-emerald-500";
-                })(),
-              )}
-              placeholder="0,0"
-              aria-describedby="amount-available"
-            />
-            <span id="amount-available" className="sr-only">
-              Available balance: {formatDecimalConsistent(availableBalance)}{" "}
-              {tradingState.activeTab === BaseOrQuote.QUOTE
-                ? tradingPair?.quoteSymbol || "USDC"
-                : tradingPair?.baseSymbol || "ATOM"}
-            </span>
-            <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
-              <TokenImage
-                symbol={
-                  tradingState.activeTab === BaseOrQuote.QUOTE
-                    ? tradingPair?.quoteSymbol || "USDC"
-                    : tradingPair?.baseSymbol || "ATOM"
-                }
-                size="sm"
-                chainId={
-                  tradingState.activeTab === BaseOrQuote.QUOTE
-                    ? tradingPair?.quoteChainId
-                    : tradingPair?.baseChainId
-                }
+          <section>
+            <section className="relative">
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                min="0"
+                step="any"
+                inputMode="decimal"
+                value={formState.amount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.startsWith("-")) return; // Prevent negative numbers
+                  updateAmount(value);
+                }}
+                className={cn(
+                  "w-full pl-3 pr-20 sm:pr-24 md:pr-28 lg:pr-32 py-3 rounded-xl bg-white border-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 text-sm transition-all duration-300 shadow-sm hover:shadow-md",
+                  ((): string => {
+                    const quantity: number = parseFloat(
+                      formState.amount.replace(",", "."),
+                    );
+                    const availableBalanceNum: number =
+                      parseFloat(availableBalance);
+                    if (
+                      !isNaN(quantity) &&
+                      !isNaN(availableBalanceNum) &&
+                      quantity > availableBalanceNum
+                    ) {
+                      return "border-red-400 focus:border-red-500 focus:ring-red-500";
+                    }
+                    return "border-emerald-200 focus:border-emerald-500";
+                  })(),
+                )}
+                placeholder="0,0"
+                aria-describedby="amount-available"
               />
-              <span className="text-sm text-gray-600 truncate max-w-[3rem] sm:max-w-[3.5rem] md:max-w-[4rem] lg:max-w-[4.5rem] xl:max-w-[5rem] font-medium">
+              <span id="amount-available" className="sr-only">
+                Available balance: {formatDecimalConsistent(availableBalance)}{" "}
                 {tradingState.activeTab === BaseOrQuote.QUOTE
                   ? tradingPair?.quoteSymbol || "USDC"
                   : tradingPair?.baseSymbol || "ATOM"}
               </span>
+              <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-0 bottom-0 flex items-center gap-2 min-w-0">
+                <TokenImage
+                  symbol={
+                    tradingState.activeTab === BaseOrQuote.QUOTE
+                      ? tradingPair?.quoteSymbol || "USDC"
+                      : tradingPair?.baseSymbol || "ATOM"
+                  }
+                  size="sm"
+                  chainId={
+                    tradingState.activeTab === BaseOrQuote.QUOTE
+                      ? tradingPair?.quoteChainId
+                      : tradingPair?.baseChainId
+                  }
+                />
+                <span className="text-sm text-gray-600 truncate max-w-[3rem] sm:max-w-[3.5rem] md:max-w-[4rem] lg:max-w-[4.5rem] xl:max-w-[5rem] font-medium">
+                  {tradingState.activeTab === BaseOrQuote.QUOTE
+                    ? tradingPair?.quoteSymbol || "USDC"
+                    : tradingPair?.baseSymbol || "ATOM"}
+                </span>
+              </section>
             </section>
-            {/* Network indicator beneath amount input */}
-            <span className="text-xs text-gray-500 mt-1 block">
-              Network:{" "}
-              {tradingState.activeTab === BaseOrQuote.QUOTE
-                ? tradingPair?.quoteChainNetwork || "Quote Network"
-                : tradingPair?.baseChainNetwork || "Base Network"}
-            </span>
           </section>
 
           {/* Balance Information and Deposit Link */}
@@ -302,7 +298,7 @@ const TradeForm = ({
         <section className="flex flex-col">
           <fieldset className="flex flex-col space-y-2 sm:space-y-3">
             {/* Group 3: Price and input field - Fixed height container */}
-            <section className="h-[105px] mb-1">
+            <section className="h-[88px] mb-1">
               {tradingState.activeOrderType === "limit" ? (
                 <section className="space-y-1 h-full flex flex-col justify-between">
                   <header className="flex justify-between items-center mb-1">
@@ -310,49 +306,45 @@ const TradeForm = ({
                       Price
                     </span>
                   </header>
-                  <section className="relative flex-1">
-                    <input
-                      type="number"
-                      id="price"
-                      name="price"
-                      min="0"
-                      step="any"
-                      value={formState.price || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value.startsWith("-")) return; // Prevent negative numbers
-                        updatePrice(value);
-                      }}
-                      className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
-                      placeholder="0,00"
-                    />
-                    <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 min-w-0">
-                      <TokenImage
-                        symbol={
-                          tradingState.activeTab === BaseOrQuote.QUOTE
-                            ? tradingPair?.baseSymbol || "ATOM"
-                            : tradingPair?.quoteSymbol || "USDC"
-                        }
-                        size="sm"
-                        chainId={
-                          tradingState.activeTab === BaseOrQuote.QUOTE
-                            ? tradingPair?.baseChainId
-                            : tradingPair?.quoteChainId
-                        }
+                  <section className="flex-1">
+                    <section className="relative">
+                      <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        min="0"
+                        step="any"
+                        inputMode="decimal"
+                        value={formState.price || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.startsWith("-")) return; // Prevent negative numbers
+                          updatePrice(value);
+                        }}
+                        className="w-full pl-3 pr-16 sm:pr-20 md:pr-22 lg:pr-24 py-3 rounded-xl bg-white border-2 border-emerald-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50 focus:border-emerald-500 text-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                        placeholder="0,00"
                       />
-                      <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
-                        {tradingState.activeTab === BaseOrQuote.QUOTE
-                          ? tradingPair?.baseSymbol || "ATOM"
-                          : tradingPair?.quoteSymbol || "USDC"}
-                      </span>
+                      <section className="absolute right-3 sm:right-4 md:right-4 lg:right-4 top-0 bottom-0 flex items-center gap-2 min-w-0">
+                        <TokenImage
+                          symbol={
+                            tradingState.activeTab === BaseOrQuote.QUOTE
+                              ? tradingPair?.baseSymbol || "ATOM"
+                              : tradingPair?.quoteSymbol || "USDC"
+                          }
+                          size="sm"
+                          chainId={
+                            tradingState.activeTab === BaseOrQuote.QUOTE
+                              ? tradingPair?.baseChainId
+                              : tradingPair?.quoteChainId
+                          }
+                        />
+                        <span className="text-sm text-gray-600 truncate max-w-[2rem] sm:max-w-[2.5rem] md:max-w-[3rem] lg:max-w-[3.5rem] xl:max-w-[4rem] font-medium">
+                          {tradingState.activeTab === BaseOrQuote.QUOTE
+                            ? tradingPair?.baseSymbol || "ATOM"
+                            : tradingPair?.quoteSymbol || "USDC"}
+                        </span>
+                      </section>
                     </section>
-                    {/* Network indicator beneath price input */}
-                    <span className="text-xs text-gray-500 mt-1 block">
-                      Network:{" "}
-                      {tradingState.activeTab === BaseOrQuote.QUOTE
-                        ? tradingPair?.baseChainNetwork || "Base Network"
-                        : tradingPair?.quoteChainNetwork || "Quote Network"}
-                    </span>
                   </section>
                 </section>
               ) : (
@@ -476,6 +468,14 @@ const TradeForm = ({
                       const totalPaid = amount * price * (1 + feeRate);
                       return `${totalPaid.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
                     })()}
+                  </dd>
+                </section>
+                <section className="flex justify-between">
+                  <dt className="text-neutral-700 font-medium">Where:</dt>
+                  <dd className="text-neutral-600 text-xs font-medium">
+                    {tradingState.activeTab === BaseOrQuote.BASE
+                      ? `${tradingPair?.baseSymbol || "BASE"} on ${tradingPair?.baseChainNetwork || "base-network"} for ${tradingPair?.quoteSymbol || "QUOTE"} on ${tradingPair?.quoteChainNetwork || "quote-network"}`
+                      : `${tradingPair?.quoteSymbol || "QUOTE"} on ${tradingPair?.quoteChainNetwork || "quote-network"} for ${tradingPair?.baseSymbol || "BASE"} on ${tradingPair?.baseChainNetwork || "base-network"}`}
                   </dd>
                 </section>
               </dl>

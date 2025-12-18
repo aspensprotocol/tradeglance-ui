@@ -810,19 +810,6 @@ const ActivityPanel = ({
                           depositedBalance: string;
                           lockedBalance: string;
                         }) => {
-                          // Get chain prefix for display
-                          const getChainPrefix = (network: string): string => {
-                            if (network.includes("flare")) return "f";
-                            if (network.includes("base")) return "b";
-                            if (network.includes("mainnet")) return "m";
-                            if (network.includes("goerli")) return "g";
-                            if (network.includes("sepolia")) return "s";
-                            return network.charAt(0).toLowerCase();
-                          };
-
-                          const prefix = getChainPrefix(balance.network);
-                          const prefixedSymbol = `${prefix}${balance.symbol}`;
-
                           return (
                             <article
                               key={`${balance.chainId}-${balance.symbol}`}
@@ -845,7 +832,7 @@ const ActivityPanel = ({
                                   </span>
                                   <span className="min-w-0 flex-1">
                                     <span className="font-semibold text-gray-900 truncate block">
-                                      {prefixedSymbol}
+                                      {balance.symbol}
                                     </span>
                                     <span className="text-xs text-gray-500 truncate block">
                                       {balance.network}

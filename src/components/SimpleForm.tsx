@@ -182,7 +182,7 @@ const SimpleForm = ({
         {/* Header */}
         <header className="flex flex-row items-center justify-between mb-2 pb-2 border-b border-emerald-200">
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">
-            Simple Crosschain Swap
+            Simple Swap
           </h2>
           <nav className="flex gap-1">
             <Button
@@ -289,6 +289,7 @@ const SimpleForm = ({
                 type="number"
                 min="0"
                 step="any"
+                inputMode="decimal"
                 value={formState.amount}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -499,7 +500,7 @@ const SimpleForm = ({
             {formState.isSubmitting ? (
               <span className="flex items-center gap-2 relative z-10">
                 <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                Processing Simple...
+                Processing Swap...
               </span>
             ) : !isConnected ? (
               <span className="relative z-10">Connect Wallet</span>
@@ -507,9 +508,7 @@ const SimpleForm = ({
               <span className="relative z-10">
                 {(() => {
                   if (!currentChainId) return "Simple Tokens";
-                  return tradingState.activeTab === BaseOrQuote.BASE
-                    ? "Sell"
-                    : "Buy";
+                  return "Swap";
                 })()}
               </span>
             )}
