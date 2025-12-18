@@ -243,6 +243,13 @@ const TradeForm = ({
                   : tradingPair?.baseSymbol || "ATOM"}
               </span>
             </section>
+            {/* Network indicator beneath amount input */}
+            <span className="text-xs text-gray-500 mt-1 block">
+              Network:{" "}
+              {tradingState.activeTab === BaseOrQuote.QUOTE
+                ? tradingPair?.quoteChainNetwork || "Quote Network"
+                : tradingPair?.baseChainNetwork || "Base Network"}
+            </span>
           </section>
 
           {/* Balance Information and Deposit Link */}
@@ -295,7 +302,7 @@ const TradeForm = ({
         <section className="flex flex-col">
           <fieldset className="flex flex-col space-y-2 sm:space-y-3">
             {/* Group 3: Price and input field - Fixed height container */}
-            <section className="h-[88px] mb-1">
+            <section className="h-[105px] mb-1">
               {tradingState.activeOrderType === "limit" ? (
                 <section className="space-y-1 h-full flex flex-col justify-between">
                   <header className="flex justify-between items-center mb-1">
@@ -339,6 +346,13 @@ const TradeForm = ({
                           : tradingPair?.quoteSymbol || "USDC"}
                       </span>
                     </section>
+                    {/* Network indicator beneath price input */}
+                    <span className="text-xs text-gray-500 mt-1 block">
+                      Network:{" "}
+                      {tradingState.activeTab === BaseOrQuote.QUOTE
+                        ? tradingPair?.baseChainNetwork || "Base Network"
+                        : tradingPair?.quoteChainNetwork || "Quote Network"}
+                    </span>
                   </section>
                 </section>
               ) : (
