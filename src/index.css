@@ -1,12 +1,12 @@
-/* Ensure proper Unicode support */
 @charset "UTF-8";
+/* Ensure proper Unicode support */
+
+/* Font loading optimization and fallbacks */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Font loading optimization and fallbacks */
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 
 /* Ensure proper font stack with fallbacks */
 * {
