@@ -182,7 +182,7 @@ const SimpleForm = ({
         {/* Header */}
         <header className="flex flex-row items-center justify-between mb-2 pb-2 border-b border-emerald-200">
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">
-            Simple Swap
+            Simple Crosschain Swap
           </h2>
           <nav className="flex gap-1">
             <Button
