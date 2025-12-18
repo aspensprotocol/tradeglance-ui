@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { arborterService } from "../lib/grpc-client";
 import type { Trade } from "../protos/gen/arborter_pb";
 import { useTradingPairs } from "./useTradingPairs";
@@ -29,8 +29,17 @@ export function useRecentTrades(
   const [loading, setLoading] = useState<boolean>(false);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState<number>(0);
-  const maxRetries = 5; // Increased to 5 for better reliability with streaming
+
+  // Use refs instead of state for retry logic to prevent re-render loops
+  const retryCountRef = useRef<number>(0);
+  const maxRetries = 3;
+  const lastFetchTimeRef = useRef<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Minimum interval between fetches (3 seconds)
+  const minFetchInterval = 3000;
 
   // Process trades data into the expected format
   const processTradesData = useCallback(
@@ -90,19 +99,9 @@ export function useRecentTrades(
             return otherUniqueId === tradeUniqueId;
           });
 
-          const isDuplicate: boolean = firstIndex !== index;
-
-          if (isDuplicate) {
-            // Duplicate trade removed
-          }
-
-          return !isDuplicate;
+          return firstIndex === index;
         },
       );
-
-      if (uniqueTrades.length !== processedTrades.length) {
-        // Duplicates removed during processing
-      }
 
       // Sort by timestamp (newest first)
       uniqueTrades.sort(
@@ -115,84 +114,110 @@ export function useRecentTrades(
     [currentTradingPair, marketId],
   );
 
-  // Fetch trades data with timeout
+  // Fetch trades data
   const fetchTradesData = useCallback(
     async (
       marketIdParam: string,
       filterByTraderParam?: string,
+      signal?: AbortSignal,
     ): Promise<RecentTrade[]> => {
-      // For continuous streaming, don't use timeout race - let the stream run
+      // Check if aborted before starting
+      if (signal?.aborted) {
+        throw new Error("Request aborted");
+      }
+
       const tradesData: Trade[] = await arborterService.getTrades(
         marketIdParam,
-        undefined,
-        true,
+        false, // continueStream - DISABLED to prevent resource exhaustion
+        true,  // historicalClosedTrades
         filterByTraderParam,
       );
+
+      // Check if aborted after fetch
+      if (signal?.aborted) {
+        throw new Error("Request aborted");
+      }
 
       if (!tradesData || tradesData.length === 0) {
         return [];
       }
 
-      const processedTrades: RecentTrade[] = processTradesData(
-        tradesData as Trade[],
-      );
-
-      // Remove duplicates
-      const uniqueTrades: RecentTrade[] = processedTrades.filter(
-        (trade: RecentTrade, index: number, self: RecentTrade[]) => {
-          const tradeUniqueId = `${trade.id}-${trade.timestamp.getTime()}`;
-          const firstIndex: number = self.findIndex((t: RecentTrade) => {
-            const otherUniqueId = `${t.id}-${t.timestamp.getTime()}`;
-            return otherUniqueId === tradeUniqueId;
-          });
-          const isDuplicate: boolean = firstIndex !== index;
-
-          if (isDuplicate) {
-            // Duplicate trade removed during fetch
-          }
-
-          return !isDuplicate;
-        },
-      );
-
-      return uniqueTrades;
+      const processedTrades: RecentTrade[] = processTradesData(tradesData);
+      return processedTrades;
     },
     [processTradesData],
   );
 
-  // Fetch data effect
-  useEffect(() => {
-    if (!marketId || marketId.trim() === "") {
-      setInitialLoading(false);
-      setTrades([]);
-      return;
-    }
+  // Main fetch function with throttling and abort support
+  const fetchData = useCallback(
+    async (isRetry = false): Promise<void> => {
+      if (!marketId || marketId.trim() === "") {
+        setInitialLoading(false);
+        setTrades([]);
+        return;
+      }
 
-    // Check cache first
-    const cachedData = globalTradesCache.getCachedData(
-      marketId,
-      filterByTrader,
-    );
-    if (
-      cachedData &&
-      !globalTradesCache.isDataStale(marketId, 5 * 60 * 1000, filterByTrader)
-    ) {
-      setTrades(cachedData.trades);
-      setInitialLoading(false);
-      setLoading(false);
+      // Throttle: prevent requests that are too frequent
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTimeRef.current;
+      if (timeSinceLastFetch < minFetchInterval && !isRetry) {
+        console.log(
+          `🚫 Throttling trades request (${timeSinceLastFetch}ms < ${minFetchInterval}ms)`,
+        );
+        return;
+      }
+
+      // Prevent concurrent fetches
+      if (isFetchingRef.current) {
+        console.log("🚫 Trades fetch already in progress, skipping");
+        return;
+      }
+
+      // Check cache first (only on non-retry)
+      if (!isRetry) {
+        const cachedData = globalTradesCache.getCachedData(
+          marketId,
+          filterByTrader,
+        );
+        if (
+          cachedData &&
+          !globalTradesCache.isDataStale(marketId, 5 * 60 * 1000, filterByTrader)
+        ) {
+          setTrades(cachedData.trades);
+          setInitialLoading(false);
+          setLoading(false);
+          setError(null);
+          return;
+        }
+      }
+
+      // Cancel any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new abort controller
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      isFetchingRef.current = true;
+      lastFetchTimeRef.current = now;
+      setLoading(true);
       setError(null);
-      return;
-    }
 
-    const fetchData = async (): Promise<void> => {
       try {
-        setLoading(true);
-        setError(null);
+        console.log("🔄 Fetching trades for market:", marketId);
 
         const tradesData: RecentTrade[] = await fetchTradesData(
           marketId,
           filterByTrader,
+          signal,
         );
+
+        // Check if aborted
+        if (signal.aborted) {
+          return;
+        }
 
         if (tradesData && tradesData.length > 0) {
           setTrades(tradesData);
@@ -223,54 +248,104 @@ export function useRecentTrades(
         }
 
         setInitialLoading(false);
-        setRetryCount(0); // Reset retry count on successful fetch
+        retryCountRef.current = 0; // Reset retry count on success
+        console.log("✅ Trades fetched successfully");
       } catch (err: unknown) {
+        // Ignore abort errors
+        if (err instanceof Error && err.message === "Request aborted") {
+          return;
+        }
+
         const errorMessage: string =
           err instanceof Error ? err.message : "Unknown error occurred";
 
-        // Check if this is a streaming error (network error, incomplete chunked encoding)
+        console.error("❌ Trades fetch error:", errorMessage);
+
+        // Check if this is a streaming/network error
         const isStreamingError =
           errorMessage.includes("network error") ||
           errorMessage.includes("ERR_INCOMPLETE_CHUNKED_ENCODING") ||
+          errorMessage.includes("ERR_INSUFFICIENT_RESOURCES") ||
           errorMessage.includes("Request timeout");
 
-        if (isStreamingError && retryCount < maxRetries) {
-          // Don't set error state for streaming errors, just retry
-          // Don't set initialLoading to false yet, keep trying
-        } else if (isStreamingError && retryCount >= maxRetries) {
+        if (isStreamingError && retryCountRef.current < maxRetries) {
+          // Schedule retry with exponential backoff
+          const delay = Math.min(3000 * Math.pow(2, retryCountRef.current), 15000);
+          console.log(
+            `🔄 Scheduling retry ${retryCountRef.current + 1}/${maxRetries} in ${delay}ms`,
+          );
+
+          retryCountRef.current += 1;
+
+          // Clear any existing retry timeout
+          if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
+          }
+
+          retryTimeoutRef.current = setTimeout(() => {
+            fetchData(true);
+          }, delay);
+        } else if (retryCountRef.current >= maxRetries) {
           setError("Connection issues - please refresh to retry");
           setInitialLoading(false);
+          setTrades([]);
         } else {
-          // Non-streaming error, show immediately
           setError(errorMessage);
           setInitialLoading(false);
-        }
-
-        // Set empty state on error to prevent UI from hanging
-        setTrades([]);
-
-        // Retry logic with shorter delays
-        if (retryCount < maxRetries) {
-          const delay: number = Math.min(1000 * (retryCount + 1), 3000); // Increased max delay to 3 seconds
-
-          setTimeout(() => {
-            setRetryCount((prev: number) => prev + 1);
-          }, delay);
+          setTrades([]);
         }
       } finally {
+        isFetchingRef.current = false;
         setLoading(false);
       }
-    };
+    },
+    [marketId, filterByTrader, fetchTradesData, globalTradesCache],
+  );
 
+  // Fetch data effect - only depends on marketId and filterByTrader
+  useEffect(() => {
+    // Reset state when market changes
+    retryCountRef.current = 0;
+    lastFetchTimeRef.current = 0;
+
+    // Clear any pending retry
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    if (!marketId || marketId.trim() === "") {
+      setInitialLoading(false);
+      setTrades([]);
+      return;
+    }
+
+    // Start fetch
     fetchData();
-  }, [
-    marketId,
-    filterByTrader,
-    fetchTradesData,
-    retryCount,
-    maxRetries,
-    globalTradesCache,
-  ]);
+
+    // Cleanup function
+    return () => {
+      // Cancel any in-flight request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+
+      // Clear any pending retry
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+
+      isFetchingRef.current = false;
+    };
+  }, [marketId, filterByTrader, fetchData]);
 
   // Manual refresh function
   const refresh = useCallback(async (): Promise<void> => {
@@ -278,58 +353,17 @@ export function useRecentTrades(
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      setRetryCount(0); // Reset retry count on manual refresh
+    // Reset retry count on manual refresh
+    retryCountRef.current = 0;
+    // Reset last fetch time to allow immediate fetch
+    lastFetchTimeRef.current = 0;
 
-      const tradesData: RecentTrade[] = await fetchTradesData(
-        marketId,
-        filterByTrader,
-      );
+    await fetchData();
+  }, [marketId, fetchData]);
 
-      if (tradesData && tradesData.length > 0) {
-        setTrades(tradesData);
-
-        // Cache the refreshed trades data
-        const sharedTradesData: SharedTradesData = {
-          trades: tradesData,
-          lastUpdate: new Date(),
-        };
-        globalTradesCache.setCachedData(
-          marketId,
-          sharedTradesData,
-          filterByTrader,
-        );
-      } else {
-        setTrades([]);
-
-        // Cache empty state too
-        const sharedTradesData: SharedTradesData = {
-          trades: [],
-          lastUpdate: new Date(),
-        };
-        globalTradesCache.setCachedData(
-          marketId,
-          sharedTradesData,
-          filterByTrader,
-        );
-      }
-    } catch (err: unknown) {
-      const errorMessage: string =
-        err instanceof Error ? err.message : "Unknown error occurred";
-      setError(errorMessage);
-
-      // Set empty state on error to prevent UI from hanging
-      setTrades([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [marketId, filterByTrader, fetchTradesData, globalTradesCache]);
-
-  // Determine loading states - be more aggressive about showing "no data"
-  const isInitialLoading: boolean = initialLoading && retryCount === 0; // Only show initial loading on first attempt
-  const isLoading: boolean = loading && retryCount === 0; // Only show loading on first attempt
+  // Determine loading states
+  const isInitialLoading: boolean = initialLoading && retryCountRef.current === 0;
+  const isLoading: boolean = loading && retryCountRef.current === 0;
 
   return {
     trades,
