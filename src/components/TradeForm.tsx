@@ -246,13 +246,6 @@ const TradeForm = ({
                 </span>
               </section>
             </section>
-            {/* Network indicator beneath amount input */}
-            <span className="text-xs text-gray-500 mt-1 block">
-              Network:{" "}
-              {tradingState.activeTab === BaseOrQuote.QUOTE
-                ? tradingPair?.quoteChainNetwork || "Quote Network"
-                : tradingPair?.baseChainNetwork || "Base Network"}
-            </span>
           </section>
 
           {/* Balance Information and Deposit Link */}
@@ -305,7 +298,7 @@ const TradeForm = ({
         <section className="flex flex-col">
           <fieldset className="flex flex-col space-y-2 sm:space-y-3">
             {/* Group 3: Price and input field - Fixed height container */}
-            <section className="h-[105px] mb-1">
+            <section className="h-[88px] mb-1">
               {tradingState.activeOrderType === "limit" ? (
                 <section className="space-y-1 h-full flex flex-col justify-between">
                   <header className="flex justify-between items-center mb-1">
@@ -352,13 +345,6 @@ const TradeForm = ({
                         </span>
                       </section>
                     </section>
-                    {/* Network indicator beneath price input */}
-                    <span className="text-xs text-gray-500 mt-1 block">
-                      Network:{" "}
-                      {tradingState.activeTab === BaseOrQuote.QUOTE
-                        ? tradingPair?.baseChainNetwork || "Base Network"
-                        : tradingPair?.quoteChainNetwork || "Quote Network"}
-                    </span>
                   </section>
                 </section>
               ) : (
@@ -482,6 +468,14 @@ const TradeForm = ({
                       const totalPaid = amount * price * (1 + feeRate);
                       return `${totalPaid.toFixed(3)} ${tradingPair?.quoteSymbol || "USDC"}`;
                     })()}
+                  </dd>
+                </section>
+                <section className="flex justify-between">
+                  <dt className="text-neutral-700 font-medium">Where:</dt>
+                  <dd className="text-neutral-600 text-xs font-medium">
+                    {tradingState.activeTab === BaseOrQuote.BASE
+                      ? `${tradingPair?.baseSymbol || "BASE"} on ${tradingPair?.baseChainNetwork || "base-network"} for ${tradingPair?.quoteSymbol || "QUOTE"} on ${tradingPair?.quoteChainNetwork || "quote-network"}`
+                      : `${tradingPair?.quoteSymbol || "QUOTE"} on ${tradingPair?.quoteChainNetwork || "quote-network"} for ${tradingPair?.baseSymbol || "BASE"} on ${tradingPair?.baseChainNetwork || "base-network"}`}
                   </dd>
                 </section>
               </dl>
