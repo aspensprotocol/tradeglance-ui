@@ -472,10 +472,20 @@ const TradeForm = ({
                 </section>
                 <section className="flex justify-between">
                   <dt className="text-neutral-700 font-medium">Where:</dt>
-                  <dd className="text-neutral-600 text-xs font-medium">
-                    {tradingState.activeTab === BaseOrQuote.BASE
-                      ? `${tradingPair?.baseSymbol || "BASE"} on ${tradingPair?.baseChainNetwork || "base-network"} for ${tradingPair?.quoteSymbol || "QUOTE"} on ${tradingPair?.quoteChainNetwork || "quote-network"}`
-                      : `${tradingPair?.quoteSymbol || "QUOTE"} on ${tradingPair?.quoteChainNetwork || "quote-network"} for ${tradingPair?.baseSymbol || "BASE"} on ${tradingPair?.baseChainNetwork || "base-network"}`}
+                  <dd className="text-neutral-600 text-xs font-medium text-right">
+                    {tradingState.activeTab === BaseOrQuote.BASE ? (
+                      <>
+                        <span className="block">{tradingPair?.baseSymbol || "BASE"} on {tradingPair?.baseChainNetwork || "base-network"}</span>
+                        <span className="block">for</span>
+                        <span className="block">{tradingPair?.quoteSymbol || "QUOTE"} on {tradingPair?.quoteChainNetwork || "quote-network"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="block">{tradingPair?.quoteSymbol || "QUOTE"} on {tradingPair?.quoteChainNetwork || "quote-network"}</span>
+                        <span className="block">for</span>
+                        <span className="block">{tradingPair?.baseSymbol || "BASE"} on {tradingPair?.baseChainNetwork || "base-network"}</span>
+                      </>
+                    )}
                   </dd>
                 </section>
               </dl>
