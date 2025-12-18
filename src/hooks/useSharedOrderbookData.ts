@@ -49,6 +49,8 @@ export function useSharedOrderbookData(
   const hasInitializedRef = useRef<boolean>(false);
   const lastMarketIdRef = useRef<string>("");
   const lastFilterRef = useRef<string | undefined>(undefined);
+  const initialFetchAttemptedRef = useRef<boolean>(false);
+  const lastEventRefreshTimeRef = useRef<number>(0);
   const circuitBreakerRef = useRef<{
     failures: number;
     lastFailure: number;
@@ -391,6 +393,7 @@ export function useSharedOrderbookData(
         lastFetchTime.current = 0;
         setRetryCount(0);
         hasInitializedRef.current = false;
+        initialFetchAttemptedRef.current = false; // Reset so new market can trigger initial fetch
       }
     }
   }, [marketId, filterByTrader, isRealMarketChange, globalCache]);
@@ -429,8 +432,18 @@ export function useSharedOrderbookData(
   ]);
 
   // Listen for orderbook refresh events - memoized to prevent recreation
+  // Added debouncing to prevent rapid-fire event handling
   const handleOrderbookRefresh = useCallback(() => {
     if (marketId && marketId.trim() !== "") {
+      const now = Date.now();
+      const eventDebounceInterval = 3000; // 3 seconds debounce for events
+
+      if (now - lastEventRefreshTimeRef.current < eventDebounceInterval) {
+        console.log(`🚫 Debouncing orderbook refresh event (${now - lastEventRefreshTimeRef.current}ms < ${eventDebounceInterval}ms)`);
+        return;
+      }
+
+      lastEventRefreshTimeRef.current = now;
       console.log("🔄 Orderbook refresh event received for:", marketId);
       fetchOrderbookData();
     }
@@ -443,16 +456,16 @@ export function useSharedOrderbookData(
     };
   }, [handleOrderbookRefresh]);
 
-  // Re-fetch data when trading pair becomes available (if we don't have proper data yet)
-  // Note: We re-fetch rather than re-process because the stored data may already be
-  // processed and re-processing would cause double decimal conversion
+  // Re-fetch data when trading pair becomes available (if we haven't attempted initial fetch yet)
+  // Note: We use a ref to track if initial fetch was attempted to prevent re-fetch loops
   useEffect(() => {
-    if (currentTradingPair && data.orderbook.bids.length === 0 && data.orderbook.asks.length === 0) {
-      // Only trigger a refresh if we don't have data yet and trading pair is now available
-      console.log("🔄 Trading pair available, triggering refresh for:", marketId);
+    if (currentTradingPair && !initialFetchAttemptedRef.current) {
+      // Only trigger a refresh if we haven't attempted initial fetch yet and trading pair is now available
+      console.log("🔄 Trading pair available, triggering initial fetch for:", marketId);
+      initialFetchAttemptedRef.current = true;
       fetchOrderbookData();
     }
-  }, [currentTradingPair, data.orderbook.bids.length, data.orderbook.asks.length, marketId, fetchOrderbookData]);
+  }, [currentTradingPair, marketId, fetchOrderbookData]);
 
   const refresh = useCallback(() => {
     setRetryCount(0);

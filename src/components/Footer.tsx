@@ -99,9 +99,14 @@ export const Footer = ({ className = "" }: FooterProps): JSX.Element => {
               Last: {lastCheck.toLocaleTimeString()}
             </span>
           )}
-          <span className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200">
+          <a
+            href={`https://github.com/aspensprotocol/tradeglance-ui/commit/${getShortGitCommitHash()}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-neutral-600 bg-white/40 backdrop-blur-sm px-2 py-1 rounded border border-neutral-200 hover:bg-white/60 transition-all duration-200"
+          >
             version {getShortGitCommitHash()}
-          </span>
+          </a>
 
           {/* Attestation Data Modal */}
           <Dialog>

@@ -293,29 +293,6 @@ const VerticalOrderBook = React.memo(
             </span>
           </header>
 
-          {/* Order count indicator */}
-          {(asks.length > limitedAsks.length ||
-            bids.length > limitedBids.length) && (
-            <article className="text-center py-2 mb-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-lg border border-blue-200 text-xs text-blue-700">
-              <span className="font-medium">
-                Showing top{" "}
-                {maxOrders || PERFORMANCE_CONFIG.orderbook.maxEntriesToRender}{" "}
-                orders by price
-              </span>
-              <span className="text-blue-600">
-                ({limitedAsks.length + limitedBids.length} of{" "}
-                {asks.length + bids.length} total)
-              </span>
-              {limitedAsks.length > 0 && limitedBids.length > 0 && (
-                <div className="mt-1 text-blue-600 text-xs">
-                  Price range:{" "}
-                  {formatDecimalConsistent(limitedAsks[0]?.price || 0)} -{" "}
-                  {formatDecimalConsistent(limitedBids[0]?.price || 0)}
-                </div>
-              )}
-            </article>
-          )}
-
           {/* Asks (Sell orders) - Red */}
           <section className="space-y-1 mb-4">
             {limitedAsks.map((ask, i: number) => (
