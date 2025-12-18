@@ -53,19 +53,6 @@ export const useTradingPairs = (): {
         return;
       }
 
-      // Get chain prefixes for display
-      const getChainPrefix = (network: string): string => {
-        if (network.includes("flare")) return "f";
-        if (network.includes("base")) return "b";
-        if (network.includes("mainnet")) return "m";
-        if (network.includes("goerli")) return "g";
-        if (network.includes("sepolia")) return "s";
-        return network.charAt(0).toLowerCase();
-      };
-
-      const basePrefix: string = getChainPrefix(baseChain.network);
-      const quotePrefix: string = getChainPrefix(quoteChain.network);
-
       // Create the trading pair ID
       const baseChainId: number =
         typeof baseChain.chainId === "string"
@@ -82,7 +69,7 @@ export const useTradingPairs = (): {
           `${baseChainId}::${baseToken.address}::${quoteChainId}::${quoteToken.address}`,
         baseSymbol: market.baseChainTokenSymbol,
         quoteSymbol: market.quoteChainTokenSymbol,
-        displayName: `${basePrefix}${market.baseChainTokenSymbol}/${quotePrefix}${market.quoteChainTokenSymbol}`,
+        displayName: `${market.baseChainTokenSymbol}/${market.quoteChainTokenSymbol}`,
         baseChainNetwork: market.baseChainNetwork,
         quoteChainNetwork: market.quoteChainNetwork,
         baseChainTokenAddress: baseToken.address,

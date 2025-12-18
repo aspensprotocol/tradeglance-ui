@@ -64,24 +64,11 @@ const DepositWithdrawModal = ({
     network: string;
     symbol: string;
   }[] => {
-    // Helper function to get chain prefix for tokens (same as mint/trade views)
-    const getChainPrefix = (network: string): string => {
-      if (network.includes("flare")) return "f"; // flare-coston2
-      if (network.includes("base")) return "b"; // base-sepolia
-      if (network.includes("mainnet")) return "m";
-      if (network.includes("goerli")) return "g";
-      if (network.includes("sepolia")) return "s";
-      return network.charAt(0).toLowerCase(); // fallback to first letter
-    };
-
     return chains.flatMap((chain: Chain) =>
       Object.entries(chain.tokens).map(([symbol, token]) => {
-        const prefix = getChainPrefix(chain.network);
-        const prefixedSymbol = `${prefix}${symbol}`;
-
         return {
           value: `${chain.network}:${symbol}`,
-          label: `${prefixedSymbol} (${chain.network})`,
+          label: `${symbol} (${chain.network})`,
           address: token.address,
           decimals: token.decimals,
           chainId: chain.chainId,
