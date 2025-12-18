@@ -443,7 +443,7 @@ const DepositWithdrawModal = ({
                 )}
               </header>
               <section className="relative">
-                <Input
+                <input
                   id="amount"
                   type="number"
                   min="0"
@@ -457,7 +457,7 @@ const DepositWithdrawModal = ({
                   }}
                   placeholder="0.0"
                   required
-                  className="bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-base font-semibold"
+                  className="w-full pl-3 pr-3 py-3 rounded-xl bg-gradient-to-r from-white to-blue-50 border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 shadow-md hover:shadow-lg text-base font-semibold text-gray-800"
                 />
                 {activeType === "withdraw" &&
                   depositedBalance &&
