@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
+import { useAccount } from "wagmi";
 
 import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
+import { useRecentTrades } from "@/hooks/useRecentTrades";
 
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTabOptimization } from "@/hooks/useTabOptimization";
@@ -23,6 +25,7 @@ const ActivityPanel = ({
   tradingPair,
   currentTradingSide,
 }: ActivityPanelProps) => {
+  const { address } = useAccount();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"deposit" | "withdraw">("deposit");
   const [showMineOnly, setShowMineOnly] = useState(false);
@@ -60,23 +63,20 @@ const ActivityPanel = ({
   //   error: ordersError,
   // } = useMarketOrderbook(marketId || "", showMineOnly ? address : undefined);
 
-  // TEMPORARILY DISABLED: Only call hooks when their corresponding tab is active to prevent data accumulation
-  // const {
-  //   trades,
-  //   loading: tradesLoading,
-  //   error: tradesError,
-  // } = useRecentTrades(
-  //   activeTab === "trades" && marketId ? marketId : "", // Only fetch when trades tab is active and marketId exists
-  //   showMineOnly ? address : undefined,
-  // );
+  // Fetch recent trades from the Trades gRPC endpoint
+  const {
+    trades,
+    loading: tradesLoading,
+    error: tradesError,
+  } = useRecentTrades(
+    activeTab === "trades" && marketId ? marketId : "", // Only fetch when trades tab is active and marketId exists
+    showMineOnly ? address : undefined,
+  );
 
-  // No mock data - using real data fetching
+  // Open orders still disabled - using empty array
   const openOrders: OrderbookEntry[] = [];
   const ordersLoading = false;
   const ordersError: string | null = null;
-  const trades = useMemo(() => [] as RecentTrade[], []);
-  const tradesLoading = false;
-  const tradesError: string | null = null;
 
   // No need for client-side filtering since we're using API-level filtering
   const orders = openOrders;
