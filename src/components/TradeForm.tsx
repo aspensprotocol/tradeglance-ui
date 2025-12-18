@@ -493,7 +493,7 @@ const TradeForm = ({
               className={cn(
                 "w-full py-3 rounded-2xl text-base font-semibold transition-all duration-300 mt-2 transform shadow-lg hover:shadow-xl relative overflow-hidden ",
                 tradingState.activeTab === BaseOrQuote.BASE
-                  ? "bg-gradient-to-r from-red-500 via-pink-500 to-cyan-500 hover:from-red-600 hover:via-pink-600 hover:to-cyan-600 text-white"
+                  ? "bg-gradient-to-r from-red-500 via-red-600 to-rose-500 hover:from-red-600 hover:via-red-700 hover:to-rose-600 text-white"
                   : "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white",
               )}
             >
