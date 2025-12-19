@@ -290,6 +290,7 @@ const DepositWithdrawModal = ({
         title: `${activeType === "deposit" ? "Deposit" : "Withdrawal"} failed`,
         description: errorMessage,
         variant: "destructive",
+        showCopy: false,
       });
     }
   };
@@ -313,7 +314,7 @@ const DepositWithdrawModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-lg bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-2xl overflow-hidden relative !fixed !left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%]">
+      <DialogContent className="w-[95vw] max-w-lg bg-gradient-to-br from-white via-blue-50 to-indigo-50 border-2 border-blue-200 shadow-2xl rounded-2xl overflow-hidden relative !fixed !left-[50%] !top-[50%] !translate-x-[-50%] !translate-y-[-50%] p-6">
         {/* Floating decorative elements */}
         <section className="absolute inset-0 pointer-events-none overflow-hidden">
           <section className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-blue-300/5 to-indigo-300/5 rounded-full blur-lg animate-pulse delay-300"></section>
@@ -509,8 +510,8 @@ const DepositWithdrawModal = ({
             </footer>
 
             {error && (
-              <section className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{error}</p>
+              <section className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg w-full overflow-hidden">
+                <p className="text-red-700 text-sm break-words">{error}</p>
               </section>
             )}
 
