@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelOrderRequest, CancelOrderResponse, GetSignerPublicKeyRequest, GetSignerPublicKeyResponse, OrderbookEntry, OrderbookRequest, SendOrderRequest, SendOrderResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
+import { CancelOrderRequest, CancelOrderResponse, OrderbookEntry, OrderbookRequest, SendOrderRequest, SendOrderResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -55,15 +55,6 @@ export const ArborterService = {
       name: "UnNormalizeDecimals",
       I: UnNormalizeDecimalsRequest,
       O: UnNormalizeDecimalsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc xyz.aspens.arborter.v1.ArborterService.GetSignerPublicKey
-     */
-    getSignerPublicKey: {
-      name: "GetSignerPublicKey",
-      I: GetSignerPublicKeyRequest,
-      O: GetSignerPublicKeyResponse,
       kind: MethodKind.Unary,
     },
   }
