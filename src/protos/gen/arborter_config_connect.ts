@@ -5,6 +5,7 @@
 
 import { DeleteChainRequest, DeleteChainResponse, DeleteMarketRequest, DeleteMarketResponse, DeleteTokenRequest, DeleteTokenResponse, DeleteTradeContractRequest, DeleteTradeContractResponse, DeployContractRequest, DeployContractResponse, Empty, GetConfigRequest, GetConfigResponse, GetDeployCalldataRequest, GetDeployCalldataResponse, GetSignerPublicKeyRequest, GetSignerPublicKeyResponse, SetChainRequest, SetChainResponse, SetMarketRequest, SetMarketResponse, SetTokenRequest, SetTokenResponse, SetTradeContractRequest, SetTradeContractResponse, UpdateAdminRequest, UpdateAdminResponse, VersionInfo } from "./arborter_config_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
+import { GetAttestationRequest, GetAttestationResponse } from "./attestation_pb.js";
 
 /**
  * The Configuration service definition
@@ -122,6 +123,17 @@ export const ConfigService = {
       name: "GetSignerPublicKey",
       I: GetSignerPublicKeyRequest,
       O: GetSignerPublicKeyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * rpc service to get TEE attestation from the signer
+     *
+     * @generated from rpc xyz.aspens.arborter_config.v1.ConfigService.GetAttestation
+     */
+    getAttestation: {
+      name: "GetAttestation",
+      I: GetAttestationRequest,
+      O: GetAttestationResponse,
       kind: MethodKind.Unary,
     },
     /**
