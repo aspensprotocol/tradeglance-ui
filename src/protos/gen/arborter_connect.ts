@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelOrderRequest, CancelOrderResponse, OrderbookEntry, OrderbookRequest, SendOrderRequest, SendOrderResponse, Trade, TradeRequest, UnNormalizeDecimalsRequest, UnNormalizeDecimalsResponse } from "./arborter_pb.js";
+import { CancelOrderRequest, CancelOrderResponse, OrderbookEntry, OrderbookRequest, SendOrderRequest, SendOrderResponse, Trade, TradeRequest } from "./arborter_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -47,15 +47,6 @@ export const ArborterService = {
       I: OrderbookRequest,
       O: OrderbookEntry,
       kind: MethodKind.ServerStreaming,
-    },
-    /**
-     * @generated from rpc xyz.aspens.arborter.v1.ArborterService.UnNormalizeDecimals
-     */
-    unNormalizeDecimals: {
-      name: "UnNormalizeDecimals",
-      I: UnNormalizeDecimalsRequest,
-      O: UnNormalizeDecimalsResponse,
-      kind: MethodKind.Unary,
     },
   }
 } as const;
