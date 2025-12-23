@@ -87,10 +87,6 @@ import {
   type TradeRequest,
   TradeRequestSchema,
   TradeSchema,
-  type UnNormalizeDecimalsRequest,
-  UnNormalizeDecimalsRequestSchema,
-  type UnNormalizeDecimalsResponse,
-  UnNormalizeDecimalsResponseSchema,
 } from "../protos/gen/arborter_pb";
 
 // Create a logger for gRPC operations
@@ -458,33 +454,6 @@ export const arborterService = {
     }
   },
 
-  // Unnormalize decimals
-  async unnormalizeDecimals(
-    marketId: string,
-    side: string,
-    quantity: string,
-    price?: string,
-  ): Promise<UnNormalizeDecimalsResponse> {
-    try {
-      const request: UnNormalizeDecimalsRequest = create(
-        UnNormalizeDecimalsRequestSchema,
-        {
-          marketId,
-          side,
-          quantity,
-          price,
-        },
-      );
-
-      const response: UnNormalizeDecimalsResponse =
-        await arborterClient.unNormalizeDecimals(request);
-      return response;
-    } catch (error) {
-      console.error("Error unnormalizing decimals:", error);
-      throw error;
-    }
-  },
-
   // Real-time orderbook streaming for live updates
   async *streamOrderbookRealtime(
     marketId: string,
@@ -624,8 +593,6 @@ export type {
   SendOrderResponse,
   CancelOrderRequest,
   CancelOrderResponse,
-  UnNormalizeDecimalsRequest,
-  UnNormalizeDecimalsResponse,
   SendOrderRequest,
   OrderbookRequest,
   TradeRequest,
@@ -675,8 +642,6 @@ export {
   SendOrderResponseSchema,
   CancelOrderRequestSchema,
   CancelOrderResponseSchema,
-  UnNormalizeDecimalsRequestSchema,
-  UnNormalizeDecimalsResponseSchema,
   SendOrderRequestSchema,
   OrderbookRequestSchema,
   TradeRequestSchema,
