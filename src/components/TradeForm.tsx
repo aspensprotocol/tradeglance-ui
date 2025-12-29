@@ -475,15 +475,13 @@ const TradeForm = ({
                   <dd className="text-neutral-600 text-xs font-medium text-right">
                     {tradingState.activeTab === BaseOrQuote.BASE ? (
                       <>
-                        <span className="block">{tradingPair?.baseSymbol || "BASE"} on {tradingPair?.baseChainNetwork || "base-network"}</span>
-                        <span className="block">for</span>
-                        <span className="block">{tradingPair?.quoteSymbol || "QUOTE"} on {tradingPair?.quoteChainNetwork || "quote-network"}</span>
+                        <span className="block">Selling {tradingPair?.baseSymbol || "BASE"} on {tradingPair?.baseChainNetwork || "base-network"},</span>
+                        <span className="block">Buying {tradingPair?.quoteSymbol || "QUOTE"} on {tradingPair?.quoteChainNetwork || "quote-network"}</span>
                       </>
                     ) : (
                       <>
-                        <span className="block">{tradingPair?.quoteSymbol || "QUOTE"} on {tradingPair?.quoteChainNetwork || "quote-network"}</span>
-                        <span className="block">for</span>
-                        <span className="block">{tradingPair?.baseSymbol || "BASE"} on {tradingPair?.baseChainNetwork || "base-network"}</span>
+                        <span className="block">Buying {tradingPair?.baseSymbol || "BASE"} on {tradingPair?.baseChainNetwork || "base-network"},</span>
+                        <span className="block">Selling {tradingPair?.quoteSymbol || "QUOTE"} on {tradingPair?.quoteChainNetwork || "quote-network"}</span>
                       </>
                     )}
                   </dd>
