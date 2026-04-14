@@ -128,12 +128,3 @@ jobs:
           format: spdx-json
           artifact-name: sbom-tradeglance-ui.spdx.json
           output-file: sbom.spdx.json
-
-      - name: Attest SBOM
-        if: github.event_name == 'push'
-        uses: actions/attest-sbom@v1
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.build.outputs.digest }}
-          sbom-path: sbom.spdx.json
-          push-to-registry: true
