@@ -1,16 +1,68 @@
-name: Build and Push Docker Image to ECR
+name: Build and Push Docker Image to GHCR
 
 on:
   push:
     branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 env:
-  PUBLIC_ECR_REGISTRY: public.ecr.aws/v4f6x5y1/aspens-xyz/tradeglance
+  REGISTRY: ghcr.io
+  IMAGE_NAME: aspensprotocol/tradeglance-ui
 
 jobs:
+  # Fast (~10s) drift check: catches the common failure mode of someone bumping
+  # one place (e.g. Dockerfile) but not the matching pin (.nvmrc), and catches
+  # anyone re-introducing a floating base-image tag.
+  verify-pins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Compare Node major in the builder image against .nvmrc, so local dev
+      # and the production build can't drift onto different runtimes.
+      - name: Node major matches across Dockerfile and .nvmrc
+        run: |
+          DF=$(grep -oE 'node:[0-9]+' Dockerfile | head -1 | cut -d: -f2)
+          NV=$(cut -d. -f1 .nvmrc)
+          echo "Dockerfile node=$DF  .nvmrc major=$NV"
+          [ "$DF" = "$NV" ] || { echo "::error::Node major mismatch"; exit 1; }
+
+      # Reproducibility requires every base image to be pinned by digest.
+      # Floating tags can be silently mutated upstream, so refuse any FROM
+      # line that lacks an @sha256:... suffix.
+      - name: All FROM lines pin to @sha256 digests
+        run: |
+          if grep -E '^FROM ' Dockerfile | grep -v '@sha256:'; then
+            echo "::error::Found FROM line(s) without @sha256 digest pin"; exit 1
+          fi
+
+  # Main-only: confirms package-lock.json is in sync with package.json. Skipped
+  # on PRs to keep PR latency low; lockfile drift surfaces on next main build.
+  verify-deps:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # `npm ci` refuses to install if package-lock.json doesn't match
+      # package.json, so this fails fast on unrecorded dep changes.
+      # --ignore-scripts skips lifecycle hooks for speed; we only need lock
+      # consistency, not a working node_modules.
+      - name: package-lock.json is consistent with package.json
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
   build-and-push:
     runs-on: ubuntu-latest
     environment: demo
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout code
@@ -21,38 +73,67 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Configure AWS credentials
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Login to Public ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/v4f6x5y1
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image (PR)
         if: github.event_name == 'pull_request'
-        run: |
-          docker build -f Dockerfile \
-            --build-arg VITE_GIT_COMMIT_HASH=${{ github.sha }} \
-            -t tradeglance:${{ github.sha }} \
-            .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          tags: tradeglance-ui:${{ github.sha }}
+          build-args: |
+            VITE_GIT_COMMIT_HASH=${{ github.sha }}
 
-      - name: Build Docker image (Main)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          docker build -f Dockerfile \
-            --build-arg VITE_GIT_COMMIT_HASH=${{ github.sha }} \
-            -t ${{ env.PUBLIC_ECR_REGISTRY }}:${{ github.sha }} \
-            -t ${{ env.PUBLIC_ECR_REGISTRY }}:latest \
-            .
+      - name: Build and push Docker image (main)
+        if: github.event_name == 'push'
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            VITE_GIT_COMMIT_HASH=${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          provenance: mode=max
+          sbom: true
 
-      - name: Push to Public ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          docker push ${{ env.PUBLIC_ECR_REGISTRY }}:${{ github.sha }}
-          docker push ${{ env.PUBLIC_ECR_REGISTRY }}:latest
+      - name: Install cosign
+        if: github.event_name == 'push'
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image with cosign (keyless)
+        if: github.event_name == 'push'
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "$IMAGE"
+
+      - name: Generate SBOM with syft
+        if: github.event_name == 'push'
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          artifact-name: sbom-tradeglance-ui.spdx.json
+          output-file: sbom.spdx.json
+
+      - name: Attest SBOM
+        if: github.event_name == 'push'
+        uses: actions/attest-sbom@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: sbom.spdx.json
+          push-to-registry: true

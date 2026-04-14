@@ -1,5 +1,5 @@
 # Multi-stage build for production
-FROM node:24 AS builder
+FROM node:24@sha256:80fc934952c8f1b2b4d39907af7211f8a9fff1a4c2cf673fb49099292c251cec AS builder
 
 # Accept build arguments
 ARG VITE_GRPC_WEB_PROXY_URL
@@ -25,7 +25,7 @@ COPY . .
 RUN npm run build
 
 # Production stage with nginx
-FROM nginx:alpine AS production
+FROM nginx:alpine@sha256:582c496ccf79d8aa6f8203a79d32aaf7ffd8b13362c60a701a2f9ac64886c93d AS production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
