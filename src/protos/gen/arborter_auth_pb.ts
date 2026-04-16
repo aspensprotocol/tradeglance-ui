@@ -17,7 +17,9 @@ export const file_arborter_auth: GenFile = /*@__PURE__*/
  */
 export type AuthRequest = Message<"xyz.aspens.arborter_auth.v1.AuthRequest"> & {
   /**
-   * The Ethereum address requesting authentication
+   * The admin address requesting authentication.
+   * EVM addresses are 0x-prefixed hex (20 bytes); Solana addresses are
+   * base58-encoded Ed25519 public keys (32 bytes).
    *
    * @generated from field: string address = 1;
    */
@@ -38,7 +40,10 @@ export type AuthRequest = Message<"xyz.aspens.arborter_auth.v1.AuthRequest"> & {
   nonce: string;
 
   /**
-   * Hex-encoded EIP-712 signature (with or without 0x prefix)
+   * Hex-encoded signature over the canonical auth message (with or
+   * without 0x prefix). For EVM addresses this is a 65-byte EIP-712
+   * signature; for Solana addresses this is a 64-byte raw Ed25519
+   * signature.
    *
    * @generated from field: string signature = 4;
    */
@@ -90,7 +95,8 @@ export const AuthResponseSchema: GenMessage<AuthResponse> = /*@__PURE__*/
  */
 export type InitializeAdminRequest = Message<"xyz.aspens.arborter_auth.v1.InitializeAdminRequest"> & {
   /**
-   * The Ethereum address to set as the initial admin
+   * The address to set as the initial admin.
+   * EVM addresses are 0x-prefixed hex; Solana addresses are base58.
    *
    * @generated from field: string address = 1;
    */
@@ -146,14 +152,22 @@ export const InitializeAdminResponseSchema: GenMessage<InitializeAdminResponse> 
 
 /**
  * The Authentication service definition
- * This service does NOT require JWT authentication (it's used to obtain JWT tokens)
+ * This service does NOT require JWT authentication (it's used to obtain JWT tokens).
+ *
+ * Both EVM (secp256k1 / EIP-712) and Solana (Ed25519) admin identities
+ * are supported. The server dispatches on address format:
+ *   - 0x-prefixed hex  → EVM, signature verified as EIP-712
+ *   - base58           → Solana, signature verified as raw Ed25519
+ * Consumers should not need to know which curve was used — the same
+ * JWT is minted either way and carries the address as an opaque string.
  *
  * @generated from service xyz.aspens.arborter_auth.v1.AuthService
  */
 export const AuthService: GenService<{
   /**
-   * Initialize the first admin (only works when no admin exists)
-   * Returns a JWT token for the newly created admin
+   * Initialize the first admin (only works when no admin exists).
+   * Accepts either an EVM (0x...) or a Solana (base58) address.
+   * Returns a JWT token for the newly created admin.
    *
    * @generated from rpc xyz.aspens.arborter_auth.v1.AuthService.InitializeAdmin
    */
@@ -163,8 +177,9 @@ export const AuthService: GenService<{
     output: typeof InitializeAdminResponseSchema;
   },
   /**
-   * Authenticate with EIP-712 signature to obtain a JWT token
-   * Only works if the address is already an admin
+   * Authenticate with a signature to obtain a JWT token. The signature
+   * scheme is chosen by the address format (see service docstring).
+   * Only works if the address is already an admin.
    *
    * @generated from rpc xyz.aspens.arborter_auth.v1.AuthService.AuthenticateWithSignature
    */
