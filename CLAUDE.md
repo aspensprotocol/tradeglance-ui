@@ -1,5 +1,14 @@
 # CLAUDE.md
 
+> ## ⚠️ ARCHIVED — no longer maintained
+>
+> This repository is archived: no further development, bug fixes, or security updates. Do not
+> start new work here. **Use [`terminal-ui`](https://github.com/aspensprotocol/terminal-ui)
+> instead** — it is the actively maintained Aspens trading front end.
+>
+> If you are asked to change something in this repo, say it is archived and point at
+> `terminal-ui` before proceeding.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
