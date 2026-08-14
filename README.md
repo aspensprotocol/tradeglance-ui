@@ -1,5 +1,16 @@
 # TradeGlance UI
 
+> ## ⚠️ ARCHIVED — no longer maintained
+>
+> This repository is archived and receives no further development, bug fixes, or security
+> updates. It is kept for historical reference only.
+>
+> **Use [`terminal-ui`](https://github.com/aspensprotocol/terminal-ui) instead** — it is the
+> actively maintained Aspens trading front end.
+>
+> The instructions below describe the archived application and are retained as-is. They may
+> reference services, contracts, and proxy setups that no longer exist.
+
 A modern React-based frontend application for the TradeGlance trading platform, built with TypeScript, Vite,
 and gRPC-Web communication via Envoy proxy.
 
